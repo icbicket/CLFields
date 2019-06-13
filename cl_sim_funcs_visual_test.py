@@ -35,8 +35,8 @@ mesh2 = np.array([[[0.5, 0.2, 0], [2, 0.2, 0], [2, 0.2, 0.5], [0.5, 0.2, 0.5]], 
 colours1 = np.array([0, 1, 2, 3, 4, 5])
 colours2 = np.array([2, 0, -1, 1, -3, -2])
 
-fig1 = cl_sim_funcs.plot_3d_fields(mesh1, colours1, cmap=cm.inferno, col_scale=[0, 1])
-fig2 = cl_sim_funcs.plot_3d_fields(mesh2, colours2, cmap=cm.Accent, col_scale=[-1, 1])
+fig1 = cl_sim_funcs.plot_3d_fields(mesh1, colours1, cmap=cm.inferno, col_scale=(0, 1))
+fig2 = cl_sim_funcs.plot_3d_fields(mesh2, colours2, cmap=cm.Accent, col_scale=(-1, 1))
 
 #fig1 = cl_sim_funcs.plot_3d_fields(mesh1, mesh2, colours1, colours2, 'test', cmap=cm.inferno, col_scale=[0, 1])
 #fig2 = cl_sim_funcs.plot_3d_fields(mesh2, mesh1, colours2, colours1, 'test', cmap=cm.Accent, col_scale=[-1, 1])
