@@ -67,7 +67,7 @@ def ar_plot(theta, phi, magnitude, lim=(0,1)):
 def cartesian_to_spherical_coords(vectors):
     r = np.sqrt(np.sum(np.square(vectors), axis=-1))
     theta = np.arctan(vectors[:, 1]/vectors[:, 2])
-    phi = np.arccos(vectors[:, 0]/r
+    phi = np.arccos(vectors[:, 0]/r)
     phi[(vectors[:, 1] > 0) * (vectors[:, 0] < 0)] += np.pi # +y, -z
     phi[(vectors[:, 1] < 0) * (vectors[:, 0] > 0)] += 2*np.pi #-y, +z
     phi[(vectors[:, 1] < 0) * (vectors[:, 0] < 0)] += np.pi # -y, -z
@@ -77,10 +77,10 @@ def cartesian_to_spherical_vector_field(theta, phi, fx, fy, fz):
     fr = (np.sin(theta) * np.cos(phi) * fx + 
        np.sin(theta) * np.sin(phi) * fy + 
        np.cos(theta) * fz)
-e_thz = (np.cos(theta) * np.cos(phi) * fx + 
+    e_thz = (np.cos(theta) * np.cos(phi) * fx + 
         np.cos(theta) * np.sin(phi) * fy - 
         np.sin(theta) * fz)
-e_phz = (-np.sin(phi) * fx + 
+    e_phz = (-np.sin(phi) * fx + 
         np.cos(phi) * fy)
 
 def degree_of_polarization(S0, S1, S2, S3):
@@ -91,7 +91,7 @@ def degree_of_polarization(S0, S1, S2, S3):
     return DoP, DoLP, DoCP, ellipticity
 
 def expand_quadrant_symmetry(mag):
-    Q1 = np.average(np.real(mag), axis=0):
+    Q1 = np.average(np.real(mag), axis=0)
     Q2 = np.flip(Q1, axis=1)[:, :-1]
     Q3 = np.flip(Q1, axis=0)[:-1, :]
     Q4 = np.flip(np.flip(Q1, axis=0), axis=1)[:-1, :-1]
@@ -106,7 +106,7 @@ def field_magnitude(f):
     return f_mag
 
 def mirror_mask(theta, phi, slit=None, orientation=0):
-    mirror = np.logical_not(ar_mask_calc(theta, phi, slit=slit, orientation=orientation)
+    mirror = np.logical_not(ar_mask_calc(theta, phi, slit=slit, orientation=orientation))
     mirror = np.expand_dims(mirror, axis=1)
     mirror = np.zeros(np.shape(mirror)).astype('bool')
     mirror_3 = np.expand_dims(mirror, axis=1)
