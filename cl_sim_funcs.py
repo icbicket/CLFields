@@ -66,11 +66,14 @@ def ar_plot(theta, phi, magnitude, lim=(0,1)):
 
 def cartesian_to_spherical_coords(vectors):
     r = np.sqrt(np.sum(np.square(vectors), axis=-1))
-    theta = np.arctan(vectors[:, 1]/vectors[:, 2])
-    phi = np.arccos(vectors[:, 0]/r)
+    theta = np.arctan(np.sqrt(np.square(vectors[:, 0]) + np.square(vectors[:, 1]))/vectors[:, 2])
+    phi = np.arctan(vectors[:, 1]/vectors[:, 0])
+#    theta = np.arctan(vectors[:, 1]/vectors[:, 2])
+#    phi = np.arccos(vectors[:, 0]/r)
     phi[(vectors[:, 1] > 0) * (vectors[:, 0] < 0)] += np.pi # +y, -z
-    phi[(vectors[:, 1] < 0) * (vectors[:, 0] > 0)] += 2*np.pi #-y, +z
+    phi[(vectors[:, 1] < 0) * (vectors[:, 0] >= 0)] += 2*np.pi # -y, +z
     phi[(vectors[:, 1] < 0) * (vectors[:, 0] < 0)] += np.pi # -y, -z
+    theta[theta<0] += np.pi
     return r, theta, phi
 
 def cartesian_to_spherical_vector_field(theta, phi, fx, fy, fz):
@@ -90,14 +93,39 @@ def degree_of_polarization(S0, S1, S2, S3):
     ellipticity = S3/(S0 + np.sqrt(np.square(S1) + np.square(S2)))
     return DoP, DoLP, DoCP, ellipticity
 
-def expand_quadrant_symmetry(mag):
-    Q1 = np.average(np.real(mag), axis=0)
-    Q2 = np.flip(Q1, axis=1)[:, :-1]
-    Q3 = np.flip(Q1, axis=0)[:-1, :]
-    Q4 = np.flip(np.flip(Q1, axis=0), axis=1)[:-1, :-1]
-    Q12 = np.append(Q2, Q1, axis=1)
-    Q34 = np.append(Q4, Q3, axis=1)
-    total = np.append(Q34, Q12, axis=0)
+def expand_quadrant_symmetry(mag, quadrant_num):
+    '''
+    Uses symmetry to turn an array representing values in one quadrant of an
+    image into values for a whole image/array
+    quadrant_num = 1, 2, 3 ,4
+    quadrants: 1  2
+               3  4
+    assumes image should be reflected around two axes, removing double rows/columns of pixels caused by reflection
+    '''
+    if quadrant_num == 1:
+        Q1 = mag
+        Q2 = np.flip(Q1, axis = 1)[:, 1:]
+        Q3 = np.flip(Q1, axis = 0)[1:, :]
+        Q4 = np.flip(np.flip(Q1, axis = 1), axis=0)[1:, 1:]
+    elif quadrant_num == 2:
+        Q2 = mag
+        Q1 = np.flip(Q2, axis = 1)[:, :-1]
+        Q4 = np.flip(Q2, axis = 0)[1:, :]
+        Q3 = np.flip(np.flip(Q2, axis=1), axis=0)[1:, :-1]
+    elif quadrant_num == 3:
+        Q3 = mag
+        Q4 = np.flip(Q3, axis=1)[:, 1:]
+        Q1 = np.flip(Q3, axis=0)[:-1, :]
+        Q2 = np.flip(np.flip(Q3, axis=1), axis=0)[:-1, 1:]
+    elif quadrant_num == 4:
+        Q4 = mag
+        Q3 = np.flip(Q4, axis=1)[:, :-1]
+        Q2 = np.flip(Q4, axis = 0)[:-1, :]
+        Q1 = np.flip(np.flip(Q4, axis=1), axis=0)[:-1, :-1]
+    
+    Q12 = np.append(Q1, Q2, axis=1)
+    Q34 = np.append(Q3, Q4, axis=1)
+    total = np.append(Q12, Q34, axis=0)
     return total
 
 def field_magnitude(f):
@@ -120,13 +148,13 @@ def norm_colours(values, lims=(-1,1)):
     if type(lims) != tuple:
         raise ValueError("Colour limits were not a valid tuple")
     if lims==(-1, 1):
-        colours = (values/maxcol + 1)/2
+        colours = (values)/(2 * np.max(np.abs(values))) + 0.5
         abs_max = np.max(np.abs(values))
         col_min = -abs_max
         col_max = abs_max
     else:
-        colours = values/maxcol
-        col_min = 0
+        colours = (values - np.min(values))/(np.max(values)-np.min(values))
+        col_min = np.min(values)
         col_max = np.max(np.abs(values))
     return colours, col_min, col_max
 
