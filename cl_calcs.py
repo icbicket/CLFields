@@ -1,9 +1,4 @@
 import numpy as np
-import matplotlib.pyplot as plt
-import os
-from mpl_toolkits import mplot3d
-from matplotlib import cm
-import matplotlib as mpl
 
 def ar_mask_calc(theta, phi, holein=True, slit=None, orientation=0):
     

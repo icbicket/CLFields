@@ -1,4 +1,4 @@
-import cl_sim_funcs
+import cl_calcs
 import unittest
 import numpy as np
 

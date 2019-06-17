@@ -1,6 +1,4 @@
 import numpy as np
-import matplotlib.pyplot as plt
-import os
 
 def cartesian_to_spherical_coords(vectors):
     r = np.sqrt(np.sum(np.square(vectors), axis=-1))

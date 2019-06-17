@@ -2,7 +2,6 @@ import cl_plot
 import unittest
 import numpy as np
 
-
 class NormColoursTest(unittest.TestCase):
     '''
     for each of (0,1) and (-1,1):
