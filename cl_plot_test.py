@@ -1,4 +1,5 @@
 import cl_plot
+import cl_calcs as cl
 import unittest
 import numpy as np
 
@@ -20,7 +21,7 @@ class NormColoursTest(unittest.TestCase):
         '''
         colours = np.arange(5)
         lims = (0, 1)
-        normed, _, _ = cl_sim_funcs.norm_colours(colours, lims)
+        normed, _, _ = cl_plot.norm_colours(colours, lims)
         expected_norm = np.linspace(0, 5, 5)/5
         np.testing.assert_array_almost_equal(normed, expected_norm)
 
@@ -31,7 +32,7 @@ class NormColoursTest(unittest.TestCase):
         '''
         colours = np.arange(5)
         lims = (-1, 1)
-        normed, _, _ = cl_sim_funcs.norm_colours(colours, lims)
+        normed, _, _ = cl_plot.norm_colours(colours, lims)
         expected_norm = np.linspace(5, 10, 5)/10
         np.testing.assert_array_almost_equal(normed, expected_norm)
 
@@ -42,7 +43,7 @@ class NormColoursTest(unittest.TestCase):
         '''
         colours = - np.arange(5)
         lims = (0, 1)
-        normed, _, _ = cl_sim_funcs.norm_colours(colours, lims)
+        normed, _, _ = cl_plot.norm_colours(colours, lims)
         expected_norm = np.flip(np.linspace(0, 5, 5)/5)
         np.testing.assert_array_almost_equal(normed, expected_norm)
     
@@ -53,7 +54,7 @@ class NormColoursTest(unittest.TestCase):
         '''
         colours = -np.flip(np.arange(5))
         lims = (-1,1)
-        normed, _, _ = cl_sim_funcs.norm_colours(colours, lims)
+        normed, _, _ = cl_plot.norm_colours(colours, lims)
         expected_norm = np.linspace(0, 5, 5)/10
         np.testing.assert_array_almost_equal(normed, expected_norm)
         
@@ -64,7 +65,7 @@ class NormColoursTest(unittest.TestCase):
         '''
         colours = np.arange(-10, -5)
         lims = (0,1)
-        normed, _, _ = cl_sim_funcs.norm_colours(colours, lims)
+        normed, _, _ = cl_plot.norm_colours(colours, lims)
         expected_norm = np.linspace(0, 5, 5)/5
         np.testing.assert_array_almost_equal(normed, expected_norm)
 
@@ -75,7 +76,7 @@ class NormColoursTest(unittest.TestCase):
         '''
         colours = np.arange(-10, -5)
         lims = (-1,1)
-        normed, _, _ = cl_sim_funcs.norm_colours(colours, lims)
+        normed, _, _ = cl_plot.norm_colours(colours, lims)
         expected_norm = np.arange(-10, -5)/20 + 0.5
         np.testing.assert_array_almost_equal(normed, expected_norm)
     
@@ -86,7 +87,7 @@ class NormColoursTest(unittest.TestCase):
         '''
         colours = np.arange(5, 10)
         lims = (0, 1)
-        normed, _, _ = cl_sim_funcs.norm_colours(colours, lims)
+        normed, _, _ = cl_plot.norm_colours(colours, lims)
         expected_norm = np.linspace(0, 5, 5)/5
         np.testing.assert_array_almost_equal(normed, expected_norm)
         
@@ -97,7 +98,7 @@ class NormColoursTest(unittest.TestCase):
         '''
         colours = np.arange(5, 10)
         lims = (-1, 1)
-        normed, _, _ = cl_sim_funcs.norm_colours(colours, lims)
+        normed, _, _ = cl_plot.norm_colours(colours, lims)
         expected_norm = np.arange(5, 10)/18+0.5
         np.testing.assert_array_almost_equal(normed, expected_norm)
         
@@ -108,7 +109,7 @@ class NormColoursTest(unittest.TestCase):
         '''
         colours = np.arange(-2, 4)
         lims = (0, 1)
-        normed, _, _ = cl_sim_funcs.norm_colours(colours, lims)
+        normed, _, _ = cl_plot.norm_colours(colours, lims)
         expected_norm = np.linspace(0, 1, 6)
         np.testing.assert_array_almost_equal(normed, expected_norm)
         
@@ -119,7 +120,7 @@ class NormColoursTest(unittest.TestCase):
         '''
         colours = np.arange(-2, 4)
         lims = (-1, 1)
-        normed, _, _ = cl_sim_funcs.norm_colours(colours, lims)
+        normed, _, _ = cl_plot.norm_colours(colours, lims)
         expected_norm = np.linspace(0, 1, 7)[1:]
         np.testing.assert_array_almost_equal(normed, expected_norm)
 
@@ -130,7 +131,7 @@ class NormColoursTest(unittest.TestCase):
         '''
         colours = np.arange(-4, 2)
         lims = (0, 1)
-        normed, _, _ = cl_sim_funcs.norm_colours(colours, lims)
+        normed, _, _ = cl_plot.norm_colours(colours, lims)
         expected_norm = np.linspace(0, 1, 6)
         np.testing.assert_array_almost_equal(normed, expected_norm)
         
@@ -141,7 +142,7 @@ class NormColoursTest(unittest.TestCase):
         '''
         colours = np.arange(-4, 2)
         lims = (-1, 1)
-        normed, _, _ = cl_sim_funcs.norm_colours(colours, lims)
+        normed, _, _ = cl_plot.norm_colours(colours, lims)
         expected_norm = np.linspace(0, 1, 9)[:-3]
         np.testing.assert_array_almost_equal(normed, expected_norm)
 

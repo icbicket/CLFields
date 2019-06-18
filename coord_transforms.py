@@ -1,6 +1,9 @@
 import numpy as np
 
 def cartesian_to_spherical_coords(vectors):
+    '''
+    N by 3 vectors of (x, y, z)
+    '''
     r = np.sqrt(np.sum(np.square(vectors), axis=-1))
     theta = np.arctan(np.sqrt(np.square(vectors[:, 0]) + np.square(vectors[:, 1]))/vectors[:, 2])
     phi = np.arctan(vectors[:, 1]/vectors[:, 0])
@@ -13,18 +16,19 @@ def cartesian_to_spherical_coords(vectors):
     return r, theta, phi
 
 def cartesian_to_spherical_vector_field(theta, phi, fx, fy, fz):
-    fr = (np.sin(theta) * np.cos(phi) * fx + 
-       np.sin(theta) * np.sin(phi) * fy + 
-       np.cos(theta) * fz)
-    e_thz = (np.cos(theta) * np.cos(phi) * fx + 
+#    fr = (np.sin(theta) * np.cos(phi) * fx + 
+#       np.sin(theta) * np.sin(phi) * fy + 
+#       np.cos(theta) * fz)
+    e_th = (np.cos(theta) * np.cos(phi) * fx + 
         np.cos(theta) * np.sin(phi) * fy - 
         np.sin(theta) * fz)
-    e_phz = (-np.sin(phi) * fx + 
+    e_ph = (-np.sin(phi) * fx + 
         np.cos(phi) * fy)
+    return e_th, e_ph
 
 def field_magnitude(f):
     f_mag = np.sqrt(np.sum(f * np.conj(f), axis=-1))
-    f_mag = np.real(f)
+    f_mag = np.real(f_mag)
     return f_mag
 
 def expand_quadrant_symmetry(mag, quadrant_num):

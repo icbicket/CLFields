@@ -16,7 +16,7 @@ class QuadrantSymmetryTest(unittest.TestCase):
         '''
         array = np.array([[0, 1], [2, 3]])
         arrayfull = np.array([[0, 1, 0], [2, 3, 2], [0, 1, 0]])
-        testarray = cl_sim_funcs.expand_quadrant_symmetry(array, 1)
+        testarray = coord_transforms.expand_quadrant_symmetry(array, 1)
         np.testing.assert_array_almost_equal(arrayfull, testarray)
 
     def testQuadrant2x2ArrayQ2(self):
@@ -26,7 +26,7 @@ class QuadrantSymmetryTest(unittest.TestCase):
         '''
         array = np.array([[0, 1], [2, 3]])
         arrayfull = np.array([[1, 0, 1], [3, 2, 3], [1, 0, 1]])
-        testarray = cl_sim_funcs.expand_quadrant_symmetry(array, 2)
+        testarray = coord_transforms.expand_quadrant_symmetry(array, 2)
         np.testing.assert_array_almost_equal(arrayfull, testarray)
 
     def testQuadrant2x2ArrayQ3(self):
@@ -36,7 +36,7 @@ class QuadrantSymmetryTest(unittest.TestCase):
         '''
         array = np.array([[0, 1], [2, 3]])
         arrayfull = np.array([[2, 3, 2], [0, 1, 0], [2, 3, 2]])
-        testarray = cl_sim_funcs.expand_quadrant_symmetry(array, 3)
+        testarray = coord_transforms.expand_quadrant_symmetry(array, 3)
         np.testing.assert_array_almost_equal(arrayfull, testarray)
 
     def testQuadrant2x2ArrayQ2(self):
@@ -46,7 +46,7 @@ class QuadrantSymmetryTest(unittest.TestCase):
         '''
         array = np.array([[0, 1], [2, 3]])
         arrayfull = np.array([[3, 2, 3], [1, 0, 1], [3, 2, 3]])
-        testarray = cl_sim_funcs.expand_quadrant_symmetry(array, 4)
+        testarray = coord_transforms.expand_quadrant_symmetry(array, 4)
         np.testing.assert_array_almost_equal(arrayfull, testarray)
 
     def testQuadrant3x3ArrayQ1(self):
@@ -61,7 +61,7 @@ class QuadrantSymmetryTest(unittest.TestCase):
                             [6, 7, 8, 7, 6],
                             [3, 4, 5, 4, 3],
                             [0, 1, 2, 1, 0]])
-        testarray = cl_sim_funcs.expand_quadrant_symmetry(array, 1)
+        testarray = coord_transforms.expand_quadrant_symmetry(array, 1)
         np.testing.assert_array_almost_equal(arrayfull, testarray)
 
     def testQuadrant3x3ArrayQ2(self):
@@ -76,7 +76,7 @@ class QuadrantSymmetryTest(unittest.TestCase):
                             [8, 7, 6, 7, 8],
                             [5, 4, 3, 4, 5],
                             [2, 1, 0, 1, 2]])
-        testarray = cl_sim_funcs.expand_quadrant_symmetry(array, 2)
+        testarray = coord_transforms.expand_quadrant_symmetry(array, 2)
         np.testing.assert_array_almost_equal(arrayfull, testarray)
 
     def testQuadrant3x3ArrayQ3(self):
@@ -91,7 +91,7 @@ class QuadrantSymmetryTest(unittest.TestCase):
                             [0, 1, 2, 1, 0],
                             [3, 4, 5, 4, 3],
                             [6, 7, 8, 7, 6]])
-        testarray = cl_sim_funcs.expand_quadrant_symmetry(array, 3)
+        testarray = coord_transforms.expand_quadrant_symmetry(array, 3)
         np.testing.assert_array_almost_equal(arrayfull, testarray)
 
     def testQuadrant3x3ArrayQ2(self):
@@ -106,7 +106,7 @@ class QuadrantSymmetryTest(unittest.TestCase):
                             [2, 1, 0, 1, 2],
                             [5, 4, 3, 4, 5],
                             [8, 7, 6, 7, 8]])
-        testarray = cl_sim_funcs.expand_quadrant_symmetry(array, 4)
+        testarray = coord_transforms.expand_quadrant_symmetry(array, 4)
         np.testing.assert_array_almost_equal(arrayfull, testarray)
 
 class CartesianSphericalCoordinateTransformTest(unittest.TestCase):
@@ -118,7 +118,7 @@ class CartesianSphericalCoordinateTransformTest(unittest.TestCase):
         single element xyz vector
         '''
         xyz = np.array([[0, 1, 0]])
-        r, theta, phi = cl_sim_funcs.cartesian_to_spherical_coords(xyz)
+        r, theta, phi = coord_transforms.cartesian_to_spherical_coords(xyz)
         rthph = np.array([[1], [np.pi/2], [np.pi/2]])
         np.testing.assert_array_almost_equal(np.array([r, theta, phi]), rthph)
 
@@ -135,7 +135,7 @@ class CartesianSphericalCoordinateTransformTest(unittest.TestCase):
                     [0, -1, 1],
                     [0, -1, -1]
                     ])
-        r, theta, phi = cl_sim_funcs.cartesian_to_spherical_coords(xyz)
+        r, theta, phi = coord_transforms.cartesian_to_spherical_coords(xyz)
         rthph = np.array([
                     [np.sqrt(2), np.pi/2, np.pi/4],
                     [np.sqrt(2), np.pi/2, 7*np.pi/4],
