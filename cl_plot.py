@@ -66,7 +66,7 @@ def plot_3d_fields(mesh, colour, ax=None, cmap=cm.seismic, col_scale=(-1,1)):
     plt.show()
     return fig
 
-def ar_plot(theta, phi, magnitude, lim=(0,1)):
+def ar_plot(theta, phi, magnitude, lim=(0,1), **kwargs):
     fig = plt.figure()
     ax = fig.add_subplot(111, projection='polar')
     scatterplot = ax.scatter(
@@ -75,7 +75,7 @@ def ar_plot(theta, phi, magnitude, lim=(0,1)):
         c = np.real(magnitude),
         s=100,
         vmin=lim[0],
-        vmax=lim[1])
+        vmax=lim[1], **kwargs)
     ax.set_rmax(90)
     ax.set_theta_zero_location('N')
     plt.colorbar(scatterplot, ax=ax)

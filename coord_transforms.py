@@ -6,7 +6,8 @@ def cartesian_to_spherical_coords(vectors):
     '''
     r = np.sqrt(np.sum(np.square(vectors), axis=-1))
     theta = np.arctan(np.sqrt(np.square(vectors[:, 0]) + np.square(vectors[:, 1]))/vectors[:, 2])
-    phi = np.arctan(vectors[:, 1]/vectors[:, 0])
+    phi = np.zeros(np.size(vectors[:, 0]))
+    phi[vectors[:, 0] != 0] = np.arctan(vectors[:, 1][vectors[:, 0] != 0]/vectors[:, 0][vectors[:, 0] !=0])
 #    theta = np.arctan(vectors[:, 1]/vectors[:, 2])
 #    phi = np.arccos(vectors[:, 0]/r)
     phi[(vectors[:, 1] > 0) * (vectors[:, 0] < 0)] += np.pi # +y, -z
@@ -15,16 +16,36 @@ def cartesian_to_spherical_coords(vectors):
     theta[theta<0] += np.pi
     return r, theta, phi
 
+def spherical_to_cartesian_coords(vectors):
+    '''
+    N by 3 vectors of (r, theta, phi)
+    '''
+    x = vectors[:, 0] * np.sin(vectors[:, 1]) * np.cos(vectors[:, 2])
+    y = vectors[:, 0] * np.sin(vectors[:, 1]) * np.sin(vectors[:, 2])
+    z = vectors[:, 0] * np.cos(vectors[:, 1])
+    return x, y, z
+
 def cartesian_to_spherical_vector_field(theta, phi, fx, fy, fz):
-#    fr = (np.sin(theta) * np.cos(phi) * fx + 
-#       np.sin(theta) * np.sin(phi) * fy + 
-#       np.cos(theta) * fz)
-    e_th = (np.cos(theta) * np.cos(phi) * fx + 
+    f_r = (np.sin(theta) * np.cos(phi) * fx + 
+       np.sin(theta) * np.sin(phi) * fy + 
+       np.cos(theta) * fz)
+    f_th = (np.cos(theta) * np.cos(phi) * fx + 
         np.cos(theta) * np.sin(phi) * fy - 
         np.sin(theta) * fz)
-    e_ph = (-np.sin(phi) * fx + 
+    f_ph = (-np.sin(phi) * fx + 
         np.cos(phi) * fy)
-    return e_th, e_ph
+    return f_r, f_th, f_ph
+
+def spherical_to_cartesian_vector_field(theta, phi, f_r, f_th, f_ph):
+    f_x = (np.sin(theta) * np.cos(phi) * f_r + 
+           np.cos(theta) * np.cos(phi) * f_th - 
+           np.sin(phi) * f_ph)
+    f_y = (np.sin(theta) * np.sin(phi) * f_r + 
+           np.cos(theta) * np.sin(phi) * f_th +
+           np.cos(phi) * f_ph)
+    f_z = (np.cos(theta) * f_r - 
+           np.sin(theta) * f_th)
+    return f_x, f_y, f_z
 
 def field_magnitude(f):
     f_mag = np.sqrt(np.sum(f * np.conj(f), axis=-1))
