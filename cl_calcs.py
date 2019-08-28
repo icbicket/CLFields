@@ -71,7 +71,7 @@ def stokes_parameters(E_theta, E_phi):
     S0 = np.real(E_theta * np.conj(E_theta) + E_phi * np.conj(E_phi))
     S1 = np.real(E_theta * np.conj(E_theta) - E_phi * np.conj(E_phi))
     S2 = np.real(-(E_theta * np.conj(E_phi)) - (E_phi * np.conj(E_theta)))
-    S3 = np.real(1j * (E_phi * np.conj(E_theta) - 1j * E_theta * np.conj(E_phi)))
+    S3 = np.real(-1j * (E_phi * np.conj(E_theta) - 1j * E_theta * np.conj(E_phi)))
 #    S2 = 2 * np.real(E_theta * np.conj(E_phi))
 #    S3 = -2 * np.imag(E_theta * np.conj(E_phi))
     return S0, S1, S2, S3
