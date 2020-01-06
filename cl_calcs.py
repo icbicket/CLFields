@@ -53,10 +53,14 @@ def ar_mask_calc(theta, phi, holein=True, slit=None, orientation=0):
     return np.logical_not(mask)
 
 def degree_of_polarization(S0, S1, S2, S3):
-    DoP = np.sqrt(np.square(S1) + np.square(S2) + np.square(S3))/S0
-    DoLP = np.sqrt(np.square(S1) + np.square(S2))/S0
-    DoCP = S3/S0
-    ellipticity = S3/(S0 + np.sqrt(np.square(S1) + np.square(S2)))
+    DoP = np.zeros(np.shape(S0))
+    DoLP = np.zeros(np.shape(S0))
+    DoCP = np.zeros(np.shape(S0))
+    ellipticity = np.zeros(np.shape(S0))
+    DoP[S0 != 0] = np.sqrt(np.square(S1[S0 != 0]) + np.square(S2[S0 != 0]) + np.square(S3[S0 != 0]))/S0[S0 != 0]
+    DoLP[S0 != 0] = np.sqrt(np.square(S1[S0 != 0]) + np.square(S2[S0 != 0]))/S0[S0 != 0]
+    DoCP[S0 != 0] = S3[S0 != 0]/S0[S0 != 0]
+    ellipticity[S0 != 0] = S3[S0 != 0]/(S0[S0 != 0] + np.sqrt(np.square(S1[S0 != 0]) + np.square(S2[S0 != 0])))
     return DoP, DoLP, DoCP, ellipticity
 
 def mirror_mask3d(theta, phi, **kwargs):
@@ -71,7 +75,17 @@ def stokes_parameters(E_theta, E_phi):
     S0 = np.real(E_theta * np.conj(E_theta) + E_phi * np.conj(E_phi))
     S1 = np.real(E_theta * np.conj(E_theta) - E_phi * np.conj(E_phi))
     S2 = np.real(-(E_theta * np.conj(E_phi)) - (E_phi * np.conj(E_theta)))
-    S3 = np.real(-1j * (E_phi * np.conj(E_theta) - 1j * E_theta * np.conj(E_phi)))
+#    S3 = np.real(-1j * (E_phi * np.conj(E_theta) - 1j * E_theta * np.conj(E_phi)))
+    S3 = np.real(-1j * (E_theta * np.conj(E_phi) - E_phi * np.conj(E_theta)))
 #    S2 = 2 * np.real(E_theta * np.conj(E_phi))
 #    S3 = -2 * np.imag(E_theta * np.conj(E_phi))
     return S0, S1, S2, S3
+
+def normalize_stokes_parameters(S0, S1, S2, S3):
+    s1 = np.zeros(np.shape(S1))
+    s2 = np.zeros(np.shape(S2))
+    s3 = np.zeros(np.shape(S3))
+    s1[S0 != 0] = S1[S0 != 0]/S0[S0 != 0]
+    s2[S0 != 0] = S2[S0 != 0]/S0[S0 != 0]
+    s3[S0 != 0] = S3[S0 != 0]/S0[S0 != 0]
+    return s1, s2, s3

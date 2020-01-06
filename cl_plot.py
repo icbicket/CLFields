@@ -66,17 +66,41 @@ def plot_3d_fields(mesh, colour, ax=None, cmap=cm.seismic, col_scale=(-1,1)):
     plt.show()
     return fig
 
-def ar_plot(theta, phi, magnitude, lim=(0,1), **kwargs):
+def ar_plot(theta, phi, magnitude, **kwargs):
     fig = plt.figure()
     ax = fig.add_subplot(111, projection='polar')
     scatterplot = ax.scatter(
         phi, 
         np.degrees(theta),
         c = np.real(magnitude),
-        s=100,
-        vmin=lim[0],
-        vmax=lim[1], **kwargs)
+        **kwargs)
     ax.set_rmax(90)
     ax.set_theta_zero_location('N')
+    ax.set_theta_direction(-1)
     plt.colorbar(scatterplot, ax=ax)
     return fig
+
+def format_AR_plot(fig, savename):
+    ax = plt.gca()
+    ax.set_position([0.1, 0, 0.8, 1])
+    ax.set_facecolor('k')
+    ax.tick_params(
+        axis='y', 
+        grid_color=[0.7, 0.7, 0.7], 
+        labelsize=5, 
+        grid_linewidth=0.25
+        )
+    ax.tick_params(
+        axis='x', 
+        colors='k', 
+        grid_color=[0.7, 0.7, 0.7], 
+        labelsize=5, 
+        grid_linewidth=0.25, 
+        pad=-4
+        )
+    ax.spines['polar'].set_color([0.7, 0.7, 0.7])
+    ax.get_yaxis().set_ticklabels([])
+    ax.get_yaxis().set_ticks([0, 15, 30, 45, 60, 75, 90])
+    fig.axes[-1].remove()
+    fig.set_size_inches(1.2, 1.2)
+    plt.savefig(savename + '.png', dpi=300, transparent=True, bbox_inches='tight', pad_inches=0)
