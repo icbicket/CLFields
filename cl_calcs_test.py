@@ -18,7 +18,7 @@ class StokesParametersTest(unittest.TestCase):
     def test_stokes_circular_polarized(self):
         E1 = 1 + 1j
         E2 = 1 - 1j
-        stokes = np.array([4, 0, 0, -4])
+        stokes = np.array([4, 0, 0, 4])
         S0, S1, S2, S3 = cl_calcs.stokes_parameters(E1, E2)
         S_calc = np.array([S0, S1, S2, S3])
         np.testing.assert_array_equal(stokes, S_calc)
@@ -26,7 +26,7 @@ class StokesParametersTest(unittest.TestCase):
     def test_stokes_angle_polarized(self):
         E1 = 1 + 1j
         E2 = 1 - 0j
-        stokes = np.array([3, 1, 2, -2])
+        stokes = np.array([3, 1, -2, 2])
         S0, S1, S2, S3 = cl_calcs.stokes_parameters(E1, E2)
         S_calc = np.array([S0, S1, S2, S3])
         np.testing.assert_array_equal(stokes, S_calc)

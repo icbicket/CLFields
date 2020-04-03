@@ -1,5 +1,23 @@
 import numpy as np
 
+def polar_to_cartesion(r, phi):
+    '''
+    Two 1D vectors of polar r (radial) and phi (angular) coordinates
+    Function returns the Cartesian vectors
+    '''
+    x = r * np.cos(phi)
+    y = r * np.sin(phi)
+    return x, y
+
+def cartesian_to_polar(x, y):
+    '''
+    Two 1d vectors of cartesian x and y coordinates
+    Function converts them to polar coordinates r and phi
+    '''
+    r = np.sqrt(np.square(x) + np.square(y))
+    phi = np.arctan2(y, x)
+    return r, phi
+
 def cartesian_to_spherical_coords(vectors):
     '''
     N by 3 vectors of (x, y, z)
@@ -13,6 +31,9 @@ def cartesian_to_spherical_coords(vectors):
     phi[(vectors[:, 1] > 0) * (vectors[:, 0] < 0)] += np.pi # +y, -z
     phi[(vectors[:, 1] < 0) * (vectors[:, 0] >= 0)] += 2*np.pi # -y, +z
     phi[(vectors[:, 1] < 0) * (vectors[:, 0] < 0)] += np.pi # -y, -z
+    phi[(vectors[:, 1] > 0) * (vectors[:, 0] == 0)] = np.pi/2
+    phi[(vectors[:, 1] < 0) * (vectors[:, 0] == 0)] = 3*np.pi/2
+    phi[(vectors[:, 1] == 0) * (vectors[:, 0] <= 0)] = np.pi
     theta[theta<0] += np.pi
     return r, theta, phi
 
@@ -47,8 +68,8 @@ def spherical_to_cartesian_vector_field(theta, phi, f_r, f_th, f_ph):
            np.sin(theta) * f_th)
     return f_x, f_y, f_z
 
-def field_magnitude(f):
-    f_mag = np.sqrt(np.sum(f * np.conj(f), axis=-1))
+def field_magnitude(f, axis=-1):
+    f_mag = np.sqrt(np.sum(f * np.conj(f), axis=axis))
     f_mag = np.real(f_mag)
     return f_mag
 

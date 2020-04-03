@@ -76,7 +76,7 @@ def ar_plot(theta, phi, magnitude, **kwargs):
         **kwargs)
     ax.set_rmax(90)
     ax.set_theta_zero_location('N')
-    ax.set_theta_direction(-1)
+    ax.set_theta_direction(1)
     plt.colorbar(scatterplot, ax=ax)
     return fig
 

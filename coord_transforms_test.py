@@ -39,7 +39,7 @@ class QuadrantSymmetryTest(unittest.TestCase):
         testarray = coord_transforms.expand_quadrant_symmetry(array, 3)
         np.testing.assert_array_almost_equal(arrayfull, testarray)
 
-    def testQuadrant2x2ArrayQ2(self):
+    def testQuadrant2x2ArrayQ4(self):
         '''
         2x2 array symmetrizes properly
         input quadrant 4
@@ -94,7 +94,7 @@ class QuadrantSymmetryTest(unittest.TestCase):
         testarray = coord_transforms.expand_quadrant_symmetry(array, 3)
         np.testing.assert_array_almost_equal(arrayfull, testarray)
 
-    def testQuadrant3x3ArrayQ2(self):
+    def testQuadrant3x3ArrayQ4(self):
         '''
         3x3 array symmetrizes properly
         input quadrant 4
@@ -122,7 +122,7 @@ class CartesianSphericalCoordinateTransformTest(unittest.TestCase):
         rthph = np.array([[1], [np.pi/2], [np.pi/2]])
         np.testing.assert_array_almost_equal(np.array([r, theta, phi]), rthph)
 
-    def test010(self):
+    def testmulti(self):
         '''
         multi-element xyz vectors
         '''
@@ -141,10 +141,10 @@ class CartesianSphericalCoordinateTransformTest(unittest.TestCase):
                     [np.sqrt(2), np.pi/2, 7*np.pi/4],
                     [np.sqrt(2), np.pi/2, 3*np.pi/4],
                     [np.sqrt(2), np.pi/4, np.pi/2],
-                    [np.sqrt(2), 3*np.pi/2, np.pi/2],
-                    [np.sqrt(2), np.pi/2, np.pi/2],
-                    [np.sqrt(2), 3*np.pi/2, np.pi/2]
-                        ])
+                    [np.sqrt(2), 3*np.pi/4, np.pi/2],
+                    [np.sqrt(2), np.pi/4, 3*np.pi/2],
+                    [np.sqrt(2), 3*np.pi/4, 3*np.pi/2]
+                        ]);
         np.testing.assert_array_almost_equal(np.transpose(np.array([r, theta, phi])), rthph)
 
 if __name__ == '__main__':
