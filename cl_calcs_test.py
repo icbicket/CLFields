@@ -26,18 +26,18 @@ class StokesParametersTest(unittest.TestCase):
     def test_stokes_angle_polarized(self):
         E1 = 1 + 1j
         E2 = 1 - 0j
-        stokes = np.array([3, 1, -2, 2])
+        stokes = np.array([3, 1, 2, 2])
         S0, S1, S2, S3 = cl_calcs.stokes_parameters(E1, E2)
         S_calc = np.array([S0, S1, S2, S3])
         np.testing.assert_array_equal(stokes, S_calc)
 
 class DoPTest(unittest.TestCase):
     def test_pol(self):
-        S0 = 3
-        S1 = 1
-        S2 = 2
-        S3 = -2
-        dop = np.array([1, np.sqrt(5)/S0, -2/3, -2/(3+np.sqrt(5))])
+        S0 = np.array([3,])
+        S1 = np.array([1,])
+        S2 = np.array([2,])
+        S3 = np.array([-2,])
+        dop = np.transpose(np.array([[1, np.sqrt(5)/S0[0], -2/3, -2/(3+np.sqrt(5))]]))
         DoP, DoLP, DoCP, ell = cl_calcs.degree_of_polarization(S0, S1, S2, S3)
         dop_calc = np.array([DoP, DoLP, DoCP, ell])
         np.testing.assert_array_almost_equal(dop, dop_calc)
