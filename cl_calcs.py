@@ -35,7 +35,7 @@ def ar_mask_calc(theta, phi, holein=True, slit=None, orientation=0):
     z = np.cos(theta)*c
     x = np.sin(theta)*np.cos(phi)*c#-1/(4.*a)
     y = np.sin(theta)*np.sin(phi)*c
-
+    
     condition = (-x > xcut) | (z < dfoc)
     if slit is not None:
         ycut = slit/2.

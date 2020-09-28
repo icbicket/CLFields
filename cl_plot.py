@@ -92,7 +92,7 @@ def format_AR_plot(fig, savename):
         )
     ax.tick_params(
         axis='x', 
-        colors='k', 
+        #colors='w', 
         grid_color=[0.7, 0.7, 0.7], 
         labelsize=5, 
         grid_linewidth=0.25, 
