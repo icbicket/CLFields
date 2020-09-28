@@ -1,6 +1,6 @@
 import numpy as np
 
-def ar_mask_calc(theta, phi, holein=True, slit=None, orientation=0):
+def ar_mask_calc(theta, phi, holein=True, slit=None, slit_center=0, orientation=0):
     '''
     Define a mask representing the mirror used in SEM-CL system at AMOLF
     x and y axes are exchanged relative to the normal spherical coordinate convention (is it normal?)
@@ -38,8 +38,10 @@ def ar_mask_calc(theta, phi, holein=True, slit=None, orientation=0):
     
     condition = (-x > xcut) | (z < dfoc)
     if slit is not None:
-        ycut = slit/2.
-        condition = (condition | (np.abs(y) > ycut))
+        ycut_positive = slit_center + slit/2.
+        ycut_negative = slit_center - slit/2.
+        condition = (condition | (y > ycut_positive))
+        condition = (condition | (y < ycut_negative))
     else:
         pass
 
@@ -72,7 +74,7 @@ def mirror_mask3d(theta, phi, **kwargs):
     mirror_3 = np.repeat(mirror_3, 3, axis=2)
     return mirror_3
 
-def mirror_outline(holein=True, slit=3, orientation=0 ):
+def mirror_outline(holein=True, slit=3, slit_center=0, orientation=0 ):
     '''
     provide the coordinates for an outline of the mirror and slit combination
     '''
@@ -86,7 +88,7 @@ def mirror_outline(holein=True, slit=3, orientation=0 ):
     phi_patch = np.linspace(0, 2*np.pi, 1000)
     theta_mesh, phi_mesh = np.meshgrid(theta_patch, phi_patch)
 
-    mirror4patch = np.invert(ar_mask_calc(theta_mesh, phi_mesh, holein=holein, slit=slit, orientation=orientation))
+    mirror4patch = np.invert(ar_mask_calc(theta_mesh, phi_mesh, holein=holein, slit=slit, slit_center=slit_center, orientation=orientation))
     theta_mesh *= mirror4patch
     phi_mesh *= mirror4patch
     
