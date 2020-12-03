@@ -20,7 +20,7 @@ def cartesian_to_polar(x, y):
 
 def cartesian_to_spherical_coords(vectors):
     '''
-    N by 3 vectors of (x, y, z)
+    N by 3 vectors of (x, y, z) are converted to spherical coordinates
     '''
     r = np.sqrt(np.sum(np.square(vectors), axis=-1))
     theta = np.arctan(np.sqrt(np.square(vectors[:, 0]) + np.square(vectors[:, 1]))/vectors[:, 2])
@@ -72,6 +72,37 @@ def field_magnitude(f, axis=-1):
     f_mag = np.sqrt(np.sum(f * np.conj(f), axis=axis))
     f_mag = np.real(f_mag)
     return f_mag
+
+def rotate_vector(xyz, angle, rotation_axis):
+    '''
+    xyz: a vectors to be rotated, length 3
+    angle: the angle by which to rotate xyz, in radians
+    rotation_axis: the axis around which to rotate xyz of length 3
+    '''
+    if np.count_nonzero(xyz) == 0:
+        raise ValueError('Input vector is the null vector')
+    term1_rot = xyz*np.cos(angle)
+    term2_rot = np.cross(rotation_axis, xyz, axis=0) * np.sin(angle)
+    term3_rot = rotation_axis * np.transpose(np.tensordot(rotation_axis, xyz, axes=(0,0)))*(1-np.cos(angle))
+    xyz_rot = term1_rot + term2_rot + term3_rot
+    return xyz_rot
+    
+def rotate_vector_Nd(xyz, angle, rotation_axis):
+    '''
+    xyz: an array of vectors to be rotated, with N dimensions, of which the last has 3 elements
+    angle: the angle by which to rotate xyz, in radians
+    rotation_axis: the axis around which to rotate xyz, of length 3
+    '''
+    # Normalize rotation axis
+    rotation_axis = rotation_axis/np.sqrt(np.sum(np.square(rotation_axis)))
+    # Expand dimensions of rotation axis for broadcasting
+    rotation_axis = np.reshape(rotation_axis, (xyz.ndim-1)*[1]+[3])
+    # Calculate rotation vector (Rodrigues formula)
+    term1_rot = xyz*np.cos(angle)
+    term2_rot = np.cross(rotation_axis, xyz, axis=-1) * np.sin(angle)
+    term3_rot = rotation_axis * np.expand_dims(np.dot(xyz, np.squeeze(rotation_axis)), axis=-1)*(1-np.cos(angle))
+    xyz_rot = term1_rot + term2_rot + term3_rot
+    return xyz_rot
 
 def expand_quadrant_symmetry(mag, quadrant_num):
     '''

@@ -147,5 +147,119 @@ class CartesianSphericalCoordinateTransformTest(unittest.TestCase):
                         ]);
         np.testing.assert_array_almost_equal(np.transpose(np.array([r, theta, phi])), rthph)
 
+class RotateVectorTest(unittest.TestCase):
+    def test010rot001by90(self):
+        '''
+        take (0,1,0) and rotate around (0,0,1) by pi/2
+        '''
+        xyz = np.array([0, 1, 0])
+        angle = np.pi/2
+        rotation_vector = np.array([0,0,1])
+        rotated_vector = coord_transforms.rotate_vector(xyz, angle, rotation_vector)
+        np.testing.assert_array_almost_equal(np.array([-1, 0, 0]), rotated_vector)
+
+    def test001rot001by90(self):
+        '''
+        take (0,0,1) and rotate around (0,0,1) by pi/2
+        '''
+        xyz = np.array([0, 0, 1])
+        angle = np.pi/2
+        rotation_vector = np.array([0,0,1])
+        rotated_vector = coord_transforms.rotate_vector(xyz, angle, rotation_vector)
+        np.testing.assert_array_almost_equal(np.array([0, 0, 1]), rotated_vector)
+
+    def test000rotError(self):
+        '''
+        take (0,0,0) and throw an error
+        '''
+        xyz = np.array([0, 0, 0])
+        angle = np.pi/2
+        rotation_vector = np.array([0,0,1])
+        self.assertRaises(ValueError, coord_transforms.rotate_vector, xyz, angle, rotation_vector)
+
+class RotateNdVectorTest(unittest.TestCase):
+    def testAxisVectorsRotateBy90(self):
+        '''
+        take (0,1,0), (1, 0, 0) and (0,0,1) and rotate around (0,0,1) by pi/2
+        '''
+        xyz = np.array([[0, 1, 0], [1, 0, 0], [0, 0, 1]])
+        angle = np.pi/2
+        rotation_vector = np.array([0,0,1])
+        rotated_vector = coord_transforms.rotate_vector_Nd(xyz, angle, rotation_vector)
+        np.testing.assert_array_almost_equal(np.array([[-1, 0, 0],[0, 1, 0],[0, 0, 1]]), rotated_vector)
+    
+    def testFloatsVectorsRotateBy90(self):
+        '''
+        take (0.707, 0.707, 0), (1, 1, 1) and rotate around (0,0,1) by pi/2
+        '''
+        xyz = np.array([[1/np.sqrt(2), 1/np.sqrt(2), 0],[1.1, 1.1, 1.1]])
+        angle = np.pi/2
+        rotation_vector = np.array([0,0,1])
+        rotated_vector = coord_transforms.rotate_vector_Nd(xyz, angle, rotation_vector)
+        np.testing.assert_array_almost_equal(np.array([[-1/np.sqrt(2), 1/np.sqrt(2), 0], [-1.1, 1.1, 1.1]]), rotated_vector)
+    
+    def testNegativeAngle(self):
+        '''
+        rotating a vector by -pi/2 vs rotating by pi/2
+        '''
+        xyz = np.array([[1/np.sqrt(2), 1/np.sqrt(2), 0],[1.1, 1.1, 1.1]])
+        angle = np.pi/2
+        rotation_vector = np.array([0,0,1])
+        rotated_vector = coord_transforms.rotate_vector_Nd(xyz, angle, rotation_vector)
+        rotated_vector_negative = coord_transforms.rotate_vector_Nd(xyz, -angle, rotation_vector)
+        np.testing.assert_array_almost_equal(rotated_vector_negative, np.array([[-1, -1, 1]])*rotated_vector)
+    
+    def testAnglesGreater2Pi(self):
+        '''
+        rotating a vector by an angle greater than 2pi
+        '''
+        xyz = np.array([[1/np.sqrt(2), 1/np.sqrt(2), 0],[1.1, 1.1, 1.1]])
+        angle = np.pi/2+2*np.pi
+        rotation_vector = np.array([0,0,1])
+        rotated_vector = coord_transforms.rotate_vector_Nd(xyz, angle, rotation_vector)
+        np.testing.assert_array_almost_equal(np.array([[-1/np.sqrt(2), 1/np.sqrt(2), 0], [-1.1, 1.1, 1.1]]), rotated_vector)
+    
+    def testAnglesMultiplesOfPi(self):
+        '''
+        rotating a vector by an angle that is a multiple of pi
+        '''
+        xyz = np.array([[1/np.sqrt(2), 1/np.sqrt(2), 0],[1.1, 1.1, 1.1]])
+        angle = np.pi
+        rotation_vector = np.array([0,0,1])
+        rotated_vector = coord_transforms.rotate_vector_Nd(xyz, angle, rotation_vector)
+        np.testing.assert_array_almost_equal(np.array([-1, -1, 1])*xyz, rotated_vector)
+    
+    def testRotationAxisHighMagnitude(self):
+        '''
+        the input rotation axis has a magnitude that is not 1
+        '''
+        xyz = np.array([[1/np.sqrt(2), 1/np.sqrt(2), 0],[1.1, 1.1, 1.1]])
+        angle = np.pi
+        rotation_vector = np.array([0,0,3])
+        rotated_vector = coord_transforms.rotate_vector_Nd(xyz, angle, rotation_vector)
+        np.testing.assert_array_almost_equal(np.array([-1, -1, 1])*xyz, rotated_vector)
+    
+    def testTiltedRotationAxis(self):
+        '''
+        the rotation axis is tilted off one of the main axes
+        '''
+        xyz = np.array([[0, 0, 1]])
+        angle = np.pi/2
+        rotation_vector = np.array([1, 1, 0])
+        rotated_vector = coord_transforms.rotate_vector_Nd(xyz, angle, rotation_vector)
+        np.testing.assert_array_almost_equal(np.array([[1/np.sqrt(2), -1/np.sqrt(2), 0]]), rotated_vector)
+    
+    def testNegativeRotationAxis(self):
+        '''
+        rotating around the rotation axis vs the negative rotation axis should rotate in opposite directions
+        '''
+        xyz = np.array([[0, 0, 1]])
+        angle = np.pi/2
+        rotation_vector = np.array([1, 1, 0])
+        rotated_vector = coord_transforms.rotate_vector_Nd(xyz, angle, rotation_vector)
+        rotated_vector_negative = coord_transforms.rotate_vector_Nd(xyz, angle, -rotation_vector)
+        np.testing.assert_array_almost_equal(rotated_vector_negative, -rotated_vector)
+    
+
 if __name__ == '__main__':
     unittest.main()
