@@ -7,26 +7,48 @@ import coord_transforms
 #    def test_degree_of_pol_normal(self):
 
 class StokesParametersTest(unittest.TestCase):
-    def test_stokes_x_polarized(self):
-        E1 = 1
-        E2 = 0
+    def testS1LinearPolarized(self):
+        '''
+        check inputs which should result in x or y polarization
+        '''
+        E1 = np.array([1, -1, 0, 0])
+        E2 = np.array([0, 0, 1, -1])
         S0, S1, S2, S3 = cl_calcs.stokes_parameters(E1, E2)
         S_calc = np.array([S0, S1, S2, S3])
-        stokes = np.array([1, 1, 0, 0])
+        stokes = np.transpose(np.array([
+            [1, 1, 0, 0], 
+            [1, 1, 0, 0], 
+            [1, -1, 0, 0], 
+            [1, -1, 0, 0]
+            ]))
         np.testing.assert_array_equal(S_calc, stokes)
 
-    def test_stokes_circular_polarized(self):
-        E1 = 1 + 1j
-        E2 = 1 - 1j
-        stokes = np.array([4, 0, 0, 4])
+    def testS3CircularPolarized(self):
+        E1 = np.array([1 + 1j, 1 + 0.5j, 1 - 1j])
+        E2 = np.array([1 - 1j, 0.5 - 1j, 1 + 1j])
         S0, S1, S2, S3 = cl_calcs.stokes_parameters(E1, E2)
+        print(S0)
         S_calc = np.array([S0, S1, S2, S3])
+        stokes = np.transpose(np.array([[4, 0, 0, 4], [2.5, 0, 0, 2.5], [4, 0, 0, -4]]))
         np.testing.assert_array_equal(stokes, S_calc)
 
     def test_stokes_angle_polarized(self):
         E1 = 1 + 1j
         E2 = 1 - 0j
         stokes = np.array([3, 1, 2, 2])
+        S0, S1, S2, S3 = cl_calcs.stokes_parameters(E1, E2)
+        S_calc = np.array([S0, S1, S2, S3])
+        np.testing.assert_array_equal(stokes, S_calc)
+
+    def testS2LinearPolarized(self):
+        E1 = np.array([1, 1, -1, -1])
+        E2 = np.array([1, -1, 1, -1])
+        stokes = np.transpose(np.array([
+            [2, 0, 2, 0], 
+            [2, 0, -2, 0], 
+            [2, 0, -2, 0],
+            [2, 0, 2, 0],
+            ]))
         S0, S1, S2, S3 = cl_calcs.stokes_parameters(E1, E2)
         S_calc = np.array([S0, S1, S2, S3])
         np.testing.assert_array_equal(stokes, S_calc)
