@@ -18,39 +18,71 @@ ni = 1;
 
 def parabola_position(direction):
     '''
-    direction: emission direction vector in Cartesian coordinates (N by M by 3) or (P by 3)
+    direction: emission direction vector in Cartesian coordinates, a numpy 
+    array of shape (N by 3)
     '''
-    direction = direction/ct.field_magnitude(direction[:, None])
+    direction = direction/np.expand_dims(ct.field_magnitude(direction), -1)
     r, theta, phi = ct.cartesian_to_spherical_coords(direction)
-    c = np.empty(np.size(theta))
-    positive_x_condition = np.logical_and(theta==np.pi/2, phi==0)
-    c[positive_x_condition] = np.nan
-    c[np.logical_not(positive_x_condition)] = np.array(1/(2*a*(1-np.sin(theta)*np.cos(phi))))
-#    c = 1/(2*(a*np.cos(phi)*np.sin(theta) + a))
-#    c = np.array(1/(2*a*(1-np.sin(theta)*np.cos(phi))))
-    parabola = direction * c[:, None]
+    c = np.empty(np.shape(direction))
+    positive_x_condition = np.logical_not(
+        np.logical_and(theta==np.pi/2, phi==0)
+        )
+    c[np.logical_not(positive_x_condition)] = np.nan
+    c[positive_x_condition] = np.expand_dims(
+            np.array(
+                1/(
+                    2*a*(
+                        1-np.sin(theta[positive_x_condition])
+                        *np.cos(phi[positive_x_condition])
+                        )
+                    )
+                ), -1
+        )
+    parabola = direction * c
     return parabola
     
-def parabola_normals(parabola_x, parabola_y, parabola_z):
+def parabola_normals(parabola_positions):
     '''
-    parabola_x,y,z: position of parabola, 1D array
+    parabola_positions: positions on the parabola, N by 3 numpy array
     R = (a*r**2, r*cos(theta), r*sin(theta))
     '''
-    r, theta = ct.cartesian_to_polar(parabola_y, parabola_z)
-    # derivative of parabola along r
-    r_gradient_x = 2*a*r
-    r_gradient_y = np.cos(theta)
-    r_gradient_z = np.sin(theta)
-    r_gradient = np.vstack((r_gradient_x, r_gradient_y, r_gradient_z)).transpose()
+#    r, theta = ct.cartesian_to_polar(parabola_positions[:, 1], parabola_positions[:, 2])
+
+#    ## One way to calculate the normals    
+#    normalizing_factor = 1/np.sqrt(1 + 4 * a**2 * r**2)
+#    normal_x = np.ones(np.shape(r))
+#    normal_y = -2 * a * r * np.cos(theta)
+#    normal_z = -2 * a * r * np.sin(theta)
+#    normals = np.transpose(normalizing_factor * np.vstack((normal_x, normal_y, normal_z)))
+#    
+    # parameterize x in terms of y and z: x = (a*(y**2 + z**2)-2.5, y, z)
+    normalizing_factor = 1/np.sqrt(
+        1 + 4 * a**2 * (
+            parabola_positions[:, 1]**2 + parabola_positions[:, 2]**2
+            )
+        )
+    normal_x = np.ones(np.shape(parabola_positions)[0])
+    normal_y = -2 * a * parabola_positions[:, 1]
+    normal_z = -2 * a * parabola_positions[:, 2]
+    normals = normalizing_factor * np.transpose(
+        np.vstack((normal_x, normal_y, normal_z))
+        )
     
-    # derivative of parabola along theta
-    theta_gradient_x = np.zeros(np.shape(r_gradient_x))
-    theta_gradient_y = -r * np.sin(theta)
-    theta_gradient_z = r * np.cos(theta)
-    theta_gradient = np.vstack((theta_gradient_x, theta_gradient_y, theta_gradient_z)).transpose()
-    
-    normals = np.cross(r_gradient, theta_gradient) #cross product of r and theta to get the surface normal
-    normals = normals/ct.field_magnitude(normals)[:, None] # normalize the normal vectors
+    ## Another way to calculate the normals
+#    # derivative of parabola along r
+#    r_gradient_x = 2*a*r
+#    r_gradient_y = np.cos(theta)
+#    r_gradient_z = np.sin(theta)
+#    r_gradient = np.vstack((r_gradient_x, r_gradient_y, r_gradient_z)).transpose()
+#    
+#    # derivative of parabola along theta
+#    theta_gradient_x = np.zeros(np.shape(r_gradient_x))
+#    theta_gradient_y = -r * np.sin(theta)
+#    theta_gradient_z = r * np.cos(theta)
+#    theta_gradient = np.vstack((theta_gradient_x, theta_gradient_y, theta_gradient_z)).transpose()
+#    
+#    normals = np.cross(r_gradient, theta_gradient) #cross product of r and theta to get the surface normal
+#    normals = normals/ct.field_magnitude(normals)[:, None] # normalize the normal vectors
     return normals
     
 def surface_polarization_directions(theta, phi):
