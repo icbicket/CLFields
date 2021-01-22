@@ -1,4 +1,5 @@
 import numpy as np
+import coord_transforms as coord
 
 def ar_mask_calc(theta, phi, holein=True, slit=None, slit_center=0, orientation=0):
     '''
@@ -103,6 +104,79 @@ def mirror_outline(holein=True, slit=3, slit_center=0, orientation=0 ):
     ph_max = phi_mesh.flatten()[th_sort][diff_ind]
     maxthph = np.transpose(np.array([ph_max, np.degrees(th_max)]))
     return maxthph, r_phi
+
+def angle_of_incidence(incident_vector, normal):
+    '''
+    calculate the angle of incidence of 'incident_vector' onto the surface 
+    with a surface normal described by 'normal'
+    '''
+    incident_vector_magnitude = coord.field_magnitude(incident_vector)
+    normal_magnitude = coord.field_magnitude(normal)
+    cosine_angle = (np.sum(incident_vector * normal, axis=-1))/(incident_vector_magnitude * normal_magnitude)
+    angle = np.array(np.arccos(cosine_angle))
+    if np.any(cosine_angle < 0):
+        angle[cosine_angle < 0] = np.pi-angle[cosine_angle < 0]
+    return angle
+
+def snells_law(incidence_angles, n_surface, n_environment=1):
+    '''
+    given the incident angle of light, calculate the angle of refraction
+    incidence_angles: angle or angles of incidence in radians, single value or 
+        1D numpy array
+    n_surface: refractive index of the surface upon which light impinges
+    n_environment: refractive index of the environment through which light 
+        travels to impinge upon the surface
+    '''
+    angle_refraction = np.arcsin(n_environment/n_surface * np.sin(incidence_angles))
+    return angle_refraction
+    
+def brewsters_angle(n_surface, n_environment=1):
+    '''
+    Calculate Brewster's angle given two refractive indices
+    n_surface: refractive index of the medium that the light is hitting
+    n_environment: refractive index of the medium the incident light travels
+        through
+    '''
+    brewster = np.arctan(n_surface/n_environment)
+    return brewster
+
+def reflection_coefficients(incidence_angle, n_surface, n_environment):
+    '''
+    calculate the reflection coefficients for light incident at angles given
+    by 'incidence_angles' from a medium with refractive index given by 
+    'n_environment' onto the surface of a medium with refractive index given by 
+    'n_surface'
+    incidence_angle: the angle of incidence of light (in radians) onto the 
+        surface, can be a single integer or float or a 1D numpy array
+    n_surface: refractive index of the surface upon which light impinges
+    n_environment: refractive index of the medium through which light travels
+        before it impinges on the surface
+    r_s: reflection coefficient for s-polarized light (perpendicular to the 
+        plane of incidence)
+    r_p: reflection coefficient for p-polarized light (parallel to the plane of
+        incidence)
+    Note: r_s**2 and r_p**2 produce the Fresnel reflection coefficients R_s, R_p
+    '''
+    refraction_angle = snells_law(incidence_angle, n_surface, n_environment)
+    r_s = (
+            -np.sin(incidence_angle - refraction_angle)
+        ) / (
+            np.sin(incidence_angle + refraction_angle)
+        )
+    r_p = (
+            np.sin(2*incidence_angle) - np.sin(2*refraction_angle)
+        ) / (
+            np.sin(2*refraction_angle) + np.sin(2*incidence_angle)
+        )
+#    r_p = (
+#            np.tan(incidence_angle - refraction_angle)
+#        ) / (
+#            np.tan(incidence_angle + refraction_angle)
+#        )
+    return r_s, r_p
+
+    def reflected_e():
+        pass
 
 def stokes_parameters(E_theta, E_phi):
     S0 = np.real(E_theta * np.conj(E_theta) + E_phi * np.conj(E_phi))

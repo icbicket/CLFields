@@ -1,6 +1,7 @@
 import numpy as np
 import coord_transforms as ct
 import constants
+import cl_calcs as clc
 import scipy.interpolate as scint
 
 magn = 2.16
@@ -107,20 +108,22 @@ def surface_polarization_directions(theta, phi):
         np.ones(np.shape(theta)),
         ))
     return p_direction, s_direction
-    
-def fresnel_reflection_coefficients(normals, e_incident_direction, n_mirror, n_environment=1):
+
+def fresnel_reflection_coefficients(normals, e_incident, n_mirror, n_environment=1):
     '''
     calculate s and p fresnel reflection coefficients for the parabolic mirror surface
     normals: surface normals of the mirror
-    e_incident_direction: direction vector of the incident electromagnetic wave
+    e_incident_direction: incident EM wave in Cartesian coordinates
     n_environment: refractive index of the environment at the desired wavelength
     n_mirror: refractive index of the mirror at the desired wavelength
     '''
-    incidence_angle = np.arccos(
-        np.dot(normals, e_incident_direction)
-        ) / (
-            ct.field_magnitude(normals)*ct.field_magnitude(e_incident_direction)
-        )
+    e_incident_direction = e_incident/ct.field_magnitude(e_incident_direction)
+    incidence_angle = clc.angle_of_incidence(e_incident_direction, -normals)
+#    incidence_angle = np.arccos(
+#        np.dot(normals, e_incident_direction)
+#        ) / (
+#            ct.field_magnitude(normals)*ct.field_magnitude(e_incident_direction)
+#        )
     n_factor = np.sqrt(1-np.square(n_environment/n_mirror * np.sin(incidence_angle)))
     R_s = np.square(
         (
@@ -156,5 +159,4 @@ def aluminium_refractive_index(wavelength, filename):
     interp_function_n = scint.interp1d(wavelength_list, n, kind='cubic')
     n_wavelength = interp_function_n(wavelength)
     return n_wavelength
-    
     
