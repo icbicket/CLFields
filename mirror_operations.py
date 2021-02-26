@@ -57,11 +57,11 @@ def parabola_normals(parabola_positions):
 #    normals = np.transpose(normalizing_factor * np.vstack((normal_x, normal_y, normal_z)))
 #    
     # parameterize x in terms of y and z: x = (a*(y**2 + z**2)-2.5, y, z)
-    normalizing_factor = 1/np.sqrt(
+    normalizing_factor = np.expand_dims(1/np.sqrt(
         1 + 4 * a**2 * (
             parabola_positions[:, 1]**2 + parabola_positions[:, 2]**2
             )
-        )
+        ), axis=-1)
     normal_x = np.ones(np.shape(parabola_positions)[0])
     normal_y = -2 * a * parabola_positions[:, 1]
     normal_z = -2 * a * parabola_positions[:, 2]

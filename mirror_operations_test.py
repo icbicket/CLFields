@@ -87,6 +87,10 @@ class ParabolaNormalsTest(parameterized.TestCase):
             np.array([[0, 0, -1]]),
             1/np.sqrt(1+1/25*5**2)*np.array([[1, 0, 1/5*5]])
         ), 
+        ('2 by 3 array input',
+            np.array([[0, 0, -1], [0, 0, 1]]),
+            1/np.sqrt(1+1/25*5**2)*np.array([[1, 0, 1/5*5], [1, 0, -1/5*5]])
+        ),
     )
     def test_parabola_normals_directions(self, direction, expected_normal):
         '''

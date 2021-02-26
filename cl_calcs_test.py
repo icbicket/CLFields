@@ -362,13 +362,67 @@ class BrewstersAngleTest(parameterized.TestCase):
     
     def test_value_array(self):
         '''
-        calculate Brewster's angle for n1=1, n2=2
+        calculate Brewster's angle for n1=1, n2=2, using arrays for refractive
+            indices
         '''
         n_surface = np.array([2, 3])
         n_environment = np.array([1, 2])
         expected_brewsters = np.array([1.107148718, 0.982793723])
         brewsters = cl_calcs.brewsters_angle(n_surface, n_environment)
         np.testing.assert_allclose(brewsters, expected_brewsters)
+
+class ReflectedETest(parameterized.TestCase):
+    '''
+    Test the calculation of the reflected electric field
+    '''
+    
+    @parameterized.named_parameters(
+        ('s-polarized', np.array([0, 0, 1]), np.array([0, 0, -0.451416229]), np.array([0, 0, 0])),
+        ('p-polarized', np.array([1, -1, 0]), np.array([0, 0, 0]), 0.203776612*np.array([1, -1, 0])),
+        ('mixed-polarized', np.array([1, -1, 1]), np.array([0, 0, -0.451416229]), 0.203776612*np.array([1, -1, 0])),
+        ('3 by 3 array', np.array([[0, 0, 1], [1, -1, 0], [1, -1, 1]]), np.array([[0, 0, -0.451416229], [0, 0, 0], [0, 0, -0.451416229]]), 0.203776612 * np.array([[0, 0, 0], [1, -1, 0], [1, -1, 0]]))
+    )
+    def test_e_polarization_state(self, incident_e, expected_e_s, expected_e_p):
+        '''
+        An input electric field of various polarization states
+        '''
+        normal = np.array([1, 0, 0])
+        incident_direction = np.array([1, 1, 0])
+        n_surface = 2
+        n_environment = 1
+        e_s, e_p = cl_calcs.reflected_e(
+            incident_direction, 
+            incident_e, 
+            normal, 
+            n_surface, 
+            n_environment
+            )
+        np.testing.assert_allclose(e_s, expected_e_s)
+        np.testing.assert_allclose(e_p, expected_e_p)
+
+
+    @parameterized.named_parameters(
+        ('s-polarized', np.array([0, 0, 1]), np.array([0, 0, -0.451416229]), np.array([0, 0, 0])),
+        ('p-polarized', np.array([1, -1, 0]), np.array([0, 0, 0]), 0.203776612*np.array([1, -1, 0])),
+        ('mixed-polarized', np.array([1, -1, 1]), np.array([0, 0, -0.451416229]), 0.203776612*np.array([1, -1, 0])),
+    )
+    def test_e_polarization_state_negative_normal(self, incident_e, expected_e_s, expected_e_p):
+        '''
+        An input electric field of various polarization states
+        '''
+        normal = np.array([-1, 0, 0])
+        incident_direction = np.array([1, 1, 0])
+        n_surface = 2
+        n_environment = 1
+        e_s, e_p = cl_calcs.reflected_e(
+            incident_direction, 
+            incident_e, 
+            normal, 
+            n_surface, 
+            n_environment
+            )
+        np.testing.assert_allclose(e_s, expected_e_s)
+        np.testing.assert_allclose(e_p, expected_e_p)
 
 if __name__ == '__main__':
     unittest.main()

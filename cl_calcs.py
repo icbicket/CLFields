@@ -140,7 +140,7 @@ def brewsters_angle(n_surface, n_environment=1):
     brewster = np.arctan(n_surface/n_environment)
     return brewster
 
-def reflection_coefficients(incidence_angle, n_surface, n_environment):
+def reflection_coefficients(incidence_angle, n_surface, n_environment=1):
     '''
     calculate the reflection coefficients for light incident at angles given
     by 'incidence_angles' from a medium with refractive index given by 
@@ -175,8 +175,39 @@ def reflection_coefficients(incidence_angle, n_surface, n_environment):
 #        )
     return r_s, r_p
 
-    def reflected_e():
-        pass
+def reflected_e(incident_direction, incident_e, surface_normal, n_surface, n_environment=1):
+    '''
+    calculate the electric field reflected off an interface
+    incident_direction: N by 3 numpy array representing the propagation 
+        direction of the electric field vectors of interest (Cartesian)
+    incident_e: N by 3 numpy array of electric field vectors to impinge on
+        a surface (Cartesian)
+    surface_normal: the normals of the surface that the electric field 
+        vectors are hitting, either 1 by 3 or N by 3 numpy array
+    n_surface: refractive index of the surface
+    n_environment: refractive index of the medium which the rays originate
+        from
+    '''
+    incident_angle = angle_of_incidence(incident_direction, surface_normal)
+    r_s, r_p = reflection_coefficients(incident_angle, n_surface, n_environment)
+    
+    # isolate e_s (electric field polarized perpendicular to the plane of incidence)
+    s_direction = np.cross(surface_normal, incident_direction)
+    s_direction = s_direction/np.expand_dims(coord.field_magnitude(s_direction), axis=-1)
+    e_s = np.sum(incident_e * s_direction, axis=-1, keepdims=True) * s_direction
+    e_s_reflected = np.expand_dims(r_s, axis=-1) * e_s
+    
+    # isolate e_p (electric field polarized parallel to the plane of incidence)
+    e_p = incident_e - e_s
+    e_p_reflected = np.expand_dims(r_p, axis=-1) * e_p
+    
+#    e_p1 = incident_e - e_s
+#    e_p_norm = e_p1/coord.field_magnitude(e_p1)
+#    e_p_amp = np.sqrt(np.sum(e_p1*e_p1, axis=-1))
+#    e_p = (2 * (np.sum(surface_normal*e_p_norm, axis=-1)) * surface_normal - e_p_norm) * e_p_amp
+#    e_p_reflected = e_p * r_p
+    
+    return e_s_reflected, e_p_reflected
 
 def stokes_parameters(E_theta, E_phi):
     S0 = np.real(E_theta * np.conj(E_theta) + E_phi * np.conj(E_phi))
