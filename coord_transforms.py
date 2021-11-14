@@ -23,11 +23,21 @@ def cartesian_to_spherical_coords(vectors):
     N by 3 vectors of (x, y, z) are converted to spherical coordinates
     '''
     r = np.sqrt(np.sum(np.square(vectors), axis=-1))
-    theta = np.arctan(np.sqrt(np.square(vectors[:, 0]) + np.square(vectors[:, 1]))/vectors[:, 2])
+    # theta equation is undefined when z = 0
+    z_not_zero_condition = vectors[:, 2] != 0
+    theta = np.zeros(np.size(vectors[:, 0]))
+    theta[z_not_zero_condition] = np.arctan(
+        np.sqrt(
+            np.square(vectors[:, 0][z_not_zero_condition])
+            + np.square(vectors[:, 1][z_not_zero_condition]))
+        /vectors[:, 2][z_not_zero_condition])
+    theta[np.logical_not(z_not_zero_condition)] = np.pi/2
+    #  phi equation is undefined when x = 0
+    x_not_zero_condition = vectors[:, 0] != 0
     phi = np.zeros(np.size(vectors[:, 0]))
-    phi[vectors[:, 0] != 0] = np.arctan(vectors[:, 1][vectors[:, 0] != 0]/vectors[:, 0][vectors[:, 0] !=0])
-#    theta = np.arctan(vectors[:, 1]/vectors[:, 2])
-#    phi = np.arccos(vectors[:, 0]/r)
+    phi[x_not_zero_condition] = np.arctan(
+        vectors[:, 1][x_not_zero_condition]
+        /vectors[:, 0][x_not_zero_condition])
     phi[(vectors[:, 1] > 0) * (vectors[:, 0] < 0)] += np.pi # +y, -z
     phi[(vectors[:, 1] < 0) * (vectors[:, 0] >= 0)] += 2*np.pi # -y, +z
     phi[(vectors[:, 1] < 0) * (vectors[:, 0] < 0)] += np.pi # -y, -z

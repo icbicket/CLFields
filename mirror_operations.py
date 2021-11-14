@@ -26,22 +26,22 @@ def parabola_position(direction):
     r, theta, phi = ct.cartesian_to_spherical_coords(direction)
     c = np.empty(np.shape(direction))
     positive_x_condition = np.logical_not(
-        np.logical_and(theta==np.pi/2, phi==0)
+        np.logical_and(abs(theta-np.pi/2)<5e-8, abs(phi)<5e-8)
         )
     c[np.logical_not(positive_x_condition)] = np.nan
     c[positive_x_condition] = np.expand_dims(
             np.array(
-                1/(
-                    2*a*(
+                1 / (
+                    2 * a * (
                         1-np.sin(theta[positive_x_condition])
-                        *np.cos(phi[positive_x_condition])
+                        * np.cos(phi[positive_x_condition])
                         )
                     )
                 ), -1
         )
     parabola = direction * c
     return parabola
-    
+
 def parabola_normals(parabola_positions):
     '''
     parabola_positions: positions on the parabola, N by 3 numpy array
@@ -85,31 +85,35 @@ def parabola_normals(parabola_positions):
 #    normals = np.cross(r_gradient, theta_gradient) #cross product of r and theta to get the surface normal
 #    normals = normals/ct.field_magnitude(normals)[:, None] # normalize the normal vectors
     return normals
-    
+
 def surface_polarization_directions(theta, phi):
     '''
     calculate direction vectors for p- and s- polarized light on the mirror surface
     p-polarized: polarized along theta (is this true for the paraboloid??)
     s-polarized: polarized along phi (is this true for the paraboloid??)
     '''
-    p_direction = np.vstack(ct.spherical_to_cartesian_vector_field(
+    p_direction = np.transpose(np.vstack(ct.spherical_to_cartesian_vector_field(
         theta,
         phi,
         np.zeros(np.shape(theta)),
         np.ones(np.shape(theta)),
         np.zeros(np.shape(theta)),
-        ))
-        
-    s_direction = np.vstack(ct.spherical_to_cartesian_vector_field(
+        )))
+
+    s_direction = np.transpose(np.vstack(ct.spherical_to_cartesian_vector_field(
         theta,
         phi,
         np.zeros(np.shape(theta)),
         np.zeros(np.shape(theta)),
         np.ones(np.shape(theta)),
-        ))
+        )))
     return p_direction, s_direction
 
-def fresnel_reflection_coefficients(normals, e_incident, n_mirror, n_environment=1):
+
+def fresnel_reflection_coefficients(normal,
+                                    e_incident_direction,
+                                    n_mirror,
+                                    n_environment=1):
     '''
     calculate s and p fresnel reflection coefficients for the parabolic mirror surface
     normals: surface normals of the mirror
@@ -117,24 +121,27 @@ def fresnel_reflection_coefficients(normals, e_incident, n_mirror, n_environment
     n_environment: refractive index of the environment at the desired wavelength
     n_mirror: refractive index of the mirror at the desired wavelength
     '''
-    e_incident_direction = e_incident/ct.field_magnitude(e_incident_direction)
-    incidence_angle = clc.angle_of_incidence(e_incident_direction, -normals)
+    e_incident_direction = e_incident_direction/ct.field_magnitude(e_incident_direction)
+    normal = normal/ct.field_magnitude(normal)
+    incidence_angle = clc.angle_of_incidence(e_incident_direction, -normal)
 #    incidence_angle = np.arccos(
 #        np.dot(normals, e_incident_direction)
 #        ) / (
 #            ct.field_magnitude(normals)*ct.field_magnitude(e_incident_direction)
 #        )
+    if n_mirror == 0:
+        raise ValueError("Mirror refractive index cannot be 0")
     n_factor = np.sqrt(1-np.square(n_environment/n_mirror * np.sin(incidence_angle)))
-    R_s = np.square(
+    r_s = np.square(
         (
-            n_environment * np.cos(incidence_angle) - 
+            n_environment * np.cos(incidence_angle) -
             n_mirror * n_factor
         ) / (
-            n_environment * np.cos(incidence_angle) + 
+            n_environment * np.cos(incidence_angle) +
             n_mirror * n_factor
             )
         )
-    R_p = np.square(
+    r_p = np.square(
         (
             n_environment * n_factor - 
             n_mirror * np.cos(incidence_angle)
@@ -143,7 +150,7 @@ def fresnel_reflection_coefficients(normals, e_incident, n_mirror, n_environment
             n_mirror * np.cos(incidence_angle)
             )
         )
-    return R_s, r_p
+    return r_s, r_p
 
 def aluminium_refractive_index(wavelength, filename):
     '''
@@ -159,4 +166,4 @@ def aluminium_refractive_index(wavelength, filename):
     interp_function_n = scint.interp1d(wavelength_list, n, kind='cubic')
     n_wavelength = interp_function_n(wavelength)
     return n_wavelength
-    
+

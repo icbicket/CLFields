@@ -112,7 +112,14 @@ def angle_of_incidence(incident_vector, normal):
     '''
     incident_vector_magnitude = coord.field_magnitude(incident_vector)
     normal_magnitude = coord.field_magnitude(normal)
-    cosine_angle = (np.sum(incident_vector * normal, axis=-1))/(incident_vector_magnitude * normal_magnitude)
+    cosine_angle = np.array((np.sum(incident_vector * normal, axis=-1))
+        /(incident_vector_magnitude * normal_magnitude))
+    float_error_condition = np.logical_and(
+        (abs(cosine_angle)-1) < 1e-5, 
+        (abs(cosine_angle)-1)>0)
+    if np.any(float_error_condition):
+        cosine_angle[float_error_condition] = np.round(
+            cosine_angle[float_error_condition], 2)
     angle = np.array(np.arccos(cosine_angle))
     if np.any(cosine_angle < 0):
         angle[cosine_angle < 0] = np.pi-angle[cosine_angle < 0]
@@ -220,6 +227,9 @@ def stokes_parameters(E_theta, E_phi):
     return S0, S1, S2, S3
 
 def normalize_stokes_parameters(S0, S1, S2, S3):
+    '''
+    Return S1, S2, S3 normalized Stokes parameters
+    '''
     s1 = np.zeros(np.shape(S1))
     s2 = np.zeros(np.shape(S2))
     s3 = np.zeros(np.shape(S3))
