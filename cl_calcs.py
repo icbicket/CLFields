@@ -29,32 +29,36 @@ def ar_mask_calc(theta, phi, holein=True, slit=None, slit_center=0, orientation=
 #    thetacutoffhole=np.arctan(holesize/(2*holeheight))*180/np.pi
     thetacutoffhole = 4
     dfoc = 0.5
-
 #    phi,theta=np.meshgrid(phi1,theta1) ##Toon
-    c = 1./(2*(a*np.cos(phi)*np.sin(theta)+a))
+    c = np.empty(np.shape(phi))
+    c_denominator = a*np.cos(phi)*np.sin(theta) + a
+    c[c_denominator==0] = np.inf
+    c[c_denominator!=0] = 1/(2*c_denominator[c_denominator!=0])
+#    c = 1./(2*(a*np.cos(phi)*np.sin(theta)+a))
     
     z = np.cos(theta)*c
     x = np.sin(theta)*np.cos(phi)*c#-1/(4.*a)
     y = np.sin(theta)*np.sin(phi)*c
     
     condition = (-x > xcut) | (z < dfoc)
-    if slit is not None:
-        ycut_positive = slit_center + slit/2.
-        ycut_negative = slit_center - slit/2.
-        condition = (condition | (y > ycut_positive))
-        condition = (condition | (y < ycut_negative))
-    else:
-        pass
-
-    if holein is True:
-        condition = (condition | (theta < (thetacutoffhole*np.pi/180)))
-    else:
-        pass
-
-    mask = np.ones(np.shape(phi))
-    mask[condition] = False
     
-    return np.logical_not(mask)
+    if slit is not None:
+        ycut_positive = slit_center + slit/2.  ##
+        ycut_negative = slit_center - slit/2.  ##
+        condition = (condition | (y > ycut_positive)) ##
+        condition = (condition | (y < ycut_negative))  ##
+    else:
+        pass
+    
+    if holein is True:
+        condition = (condition | (theta <= (thetacutoffhole*np.pi/180)))
+    else:
+        pass
+
+#    mask = np.ones(np.shape(phi))
+#    mask[condition] = False
+#    
+    return condition# np.logical_not(mask)
 
 def degree_of_polarization(S0, S1, S2, S3):
     DoP = np.zeros(np.shape(S0))
@@ -67,7 +71,7 @@ def degree_of_polarization(S0, S1, S2, S3):
     ellipticity[S0 != 0] = S3[S0 != 0]/(S0[S0 != 0] + np.sqrt(np.square(S1[S0 != 0]) + np.square(S2[S0 != 0])))
     return DoP, DoLP, DoCP, ellipticity
 
-def mirror_mask3d(theta, phi, **kwargs):
+def mirror_mask3d(theta, phi, **kwargs): ##
     mirror = ar_mask_calc(theta, phi, **kwargs)
     mirror = np.expand_dims(mirror, axis=1)
     mirror_3 = np.expand_dims(mirror, axis=1)
@@ -75,7 +79,7 @@ def mirror_mask3d(theta, phi, **kwargs):
     mirror_3 = np.repeat(mirror_3, 3, axis=2)
     return mirror_3
 
-def mirror_outline(holein=True, slit=3, slit_center=0, orientation=0 ):
+def mirror_outline(holein=True, slit=3, slit_center=0, orientation=0 ): ##
     '''
     provide the coordinates for an outline of the mirror and slit combination
     '''
@@ -118,7 +122,7 @@ def angle_of_incidence(incident_vector, normal):
         (abs(cosine_angle)-1) < 1e-5, 
         (abs(cosine_angle)-1)>0)
     if np.any(float_error_condition):
-        cosine_angle[float_error_condition] = np.round(
+        cosine_angle[float_error_condition] = np.round(  ##
             cosine_angle[float_error_condition], 2)
     angle = np.array(np.arccos(cosine_angle))
     if np.any(cosine_angle < 0):
@@ -164,22 +168,42 @@ def reflection_coefficients(incidence_angle, n_surface, n_environment=1):
         incidence)
     Note: r_s**2 and r_p**2 produce the Fresnel reflection coefficients R_s, R_p
     '''
+    if not isinstance(incidence_angle, np.ndarray):
+        incidence_angle = np.array([incidence_angle])
     refraction_angle = snells_law(incidence_angle, n_surface, n_environment)
-    r_s = (
-            -np.sin(incidence_angle - refraction_angle)
-        ) / (
-            np.sin(incidence_angle + refraction_angle)
-        )
-    r_p = (
-            np.sin(2*incidence_angle) - np.sin(2*refraction_angle)
-        ) / (
-            np.sin(2*refraction_angle) + np.sin(2*incidence_angle)
-        )
-#    r_p = (
-#            np.tan(incidence_angle - refraction_angle)
-#        ) / (
-#            np.tan(incidence_angle + refraction_angle)
-#        )
+    r_s = np.empty(np.shape(incidence_angle))
+    r_p = np.empty(np.shape(incidence_angle))
+    r_s[incidence_angle==0] = (n_surface - n_environment)/(n_surface + n_environment)
+    r_p[incidence_angle==0] = r_s[incidence_angle==0]
+    r_s[incidence_angle!=0] = (
+                -np.sin(incidence_angle[incidence_angle!=0] - refraction_angle[incidence_angle!=0])
+            ) / (
+                np.sin(incidence_angle[incidence_angle!=0] + refraction_angle[incidence_angle!=0])
+            )
+    r_p[incidence_angle!=0] = (
+                np.sin(2*incidence_angle[incidence_angle!=0]) - np.sin(2*refraction_angle[incidence_angle!=0])
+            ) / (
+                np.sin(2*refraction_angle[incidence_angle!=0]) + np.sin(2*incidence_angle[incidence_angle!=0])
+            )
+#    if incidence_angle==0 and refraction_angle==0:
+#        r_s = (n_surface - n_environment)/(n_surface + n_environment)
+#        r_p = r_s
+#    else:
+#        r_s = (
+#                -np.sin(incidence_angle - refraction_angle)
+#            ) / (
+#                np.sin(incidence_angle + refraction_angle)
+#            )
+#        r_p = (
+#                np.sin(2*incidence_angle) - np.sin(2*refraction_angle)
+#            ) / (
+#                np.sin(2*refraction_angle) + np.sin(2*incidence_angle)
+#            )
+    #    r_p = (
+    #            np.tan(incidence_angle - refraction_angle)
+    #        ) / (
+    #            np.tan(incidence_angle + refraction_angle)
+    #        )
     return r_s, r_p
 
 def reflected_e(incident_direction, incident_e, surface_normal, n_surface, n_environment=1):

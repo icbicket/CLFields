@@ -74,6 +74,71 @@ class ARMaskCalcTest(unittest.TestCase):
             slit=None, 
             orientation=np.pi)
         np.testing.assert_array_equal(mask, mask_calc)
+    
+    def test_slit_hole(self):
+        mask = np.array([True, True, True, True,
+                        True, False, True, True, 
+                        True])
+        mask_calc = cl_calcs.ar_mask_calc(
+            self.theta,
+            self.phi,
+            holein=True,
+            slit=3,
+            orientation=0)
+        np.testing.assert_array_equal(mask, mask_calc)
+    
+    def test_slit_nohole(self):
+        mask = np.array([True, True, True, True,
+                        True, False, True, True, 
+                        False])
+        mask_calc = cl_calcs.ar_mask_calc(
+            self.theta,
+            self.phi,
+            holein=False,
+            slit=3,
+            orientation=0)
+        np.testing.assert_array_equal(mask, mask_calc)
+    
+    def test_slit_hole_rot90(self):
+        mask = np.array([True, True, True, True,
+                        True, True, False, True, 
+                        True])
+        mask_calc = cl_calcs.ar_mask_calc(
+            self.theta,
+            self.phi,
+            holein=True,
+            slit=3,
+            orientation=np.pi/2)
+        np.testing.assert_array_equal(mask, mask_calc)
+        pass
+    
+    def test_slit_nohole_rot90(self):
+        mask = np.array([True, True, True, True,
+                        True, True, False, True, 
+                        False])
+        mask_calc = cl_calcs.ar_mask_calc(
+            self.theta,
+            self.phi,
+            holein=False,
+            slit=3,
+            orientation=np.pi/2)
+        np.testing.assert_array_equal(mask, mask_calc)
+
+    def test_edge_of_hole(self):
+        phi = np.deg2rad(np.array([5, 5, 5]))
+        theta = np.deg2rad(np.array([3.9, 4, 4.1]))
+        mask = np.array([True, True, False])
+        mask_calc = cl_calcs.ar_mask_calc(
+            theta,
+            phi,
+            holein=True,
+            slit=None,
+            orientation=0
+            )
+        np.testing.assert_array_equal(mask, mask_calc)
+    
+    def test_edge_of_slit(self):
+        pass
 
     def setUp(self):
         self.theta =  np.array([
@@ -318,7 +383,7 @@ class ReflectionCoefficientsTest(parameterized.TestCase):
         incidence_angle = 1.107148718
         r_s, r_p = cl_calcs.reflection_coefficients(incidence_angle, n_surface, n_environment)
         expected_r_p = 0
-        np.testing.assert_allclose(r_p, expected_r_p, atol=1e-7)
+        np.testing.assert_allclose(r_p, expected_r_p, atol=1e-7, equal_nan=False)
 
     def test_normal_incidence(self):
         '''
@@ -337,9 +402,10 @@ class ReflectionCoefficientsTest(parameterized.TestCase):
         n_surface = 2
         n_environment = 1
         incidence_angle = 1.
-        r = np.array(cl_calcs.reflection_coefficients(incidence_angle, n_surface, n_environment))
-        expected_r = np.array([-0.54108004, 0.087243335])
-        np.testing.assert_allclose(r, expected_r, atol=1e-7)
+        r = cl_calcs.reflection_coefficients(incidence_angle, n_surface, n_environment)
+        expected_r_s = np.array([-0.54108004])
+        expected_r_p = np.array([0.087243335])
+        np.testing.assert_allclose(r, (expected_r_s, expected_r_p), atol=1e-7)
     
     def test_array_of_values(self):
         '''
