@@ -62,6 +62,7 @@ class ARMaskCalcTest(parameterized.TestCase):
                         True]),
             holein=True,
             slit=3,
+            slit_center=0,
             orientation=0),
          dict(testcase_name='slit_nohole', 
              expected=np.array([True, True, True, True,
@@ -69,6 +70,7 @@ class ARMaskCalcTest(parameterized.TestCase):
                         False]),
             holein=False,
             slit=3,
+            slit_center=0,
             orientation=0),
          dict(testcase_name='slit_hole_rot90', 
              expected=np.array([True, True, True, True,
@@ -76,6 +78,7 @@ class ARMaskCalcTest(parameterized.TestCase):
                         True]),
             holein=True,
             slit=3,
+            slit_center=0,
             orientation=np.pi/2),
          dict(testcase_name='slit_nohole_rot90', 
              expected=np.array([True, True, True, True,
@@ -83,6 +86,7 @@ class ARMaskCalcTest(parameterized.TestCase):
                         False]),
             holein=False,
             slit=3,
+            slit_center=0,
             orientation=np.pi/2),
     )
     def test_holes_slits(self, expected, holein, slit, orientation):
@@ -113,7 +117,7 @@ class ARMaskCalcTest(parameterized.TestCase):
                     0 #hole
                     ])
         mask_calc = cl_calcs.ar_mask_calc(
-            theta, phi, holein=holein, slit=slit, slit_center=0, 
+            theta, phi, holein=holein, slit=slit, slit_center=slit_center, 
             orientation=orientation)
         np.testing.assert_array_equal(expected, mask_calc)
     
@@ -138,11 +142,14 @@ class ARMaskCalcTest(parameterized.TestCase):
         np.testing.assert_array_equal(mask, mask_calc)
     
     def test_edge_of_slit(self):
+        '''
+        centre of slit
+        edges of 3 mm slit
+        edges of different size slit
+        edges of off-centre slit
+        edges of rotated slit
+        '''
         pass
-        
-    def test_slit_sizes(self):
-        pass
-    
 
 
 class DoPTest(unittest.TestCase):
