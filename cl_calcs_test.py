@@ -22,112 +22,112 @@ Unittests for the following functions:
 - normalize_stokes_parameters
 '''
 
-class ARMaskCalcTest(unittest.TestCase):
+class ARMaskCalcTest(parameterized.TestCase):
     '''
     Test angle-resolved mirror masking function
     x and y axes are flipped
     '''
-    def test_noslit_nohole(self):
-        mask = np.array([True, True, True, True,
+    @parameterized.named_parameters(
+        dict(testcase_name='noslit_nohole', 
+             expected=np.array([True, True, True, True,
                         False, False, False, True, 
-                        False])
-        mask_calc = cl_calcs.ar_mask_calc(
-            self.theta, 
-            self.phi, 
-            holein=False, 
-            slit=None, 
-            orientation=0)
-        np.testing.assert_array_equal(mask, mask_calc)
-
-    def test_noslit_hole(self):
-        mask = np.array([True, True, True, True,
+                        False]),
+             holein=False,
+             slit=None,
+             orientation=0),
+         dict(testcase_name='noslit_hole', 
+             expected=np.array([True, True, True, True,
                         False, False, False, True, 
-                        True])
-        mask_calc = cl_calcs.ar_mask_calc(
-            self.theta, 
-            self.phi, 
-            holein=True, 
-            slit=None, 
-            orientation=0)
-        np.testing.assert_array_equal(mask, mask_calc)
-
-    def test_noslit_nohole_rot90(self):
-        mask = np.array([True, True, True, True,
+                        True]),
+             holein=True,
+             slit=None,
+             orientation=0),
+         dict(testcase_name='noslit_nohole_rot90', 
+             expected=np.array([True, True, True, True,
                         True, False, False, False, 
-                        False])
-        mask_calc = cl_calcs.ar_mask_calc(
-            self.theta, 
-            self.phi, 
-            holein=False, 
-            slit=None, 
-            orientation=np.pi/2)
-        np.testing.assert_array_equal(mask, mask_calc)
-
-    def test_noslit_hole_rot180(self):
-        mask = np.array([True, True, True, True,
+                        False]),
+             holein=False,
+             slit=None,
+             orientation=np.pi/2),
+         dict(testcase_name='noslit_hole_rot180', 
+             expected=np.array([True, True, True, True,
                         False, True, False, False, 
-                        True])
-        mask_calc = cl_calcs.ar_mask_calc(
-            self.theta, 
-            self.phi, 
+                        True]),
             holein=True, 
             slit=None, 
-            orientation=np.pi)
-        np.testing.assert_array_equal(mask, mask_calc)
-    
-    def test_slit_hole(self):
-        mask = np.array([True, True, True, True,
+            orientation=np.pi),
+         dict(testcase_name='slit_hole', 
+             expected=np.array([True, True, True, True,
                         True, False, True, True, 
-                        True])
-        mask_calc = cl_calcs.ar_mask_calc(
-            self.theta,
-            self.phi,
+                        True]),
             holein=True,
             slit=3,
-            orientation=0)
-        np.testing.assert_array_equal(mask, mask_calc)
-    
-    def test_slit_nohole(self):
-        mask = np.array([True, True, True, True,
+            orientation=0),
+         dict(testcase_name='slit_nohole', 
+             expected=np.array([True, True, True, True,
                         True, False, True, True, 
-                        False])
-        mask_calc = cl_calcs.ar_mask_calc(
-            self.theta,
-            self.phi,
+                        False]),
             holein=False,
             slit=3,
-            orientation=0)
-        np.testing.assert_array_equal(mask, mask_calc)
-    
-    def test_slit_hole_rot90(self):
-        mask = np.array([True, True, True, True,
+            orientation=0),
+         dict(testcase_name='slit_hole_rot90', 
+             expected=np.array([True, True, True, True,
                         True, True, False, True, 
-                        True])
-        mask_calc = cl_calcs.ar_mask_calc(
-            self.theta,
-            self.phi,
+                        True]),
             holein=True,
             slit=3,
-            orientation=np.pi/2)
-        np.testing.assert_array_equal(mask, mask_calc)
+            orientation=np.pi/2),
+         dict(testcase_name='slit_nohole_rot90', 
+             expected=np.array([True, True, True, True,
+                        True, True, False, True, 
+                        False]),
+            holein=False,
+            slit=3,
+            orientation=np.pi/2),
+    )
+    def test_holes_slits(self, expected, holein, slit, orientation):
+        '''
+        test different combinations of having a hole and slit or not, and 
+        orientation
+        '''
+        theta = np.array([
+                       np.pi/2, # +y, side, in xy plane
+                       np.pi/2, #+x, back, in xy plane
+                       np.pi/2, # -y, side, in xy plane
+                       np.pi/2, # -x, front, in xy plane
+                       np.pi/2-0.2, # +y, side, slightly out of xy plane (78 deg)
+                       np.pi/2-0.2, # +x, back, slightly out of xy plane
+                       np.pi/2-0.2, # -y, side, slightly out of xy plane
+                       np.pi/2-0.2, # -x, front, slightly out of xy plane
+                       0, #hole
+                       ])
+        phi = np.array([
+                    np.pi/2, #+y
+                    0, #+x
+                    3*np.pi/2, #-y
+                    np.pi, #-x
+                    np.pi/2, #+y
+                    0, #+x
+                    3*np.pi/2, #-y
+                    np.pi, #-x
+                    0 #hole
+                    ])
+        mask_calc = cl_calcs.ar_mask_calc(
+            theta, phi, holein=holein, slit=slit, slit_center=0, 
+            orientation=orientation)
+        np.testing.assert_array_equal(expected, mask_calc)
+    
+    def test_slit_centre(self):
+        '''
+        slit centred at 0, slit off to one side, slit rotated and off-centre,
+        with and without hole
+        '''
         pass
-    
-    def test_slit_nohole_rot90(self):
-        mask = np.array([True, True, True, True,
-                        True, True, False, True, 
-                        False])
-        mask_calc = cl_calcs.ar_mask_calc(
-            self.theta,
-            self.phi,
-            holein=False,
-            slit=3,
-            orientation=np.pi/2)
-        np.testing.assert_array_equal(mask, mask_calc)
 
     def test_edge_of_hole(self):
-        phi = np.deg2rad(np.array([5, 5, 5]))
-        theta = np.deg2rad(np.array([3.9, 4, 4.1]))
-        mask = np.array([True, True, False])
+        phi = np.deg2rad(np.array([5, 5, 5, 40]))
+        theta = np.deg2rad(np.array([3.9, 4, 4.1, 4.1]))
+        mask = np.array([True, True, False, False])
         mask_calc = cl_calcs.ar_mask_calc(
             theta,
             phi,
@@ -139,30 +139,10 @@ class ARMaskCalcTest(unittest.TestCase):
     
     def test_edge_of_slit(self):
         pass
-
-    def setUp(self):
-        self.theta =  np.array([
-                       np.pi/2, # +y, side, in xy plane
-                       np.pi/2, #+x, back, in xy plane
-                       np.pi/2, # -y, side, in xy plane
-                       np.pi/2, # -x, front, in xy plane
-                       np.pi/2-0.2, # +y, side, slightly out of xy plane (78 deg)
-                       np.pi/2-0.2, # +x, back, slightly out of xy plane
-                       np.pi/2-0.2, # -y, side, slightly out of xy plane
-                       np.pi/2-0.2, # -x, front, slightly out of xy plane
-                       0, #hole
-                       ])
-        self.phi = np.array([
-                    np.pi/2, #+y
-                    0, #+x
-                    3*np.pi/2, #-y
-                    np.pi, #-x
-                    np.pi/2, #+y
-                    0, #+x
-                    3*np.pi/2, #-y
-                    np.pi, #-x
-                    0 #hole
-                    ])
+        
+    def test_slit_sizes(self):
+        pass
+    
 
 
 class DoPTest(unittest.TestCase):

@@ -55,10 +55,7 @@ def ar_mask_calc(theta, phi, holein=True, slit=None, slit_center=0, orientation=
     else:
         pass
 
-#    mask = np.ones(np.shape(phi))
-#    mask[condition] = False
-#    
-    return condition# np.logical_not(mask)
+    return condition
 
 def degree_of_polarization(S0, S1, S2, S3):
     DoP = np.zeros(np.shape(S0))
