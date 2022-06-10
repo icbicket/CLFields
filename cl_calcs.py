@@ -9,7 +9,7 @@ def ar_mask_calc(theta, phi, holein=True, slit=None, slit_center=0, orientation=
     input: 
         theta and phi are angles of emission
         holein: True or False boolean, whether or not to take out the electron beam hole from the mirror mask
-        slit: None or a  positive integer or float value, if None, there is no slit, if there is a value, this is the width of the slit in mm
+        slit: None or a positive integer or float value, if None, there is no slit, if there is a value, this is the width of the slit in mm
         orientation: a value in radians, to rotate the mirror around the sample (eg to get different responses to simulate rotating the stage in the microscope to change the orientation of the mirror relative to the sample)
     
     solve equality ar^2-1/(4a)=x. 
@@ -22,7 +22,6 @@ def ar_mask_calc(theta, phi, holein=True, slit=None, slit_center=0, orientation=
     a = 0.1
     xcut = 10.75
     phi = phi + orientation
-    
     ##thetacutoff can actually be calculated
     holesize = 0.6
     holeheight = np.sqrt(2.5/a)
@@ -35,11 +34,11 @@ def ar_mask_calc(theta, phi, holein=True, slit=None, slit_center=0, orientation=
     c[c_denominator==0] = np.inf
     c[c_denominator!=0] = 1/(2*c_denominator[c_denominator!=0])
 #    c = 1./(2*(a*np.cos(phi)*np.sin(theta)+a))
-    
+
     z = np.cos(theta)*c
     x = np.sin(theta)*np.cos(phi)*c#-1/(4.*a)
     y = np.sin(theta)*np.sin(phi)*c
-    
+    print('y', x, y, z)
     condition = (-x > xcut) | (z < dfoc)
     
     if slit is not None:
@@ -47,9 +46,10 @@ def ar_mask_calc(theta, phi, holein=True, slit=None, slit_center=0, orientation=
         ycut_negative = slit_center - slit/2.  ##
         condition = (condition | (y > ycut_positive)) ##
         condition = (condition | (y < ycut_negative))  ##
+        print(ycut_positive, ycut_negative)
     else:
         pass
-    
+
     if holein is True:
         condition = (condition | (theta <= (thetacutoffhole*np.pi/180)))
     else:
