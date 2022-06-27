@@ -149,13 +149,13 @@ class ARMaskCalcTest(parameterized.TestCase):
         edges of rotate, off-centre slit
         with and without hole
         '''
-        # z (x=0, y=1.5) =sqrt(10*(x+2.5)-y^2) = sqrt(22.75) = 4.769696007
-        # z (x=-1, y=1.5) =sqrt(10*(x+2.5)-y^2) = sqrt(12.75) = 3.570714214
+        # z (x=0, y=1.5) =sqrt(10*(x+2.5)-y^2) = sqrt(22.75) = 4.769696007084728
+        # z (x=-1, y=1.5) =sqrt(10*(x+2.5)-y^2) = sqrt(12.75) = 3.570714214271425
         # theta = arctan((sqrt(x^2+y^2)/z)
         theta = np.array([
-                        np.arctan(np.sqrt(0+1.5**2)/z_at_x0), # (x,y,z) = (0, 1.5, 4.769696007) to spherical coordinates, +y edge, x=0
-                        np.arctan(np.sqrt(0+1.5**2)/z_at_x0), # to spherical coordinates, +y edge, x=0
-                        np.arctan(np.sqrt(0+1.5**2)/z_at_x0), # to spherical coordinates, +y edge, x=0
+                        0.3046926540153975, # (x,y,z) = (0, 1.5, 4.769696007084728) to spherical coordinates, +y edge, x=0
+                        0.3046926540153975, # (x,y,z) = (0, 1.5, 4.769696007084728) to spherical coordinates, +y edge, x=0
+                        0.3046926540153975, # (x,y,z) = (0, 1.5, 4.769696007084728) to spherical coordinates, +y edge, x=0
                         np.arctan(np.sqrt(0+1.5**2)/z_at_x0)-0.01, # to spherical coordinates, +y edge, x=0
                         np.arctan(np.sqrt(0+1.5**2)/z_at_x0)+0.01, # to spherical coordinates, +y edge, x=0
                         np.arctan(np.sqrt(0+(1.5-0.01)**2)/z_at_x0), # to spherical coordinates, +y edge, x=0
