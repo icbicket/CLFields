@@ -138,115 +138,39 @@ class ARMaskCalcTest(parameterized.TestCase):
 #            )
 #        np.testing.assert_array_equal(mask, mask_calc)
 
-#    def test_edges_of_centred_3mm_slit(self):
-#        '''
-#        centre of slit-done
-#        edges of 3 mm slit-done
-#        edges of different size slit-done
-#        edges of different size, rotated slit
-#        edges of off-centre slit
-#        edges of rotated slit-done
-#        edges of rotate, off-centre slit
-#        with and without hole
-#        '''
-#        z_at_y0 = np.sqrt(2.5*10-1.5**2) # from parabola equation at x=1.5, y=0
-#        z_at_y_negative1 = np.sqrt(10*(-1+2.5)-(1.5)**2) # x=1.5, y=-1
-#        theta = np.array([
-#                        np.arctan(np.sqrt(0+1.5**2)/z_at_y0), # to spherical coordinates, +y edge, x=0
-#                        np.arctan(np.sqrt(0+1.5**2)/z_at_y0), # to spherical coordinates, +y edge, x=0
-#                        np.arctan(np.sqrt(0+1.5**2)/z_at_y0), # to spherical coordinates, +y edge, x=0
-#                        np.arctan(np.sqrt(0+1.5**2)/z_at_y0)-0.01, # to spherical coordinates, +y edge, x=0
-#                        np.arctan(np.sqrt(0+1.5**2)/z_at_y0)+0.01, # to spherical coordinates, +y edge, x=0
-#                        np.arctan(np.sqrt(0+(1.5-0.01)**2)/z_at_y0), # to spherical coordinates, +y edge, x=0
-#                        np.arctan(np.sqrt(0+(1.5+0.01)**2)/z_at_y0), # to spherical coordinates, +y edge, x=0
-#                        np.arctan(np.sqrt(0+1.5**2)/z_at_y0), # to spherical coordinates, -y edge, x=0
-#                        np.arctan(np.sqrt(0+1.5**2)/z_at_y0)-0.01, # to spherical coordinates, -y edge, x=0
-#                        np.arctan(np.sqrt(0+1.5**2)/z_at_y0)+0.01, # to spherical coordinates, -y edge, x=0
-#                        np.arctan(np.sqrt(0+(1.5-0.01)**2)/z_at_y0), # to spherical coordinates, -y edge, x=0
-#                        np.arctan(np.sqrt(0+(1.5+0.01)**2)/z_at_y0), # to spherical coordinates, -y edge, x=0
-#                        np.arctan(np.sqrt((-1)**2+1.5**2)/z_at_y_negative1), # to spherical coordinates, +y edge, x=-1
-#                        np.arctan(np.sqrt((-1)**2+1.5**2)/z_at_y_negative1)-0.01, # to spherical coordinates, +y edge, x=-1
-#                        np.arctan(np.sqrt((-1)**2+1.5**2)/z_at_y_negative1)+0.01, # to spherical coordinates, +y edge, x=-1
-#                        np.arctan(np.sqrt((-1)**2+1.5**2)/z_at_y_negative1), # to spherical coordinates, -y edge, x=-1
-#                        np.arctan(np.sqrt((-1)**2+1.5**2)/z_at_y_negative1)-0.01, # to spherical coordinates, -y edge, x=-1
-#                        np.arctan(np.sqrt((-1)**2+1.5**2)/z_at_y_negative1)+0.01, # to spherical coordinates, -y edge, x=-1
-#                        np.arctan(2.475/0.5)-0.01,# bottom of mirror
-#                        np.arctan(2.475/0.5)+0.01,# bottom of mirror
-#                        np.arctan(2.475/0.5)-0.01,# bottom of mirror
-#                        np.arctan(2.475/0.5)+0.01,# bottom of mirror
-#                        np.arctan(10.75/np.sqrt(10*(10.75+2.5)))-0.01, # top edge of mirror
-#                        np.arctan(10.75/np.sqrt(10*(10.75+2.5)))+0.01, # top edge of mirror
-#                        np.arctan(10.75/np.sqrt(10*(10.75+2.5)))-0.01, # top edge of mirror
-#                        np.arctan(10.75/np.sqrt(10*(10.75+2.5)))+0.01, # top edge of mirror
-#                        ])
-#        phi = np.array([
-#                    np.pi/2,
-#                    np.pi/2-0.01,
-#                    np.pi/2+0.01,
-#                    np.pi/2,
-#                    np.pi/2,
-#                    np.pi/2,
-#                    np.pi/2,
-#                    -3*np.pi/2,
-#                    -3*np.pi/2,
-#                    -3*np.pi/2,
-#                    -3*np.pi/2,
-#                    -3*np.pi/2,
-#                    np.arctan(1.5/-1),
-#                    np.arctan(1.5/-1),
-#                    np.arctan(1.5/-1),
-#                    -np.arctan(1.5/-1),
-#                    -np.arctan(1.5/-1),
-#                    -np.arctan(1.5/-1),
-#                    0,
-#                    0,
-#                    np.pi,
-#                    np.pi,
-#                    np.pi,
-#                    np.pi,
-#                    0,
-#                    0,
-#                    ])
-#        expected = np.array([False, False, True, False, True, False, True, False, False, True, False, True, False, False, True, False, False, True, False, True, True, True, False, True, False, False])
-#        calculated = cl_calcs.ar_mask_calc(
-#            theta,
-#            phi,
-#            holein=True,
-#            slit=3,
-#            slit_center=0,
-#            orientation=0,
-#            )
-#        np.testing.assert_array_equal(expected, calculated)
-
-    def test_edges_of_offcentre_3mm_slit(self):
+    def test_edges_of_centred_3mm_slit(self):
         '''
+        centre of slit-done
+        edges of 3 mm slit-done
+        edges of different size slit-done
+        edges of different size, rotated slit
         edges of off-centre slit
+        edges of rotated slit-done
+        edges of rotate, off-centre slit
+        with and without hole
         '''
-        #z_at_y0 = np.sqrt(2.5*10-1.5**2) # from parabola equation at x=1.5, y=0
-        z_at_positive_y = np.sqrt(2.5*10-2**2) # x=0, y=2
-        z_at_negative_y = np.sqrt(2.5*10-(-1)**2) # x=0, y=-1
-        print(z_at_negative_y)
-        z_at_y_negative1_positive = np.sqrt(10*(-1+2.5)-(2)**2) # x=-1, y=2
-        z_at_y_negative1_negative = np.sqrt(10*(-1+2.5)-(1)**2) # x=-1, y=1
+        # z (x=0, y=1.5) =sqrt(10*(x+2.5)-y^2) = sqrt(22.75) = 4.769696007
+        # z (x=-1, y=1.5) =sqrt(10*(x+2.5)-y^2) = sqrt(12.75) = 3.570714214
+        # theta = arctan((sqrt(x^2+y^2)/z)
         theta = np.array([
-                        #np.arctan(np.sqrt(0+1.5**2)/z_at_y0), # to spherical coordinates, +y edge, x=0
-#                        np.arctan(np.sqrt(0+2**2)/z_at_positive_y), # to spherical coordinates, +y edge, x=0
-#                        np.arctan(np.sqrt(0+2**2)/z_at_positive_y), # to spherical coordinates, +y edge, x=0
-#                        np.arctan(np.sqrt(0+2**2)/z_at_positive_y)-0.01, # to spherical coordinates, +y edge, x=0
-#                        np.arctan(np.sqrt(0+2**2)/z_at_positive_y)+0.01, # to spherical coordinates, +y edge, x=0
-#                        np.arctan(np.sqrt(0+(2-0.01)**2)/z_at_positive_y), # to spherical coordinates, +y edge, x=0
-#                        np.arctan(np.sqrt(0+(2+0.01)**2)/z_at_positive_y), # to spherical coordinates, +y edge, x=0
-#                        #np.arctan(np.sqrt(0+1.5**2)/z_at_y0), # to spherical coordinates, -y edge, x=0
-#                        np.arctan(np.sqrt(0+1**2)/z_at_negative_y)-0.01, # to spherical coordinates, -y edge, x=0
-#                        np.arctan(np.sqrt(0+1**2)/z_at_negative_y)+0.01, # to spherical coordinates, -y edge, x=0
-#                        np.arctan(np.sqrt(0+(-1+0.01)**2)/z_at_negative_y), # to spherical coordinates, -y edge, x=0
-#                        np.arctan(np.sqrt(0+(-1-0.01)**2)/z_at_negative_y), # to spherical coordinates, -y edge, x=0
-                        #np.arctan(np.sqrt((-1)**2+1.5**2)/z_at_y_negative1), # to spherical coordinates, +y edge, x=-1
-                        np.arctan(np.sqrt((-1)**2+2**2)/z_at_y_negative1_positive),#-0.01, # to spherical coordinates, +y edge, x=-1
-                        np.arctan(np.sqrt((-1)**2+2**2)/z_at_y_negative1_positive)+0.01, # to spherical coordinates, +y edge, x=-1
-                        #np.arctan(np.sqrt((-1)**2+1.5**2)/z_at_y_negative1), # to spherical coordinates, -y edge, x=-1
-                        np.arctan(np.sqrt((-1)**2+1**2)/z_at_y_negative1_negative)-0.01, # to spherical coordinates, -y edge, x=-1
-                        np.arctan(np.sqrt((-1)**2+1**2)/z_at_y_negative1_negative)+0.01, # to spherical coordinates, -y edge, x=-1
+                        np.arctan(np.sqrt(0+1.5**2)/z_at_x0), # (x,y,z) = (0, 1.5, 4.769696007) to spherical coordinates, +y edge, x=0
+                        np.arctan(np.sqrt(0+1.5**2)/z_at_x0), # to spherical coordinates, +y edge, x=0
+                        np.arctan(np.sqrt(0+1.5**2)/z_at_x0), # to spherical coordinates, +y edge, x=0
+                        np.arctan(np.sqrt(0+1.5**2)/z_at_x0)-0.01, # to spherical coordinates, +y edge, x=0
+                        np.arctan(np.sqrt(0+1.5**2)/z_at_x0)+0.01, # to spherical coordinates, +y edge, x=0
+                        np.arctan(np.sqrt(0+(1.5-0.01)**2)/z_at_x0), # to spherical coordinates, +y edge, x=0
+                        np.arctan(np.sqrt(0+(1.5+0.01)**2)/z_at_x0), # to spherical coordinates, +y edge, x=0
+                        np.arctan(np.sqrt(0+1.5**2)/z_at_x0), # to spherical coordinates, -y edge, x=0
+                        np.arctan(np.sqrt(0+1.5**2)/z_at_x0)-0.01, # to spherical coordinates, -y edge, x=0
+                        np.arctan(np.sqrt(0+1.5**2)/z_at_x0)+0.01, # to spherical coordinates, -y edge, x=0
+                        np.arctan(np.sqrt(0+(1.5-0.01)**2)/z_at_x0), # to spherical coordinates, -y edge, x=0
+                        np.arctan(np.sqrt(0+(1.5+0.01)**2)/z_at_x0), # to spherical coordinates, -y edge, x=0
+                        np.arctan(np.sqrt((-1)**2+1.5**2)/z_at_y_negative1), # to spherical coordinates, +y edge, x=-1
+                        np.arctan(np.sqrt((-1)**2+1.5**2)/z_at_y_negative1)-0.01, # to spherical coordinates, +y edge, x=-1
+                        np.arctan(np.sqrt((-1)**2+1.5**2)/z_at_y_negative1)+0.01, # to spherical coordinates, +y edge, x=-1
+                        np.arctan(np.sqrt((-1)**2+1.5**2)/z_at_y_negative1), # to spherical coordinates, -y edge, x=-1
+                        np.arctan(np.sqrt((-1)**2+1.5**2)/z_at_y_negative1)-0.01, # to spherical coordinates, -y edge, x=-1
+                        np.arctan(np.sqrt((-1)**2+1.5**2)/z_at_y_negative1)+0.01, # to spherical coordinates, -y edge, x=-1
                         np.arctan(2.475/0.5)-0.01,# bottom of mirror
                         np.arctan(2.475/0.5)+0.01,# bottom of mirror
                         np.arctan(2.475/0.5)-0.01,# bottom of mirror
@@ -256,24 +180,23 @@ class ARMaskCalcTest(parameterized.TestCase):
                         np.arctan(10.75/np.sqrt(10*(10.75+2.5)))-0.01, # top edge of mirror
                         np.arctan(10.75/np.sqrt(10*(10.75+2.5)))+0.01, # top edge of mirror
                         ])
-        print(np.arctan(np.sqrt(0+1**2)/z_at_negative_y) , np.rad2deg(theta))
         phi = np.array([
-                    #np.pi/2,
-#                    np.pi/2-0.01,
-#                    np.pi/2+0.01,
-#                    np.pi/2,
-#                    np.pi/2,
-#                    np.pi/2,
-#                    np.pi/2,
-#                    #-3*np.pi/2,
-#                    3*np.pi/2,
-#                    3*np.pi/2,
-#                    3*np.pi/2,
-#                    3*np.pi/2,
-                    #np.arctan(1.5/-1),
-                    np.arctan(2/-1),
-                    np.arctan(2/-1),
-                    #-np.arctan(1.5/-1),
+                    np.pi/2,
+                    np.pi/2-0.01,
+                    np.pi/2+0.01,
+                    np.pi/2,
+                    np.pi/2,
+                    np.pi/2,
+                    np.pi/2,
+                    -3*np.pi/2,
+                    -3*np.pi/2,
+                    -3*np.pi/2,
+                    -3*np.pi/2,
+                    -3*np.pi/2,
+                    np.arctan(1.5/-1),
+                    np.arctan(1.5/-1),
+                    np.arctan(1.5/-1),
+                    -np.arctan(1.5/-1),
                     -np.arctan(1.5/-1),
                     -np.arctan(1.5/-1),
                     0,
@@ -285,12 +208,98 @@ class ARMaskCalcTest(parameterized.TestCase):
                     0,
                     0,
                     ])
-        expected = np.array([
-            #False, 
-#            False, 
-#            True, 
-#            False, 
-#            True, 
+        expected = np.array([False, False, True, False, True, False, True, False, False, True, False, True, False, False, True, False, False, True, False, True, True, True, False, True, False, False])
+        calculated = cl_calcs.ar_mask_calc(
+            theta,
+            phi,
+            holein=True,
+            slit=3,
+            slit_center=0,
+            orientation=0,
+            )
+        np.testing.assert_array_equal(expected, calculated)
+
+#    def test_edges_of_offcentre_3mm_slit(self):
+#        '''
+#        edges of off-centre slit
+#        '''
+#        #z_at_y0 = np.sqrt(2.5*10-1.5**2) # z^2 = 10(x+2.5)-y^2
+#        z_at_positive_y = np.sqrt(2.5*10-2**2) # x=0, y=2
+#        z_at_negative_y = np.sqrt(2.5*10-(-1)**2) # x=0, y=-1
+#        print(z_at_negative_y)
+#        z_at_y_negative1_positive = np.sqrt(11) # x=-1, y=2
+#        z_at_y_negative1_negative = np.sqrt(10*(-1+2.5)-(1)**2) # x=-1, y=1
+#        theta = np.array([
+#                        #np.arctan(np.sqrt(0+1.5**2)/z_at_y0), # to spherical coordinates, +y edge, x=0
+##                        np.arctan(np.sqrt(0+2**2)/z_at_positive_y), # to spherical coordinates, +y edge, x=0
+##                        np.arctan(np.sqrt(0+2**2)/z_at_positive_y), # to spherical coordinates, +y edge, x=0
+##                        np.arctan(np.sqrt(0+2**2)/z_at_positive_y)-0.01, # to spherical coordinates, +y edge, x=0
+##                        np.arctan(np.sqrt(0+2**2)/z_at_positive_y)+0.01, # to spherical coordinates, +y edge, x=0
+##                        np.arctan(np.sqrt(0+(2-0.01)**2)/z_at_positive_y), # to spherical coordinates, +y edge, x=0
+##                        np.arctan(np.sqrt(0+(2+0.01)**2)/z_at_positive_y), # to spherical coordinates, +y edge, x=0
+##                        #np.arctan(np.sqrt(0+1.5**2)/z_at_y0), # to spherical coordinates, -y edge, x=0
+##                        np.arctan(np.sqrt(0+1**2)/z_at_negative_y)-0.01, # to spherical coordinates, -y edge, x=0
+##                        np.arctan(np.sqrt(0+1**2)/z_at_negative_y)+0.01, # to spherical coordinates, -y edge, x=0
+##                        np.arctan(np.sqrt(0+(-1+0.01)**2)/z_at_negative_y), # to spherical coordinates, -y edge, x=0
+##                        np.arctan(np.sqrt(0+(-1-0.01)**2)/z_at_negative_y), # to spherical coordinates, -y edge, x=0
+#                        #np.arctan(np.sqrt((-1)**2+1.5**2)/z_at_y_negative1), # to spherical coordinates, +y edge, x=-1
+#                        np.arctan(np.sqrt((-1)**2+2**2)/z_at_y_negative1_positive)-0.01, # to spherical coordinates, +y edge, x=-1
+#                        np.arctan(np.sqrt((-1)**2+2**2)/z_at_y_negative1_positive)+0.01, # to spherical coordinates, +y edge, x=-1
+#                        #np.arctan(np.sqrt((-1)**2+1.5**2)/z_at_y_negative1), # to spherical coordinates, -y edge, x=-1
+#                        np.arctan(np.sqrt((-1)**2+1**2)/z_at_y_negative1_negative)-0.01, # to spherical coordinates, -y edge, x=-1
+#                        np.arctan(np.sqrt((-1)**2+1**2)/z_at_y_negative1_negative)+0.01, # to spherical coordinates, -y edge, x=-1
+#                        np.arctan(2.475/0.5)-0.01,# bottom of mirror
+#                        np.arctan(2.475/0.5)+0.01,# bottom of mirror
+#                        np.arctan(2.475/0.5)-0.01,# bottom of mirror
+#                        np.arctan(2.475/0.5)+0.01,# bottom of mirror
+#                        np.arctan(10.75/np.sqrt(10*(10.75+2.5)))-0.01, # top edge of mirror
+#                        np.arctan(10.75/np.sqrt(10*(10.75+2.5)))+0.01, # top edge of mirror
+#                        np.arctan(10.75/np.sqrt(10*(10.75+2.5)))-0.01, # top edge of mirror
+#                        np.arctan(10.75/np.sqrt(10*(10.75+2.5)))+0.01, # top edge of mirror
+#                        ])
+#        print(np.arctan(np.sqrt(0+1**2)/z_at_negative_y) , np.rad2deg(theta))
+#        phi = np.array([
+#                    #np.pi/2,
+##                    np.pi/2-0.01,
+##                    np.pi/2+0.01,
+##                    np.pi/2,
+##                    np.pi/2,
+##                    np.pi/2,
+##                    np.pi/2,
+##                    #-3*np.pi/2,
+##                    3*np.pi/2,
+##                    3*np.pi/2,
+##                    3*np.pi/2,
+##                    3*np.pi/2,
+#                    #np.arctan(1.5/-1),
+#                    np.arctan(2/-1),
+#                    np.arctan(2/-1),
+#                    #-np.arctan(1.5/-1),
+#                    -np.arctan(1.5/-1),
+#                    -np.arctan(1.5/-1),
+#                    0,
+#                    0,
+#                    np.pi,
+#                    np.pi,
+#                    np.pi,
+#                    np.pi,
+#                    0,
+#                    0,
+#                    ])
+#        expected = np.array([
+#            #False, 
+##            False, 
+##            True, 
+##            False, 
+##            True, 
+##            False, 
+##            True, 
+##            #False, 
+##            False, 
+##            True, 
+##            False, 
+##            True, 
+#            #False, 
 #            False, 
 #            True, 
 #            #False, 
@@ -298,30 +307,22 @@ class ARMaskCalcTest(parameterized.TestCase):
 #            True, 
 #            False, 
 #            True, 
-            #False, 
-            False, 
-            True, 
-            #False, 
-            False, 
-            True, 
-            False, 
-            True, 
-            True, 
-            True, 
-            False, 
-            True, 
-            False, 
-            False
-            ])
-        calculated = cl_calcs.ar_mask_calc(
-            theta,
-            phi,
-            holein=True,
-            slit=3,
-            slit_center=0.5,
-            orientation=0,
-            )
-        np.testing.assert_array_equal(expected, calculated)
+#            True, 
+#            True, 
+#            False, 
+#            True, 
+#            False, 
+#            False
+#            ])
+#        calculated = cl_calcs.ar_mask_calc(
+#            theta,
+#            phi,
+#            holein=True,
+#            slit=3,
+#            slit_center=0.5,
+#            orientation=0,
+#            )
+#        np.testing.assert_array_equal(expected, calculated)
 
 #    def test_edges_of_centred_2p5mm_slit(self):
 #        '''
