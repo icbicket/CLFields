@@ -39,7 +39,6 @@ def ar_mask_calc(theta, phi, holein=True, slit=None, slit_center=0, orientation=
     z = np.cos(theta)*c
     x = np.sin(theta)*np.cos(phi)*c#-1/(4.*a)
     y = np.sin(theta)*np.sin(phi)*c
-    print('x', x, '\ny', y, '\nz', z, '\nc', c)
     condition = (-x > xcut) | (z < dfoc)
     
     if slit is not None:
@@ -47,7 +46,6 @@ def ar_mask_calc(theta, phi, holein=True, slit=None, slit_center=0, orientation=
         ycut_negative = slit_center - slit/2.  ##
         condition = (condition | (y > ycut_positive)) ##
         condition = (condition | (y < ycut_negative))  ##
-        print(ycut_positive, ycut_negative)
     else:
         pass
 
