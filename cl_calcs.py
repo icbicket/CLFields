@@ -17,6 +17,7 @@ def ar_mask_calc(theta, phi, holein=True, slit=None, slit_center=0, orientation=
     2)*sin(theta)^2)))); The cos(phi)^2+sin(phi)^2=1 so we can omit that. Then
     we have cos(theta)^2+sin(theta)^2 which also drops out. That leaves the
     square root of a^2
+    True: outside mirror
     '''
     
     a = 0.1
@@ -38,7 +39,7 @@ def ar_mask_calc(theta, phi, holein=True, slit=None, slit_center=0, orientation=
     z = np.cos(theta)*c
     x = np.sin(theta)*np.cos(phi)*c#-1/(4.*a)
     y = np.sin(theta)*np.sin(phi)*c
-    print('y', x, y, z)
+    print('x', x, '\ny', y, '\nz', z, '\nc', c)
     condition = (-x > xcut) | (z < dfoc)
     
     if slit is not None:

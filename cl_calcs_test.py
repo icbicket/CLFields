@@ -25,7 +25,7 @@ Unittests for the following functions:
 class ARMaskCalcTest(parameterized.TestCase):
     '''
     Test angle-resolved mirror masking function
-    x and y axes are flipped
+    
     '''
 #    @parameterized.named_parameters(
 #        dict(testcase_name='noslit_nohole', 
@@ -149,66 +149,181 @@ class ARMaskCalcTest(parameterized.TestCase):
         edges of rotate, off-centre slit
         with and without hole
         '''
-        # z (x=0, y=1.5) =sqrt(10*(x+2.5)-y^2) = sqrt(22.75) = 4.769696007084728
-        # z (x=-1, y=1.5) =sqrt(10*(x+2.5)-y^2) = sqrt(12.75) = 3.570714214271425
-        # theta = arctan((sqrt(x^2+y^2)/z)
-        theta = np.array([
-                        0.3046926540153975, # (x,y,z) = (0, 1.5, 4.769696007084728) to spherical coordinates, +y edge, x=0
-                        0.3046926540153975, # (x,y,z) = (0, 1.5, 4.769696007084728) to spherical coordinates, +y edge, x=0
-                        0.3046926540153975, # (x,y,z) = (0, 1.5, 4.769696007084728) to spherical coordinates, +y edge, x=0
-                        np.arctan(np.sqrt(0+1.5**2)/z_at_x0)-0.01, # to spherical coordinates, +y edge, x=0
-                        np.arctan(np.sqrt(0+1.5**2)/z_at_x0)+0.01, # to spherical coordinates, +y edge, x=0
-                        np.arctan(np.sqrt(0+(1.5-0.01)**2)/z_at_x0), # to spherical coordinates, +y edge, x=0
-                        np.arctan(np.sqrt(0+(1.5+0.01)**2)/z_at_x0), # to spherical coordinates, +y edge, x=0
-                        np.arctan(np.sqrt(0+1.5**2)/z_at_x0), # to spherical coordinates, -y edge, x=0
-                        np.arctan(np.sqrt(0+1.5**2)/z_at_x0)-0.01, # to spherical coordinates, -y edge, x=0
-                        np.arctan(np.sqrt(0+1.5**2)/z_at_x0)+0.01, # to spherical coordinates, -y edge, x=0
-                        np.arctan(np.sqrt(0+(1.5-0.01)**2)/z_at_x0), # to spherical coordinates, -y edge, x=0
-                        np.arctan(np.sqrt(0+(1.5+0.01)**2)/z_at_x0), # to spherical coordinates, -y edge, x=0
-                        np.arctan(np.sqrt((-1)**2+1.5**2)/z_at_y_negative1), # to spherical coordinates, +y edge, x=-1
-                        np.arctan(np.sqrt((-1)**2+1.5**2)/z_at_y_negative1)-0.01, # to spherical coordinates, +y edge, x=-1
-                        np.arctan(np.sqrt((-1)**2+1.5**2)/z_at_y_negative1)+0.01, # to spherical coordinates, +y edge, x=-1
-                        np.arctan(np.sqrt((-1)**2+1.5**2)/z_at_y_negative1), # to spherical coordinates, -y edge, x=-1
-                        np.arctan(np.sqrt((-1)**2+1.5**2)/z_at_y_negative1)-0.01, # to spherical coordinates, -y edge, x=-1
-                        np.arctan(np.sqrt((-1)**2+1.5**2)/z_at_y_negative1)+0.01, # to spherical coordinates, -y edge, x=-1
-                        np.arctan(2.475/0.5)-0.01,# bottom of mirror
-                        np.arctan(2.475/0.5)+0.01,# bottom of mirror
-                        np.arctan(2.475/0.5)-0.01,# bottom of mirror
-                        np.arctan(2.475/0.5)+0.01,# bottom of mirror
-                        np.arctan(10.75/np.sqrt(10*(10.75+2.5)))-0.01, # top edge of mirror
-                        np.arctan(10.75/np.sqrt(10*(10.75+2.5)))+0.01, # top edge of mirror
-                        np.arctan(10.75/np.sqrt(10*(10.75+2.5)))-0.01, # top edge of mirror
-                        np.arctan(10.75/np.sqrt(10*(10.75+2.5)))+0.01, # top edge of mirror
+        # z = sqrt(10*(2.5-x)-y^2)
+        xyz = np.array([
+                        #[0, 1.5, 4.769696007084728], # on edge
+#                        [-0.01, 1.5, 4.759201613716318], # 
+#                        [0.01, 1.5, 4.780167361086848], # 
+                        #[0, 1.5, 4.769696007084728], #
+                        #[0, 1.5, 4.769696007084728], #
+                        [0, 1.49, 4.772829349557766], # inside slit, +y
+                        [0, 1.51, 4.766539625346673], # outside slit, +y
+#                        [0, -1.5, 4.769696007084728],
+#                        [0, -1.5, 4.769696007084728], #
+#                        [0, -1.5, 4.769696007084728], #
+                        [0, -1.49, 4.772829349557766], # inside slit, -y
+                        [0, -1.51, 4.766539625346673], # outside slit, -y
+#                        [-1, 1.50, 3.570714214271425],
+                         [-1, 1.49, 5.725373350271578], # inside slit
+                         [-1, 1.51, 5.720131117378342], # outside slit
+                         [-1, -1.49, 5.725373350271578], # inside slit
+                         [-1, -1.51, 5.720131117378342], # outside slit
+                         [1, 1.49, 3.574898599960564], # inside slit
+                         [1, 1.51, 3.5664968806939954], # outside slit
+                         [1, -1.49, 3.574898599960564], # inside slit
+                         [1, -1.51, 3.5664968806939954], # outside slit
+#                        [-1, 1.50, 3.570714214271425], #
+#                        [-1, 1.50, 3.570714214271425], #
+#                        [-1, -1.50, 3.570714214271425],
+#                        [-1, -1.50, 3.570714214271425], #
+#                        [-1, -1.50, 3.570714214271425], #
+                         [2.465, 0, 0.5916079783099628], # inside mirror bottom
+                         [2.485, 0, 0.3872983346207433], # outside mirror bottom
+                         [2.47399, 0, 0.51], # inside mirror bottom
+                         [2.47599, 0, 0.49], # outside mirror bottom
+                         [-2.465, 0, 0.5916079783099628], # wrong side of mirror
+                         [-2.485, 0, 0.3872983346207433], # wrong side of mirror
+#                        [2.475, 0, 0.5], #
+#                        [2.475, 0, 0.5], #
+                         [-10.74, 0, 11.50651989091402], # inside top edge mirror
+                         [-10.76, 0, 11.515207336387824], # outside top edge mirror
+                         [-10.74, 1.49, 11.409640660423973], # top edge, +y slit edge inside mirror
+                         [-10.74, 1.51, 11.407011002011], # top edge, +y slit edge outside mirror
+                         [-10.76, 1.49, 11.418401814614862], # top edge, +y slit edge outside mirror
+                         [-10.76, 1.51, 11.415774174360667], # top edge, +y slit edge outside mirror
+                         [-10.74, -1.49, 11.409640660423973], # top edge, -y slit edge inside mirror
+                         [-10.74, -1.51, 11.407011002011], # top edge, -y slit edge outside mirror
+                         [-10.76, -1.49, 11.418401814614862], # top edge, -y slit edge outside mirror
+                         [-10.76, -1.51, 11.415774174360667], # top edge, -y slit edge outside mirror
+                         [2.25398, 1.49, 0.49], # inside mirror bottom +y slit edge outside mirror
+                         [2.25198, 1.49, 0.51], # inside mirror bottom +y slit edge inside mirror
+                         [2.24798, 1.51, 0.49], # inside mirror bottom +y slit edge outside mirror
+                         [2.24598, 1.51, 0.51], # inside mirror bottom +y slit edge outside mirror
+                         [2.25398, -1.49, 0.49], # inside mirror bottom -y slit edge outside mirror
+                         [2.25198, -1.49, 0.51], # inside mirror bottom -y slit edge inside mirror
+                         [2.24798, -1.51, 0.49], # inside mirror bottom -y slit edge outside mirror
+                         [2.24598, -1.51, 0.51], # inside mirror bottom -y slit edge outside mirror
+#                         [2.465, 1.49, 0.5916079783099628], # inside mirror bottom +y slit edge
+#                         [2.465, 1.51, 0.3872983346207433], # outside mirror bottom +y slit edge
                         ])
-        phi = np.array([
-                    np.pi/2,
-                    np.pi/2-0.01,
-                    np.pi/2+0.01,
-                    np.pi/2,
-                    np.pi/2,
-                    np.pi/2,
-                    np.pi/2,
-                    -3*np.pi/2,
-                    -3*np.pi/2,
-                    -3*np.pi/2,
-                    -3*np.pi/2,
-                    -3*np.pi/2,
-                    np.arctan(1.5/-1),
-                    np.arctan(1.5/-1),
-                    np.arctan(1.5/-1),
-                    -np.arctan(1.5/-1),
-                    -np.arctan(1.5/-1),
-                    -np.arctan(1.5/-1),
-                    0,
-                    0,
-                    np.pi,
-                    np.pi,
-                    np.pi,
-                    np.pi,
-                    0,
-                    0,
-                    ])
-        expected = np.array([False, False, True, False, True, False, True, False, False, True, False, True, False, False, True, False, False, True, False, True, True, True, False, True, False, False])
+        r, theta, phi = coord_transforms.cartesian_to_spherical_coords(xyz)
+        print(theta, phi)
+#        theta = np.array([
+#                        0.3046926540153975, # (x,y,z) = (0, 1.5, 4.769696007084728) to spherical coordinates, +y edge, x=0
+#                        0.3046926540153975, # (x,y,z) = (0, 1.5, 4.769696007084728) to spherical coordinates, +y edge, x=0
+#                        0.3046926540153975, # (x,y,z) = (0, 1.5, 4.769696007084728) to spherical coordinates, +y edge, x=0
+#                        0.2946926540153975, # (x,y,z) = (0, 1.5, 4.769696007084728) -0.01 in theta
+#                        0.3146926540153975, # (x,y,z) = (0, 1.5, 4.769696007084728) +0.01 in theta
+#                        0.30278363251733253, # (x,y,z) = (0, 1.49, 4.769696007084728)
+#                        0.30659938606688847, # (x,y,z) = (0, 1.51, 4.769696007084728)
+#                        0.3046926540153975, # (x,y,z) = (0, -1.5, 4.769696007084728) to spherical coordinates, +y edge, x=0
+#                        0.2946926540153975, # (x,y,z) = (0, -1.5, 4.769696007084728) -0.01 in theta
+#                        0.3146926540153975, # (x,y,z) = (0, -1.5, 4.769696007084728) +0.01 in theta
+#                        0.30278363251733253, # (x,y,z) = (0, -1.49, 4.769696007084728)
+#                        0.30659938606688847, # (x,y,z) = (0, -1.51, 4.769696007084728)
+#                        0.46754252069679714, # (x,y,z) = (-1, 1.50, 3.570714214271425)
+#                        0.45754252069679714, # (x,y,z) = (-1, 1.50, 3.570714214271425) - 0.01 in theta
+#                        0.47754252069679714, # (x,y,z) = (-1, 1.50, 3.570714214271425) + 0.01 in theta
+#                        0.46754252069679714, # (x,y,z) = (-1, -1.50, 3.570714214271425)
+#                        0.45754252069679714, # (x,y,z) = (-1, -1.50, 3.570714214271425) - 0.01 in theta
+#                        0.47754252069679714, # (x,y,z) = (-1, -1.50, 3.570714214271425) + 0.01 in theta
+#                        1.3614590218125726, # bottom of mirror (x,y,z) = (-2.475, 0, 0.5) - 0.01 in theta
+#                        1.3814590218125726, # bottom of mirror(x,y,z) = (-2.475, 0, 0.5) - 0.01 in theta
+#                        1.3614590218125726, # (x,y,z) = (2.475, 0, 0.5) - 0.01 in theta
+#                        1.3814590218125726, # (x,y,z) = (2.475, 0, 0.5) + 0.01 in theta
+#                        0.7412319991266359, # top edge of mirror (x,y,z)=(10.75, 0, 132.5) -0.01 in theta
+#                        0.7612319991266359, # top edge of mirror (x,y,z)=(10.75, 0, 132.5) +0.01 in theta
+#                        0.7412319991266359, # (x,y,z)=(-10.75, 0, 132.5) -0.01 in theta, off mirror
+#                        0.7612319991266359, # (x,y,z)=(-10.75, 0, 132.5) +0.01 in theta, off mirror
+#                        ])
+#        phi = np.array([
+#                    np.pi/2, # (x,y,z) = (0, 1.5, 4.769696007084728)
+#                    np.pi/2-0.01, # (x,y,z) = (0, 1.5, 4.769696007084728)
+#                    np.pi/2+0.01, # (x,y,z) = (0, 1.5, 4.769696007084728)
+#                    np.pi/2, # (x,y,z) = (0, 1.5, 4.769696007084728)-0.01 in theta
+#                    np.pi/2, # (x,y,z) = (0, 1.5, 4.769696007084728)+0.01 in theta
+#                    np.pi/2, # (x,y,z) = (0, 1.49, 4.769696007084728)
+#                    np.pi/2, # (x,y,z) = (0, 1.51, 4.769696007084728)
+#                    3*np.pi/2, # (x,y,z) = (0, -1.5, 4.769696007084728)
+#                    3*np.pi/2, # (x,y,z) = (0, -1.5, 4.769696007084728) -0.01 in theta
+#                    3*np.pi/2, # (x,y,z) = (0, -1.5, 4.769696007084728) +0.01 in theta
+#                    3*np.pi/2, # (x,y,z) = (0, -1.49, 4.769696007084728)
+#                    3*np.pi/2, # (x,y,z) = (0, -1.51, 4.769696007084728)
+#                    2.15879893, #np.arctan(-1.5), # (x,y,z) = (-1, 1.50, 3.570714214271425)
+#                    2.15879893, #np.arctan(-1.5), # (x,y,z) = (-1, 1.50, 3.570714214271425) - 0.01 in theta
+#                    2.15879893, # np.arctan(-1.5), # (x,y,z) = (-1, 1.50, 3.570714214271425) + 0.01 in theta
+#                    4.12438638, #-np.arctan(-1.5), # (x,y,z) = (-1, -1.50, 3.570714214271425)
+#                    4.12438638, #-np.arctan(-1.5), # (x,y,z) = (-1, -1.50, 3.570714214271425) - 0.01 in theta
+#                    4.12438638, #-np.arctan(-1.5), # (x,y,z) = (-1, -1.50, 3.570714214271425) + 0.01 in theta
+#                    np.pi, #0, # bottom of mirror (x,y,z) = (-2.475, 0, 0.5) - 0.01 in theta
+#                    np.pi, #0, # bottom of mirror (x,y,z) = (-2.475, 0, 0.5) - 0.01 in theta
+#                    0, #np.pi, # (x,y,z) = (2.475, 0, 0.5) - 0.01 in theta
+#                    0, #np.pi, # (x,y,z) = (2.475, 0, 0.5) + 0.01 in theta
+#                    0, #np.pi, # top edge of mirror (x,y,z)=(10.75, 0, 132.5) -0.01 in theta
+#                    0, #np.pi, # top edge of mirror (x,y,z)=(10.75, 0, 132.5) +0.01 in theta
+#                    np.pi, #0, # (x,y,z)=(-10.75, 0, 132.5) -0.01 in theta
+#                    np.pi, #0, # (x,y,z)=(-10.75, 0, 132.5) +0.01 in theta
+#                    ])
+        expected = np.array([
+            # False, # (x,y,z) = (0, 1.5, 4.769696007084728)
+#            False, # (x,y,z) = (0, 1.5, 4.769696007084728)
+#            True, # (x,y,z) = (0, 1.5, 4.769696007084728)
+            #False, # (x,y,z) = (0, 1.5, 4.769696007084728)-0.01 in theta
+            #True, # (x,y,z) = (0, 1.5, 4.769696007084728)+0.01 in theta
+            False, # (x,y,z) = (0, 1.49, 4.769696007084728)
+            True, # (x,y,z) = (0, 1.51, 4.769696007084728)
+#            False, # (x,y,z) = (0, -1.5, 4.769696007084728)
+#            False, # (x,y,z) = (0, -1.5, 4.769696007084728) -0.01 in theta
+#            True, # (x,y,z) = (0, -1.5, 4.769696007084728) +0.01 in theta
+            False, # (x,y,z) = (0, -1.49, 4.769696007084728)
+            True, # (x,y,z) = (0, -1.51, 4.769696007084728)
+            False,
+            True,
+            False,
+            True,
+            False,
+            True,
+            False,
+            True,
+            False,
+            True,
+            False,
+            True,
+            True,
+            True,
+            False,
+            True,
+            False,
+            True,
+            True,
+            True,
+            False,
+            True,
+            True,
+            True,
+            True,
+            False,
+            True,
+            True,
+            True,
+            False,
+            True,
+            True,
+#            False, # (x,y,z) = (-1, 1.50, 3.570714214271425)
+#            False, # (x,y,z) = (-1, 1.50, 3.570714214271425) - 0.01 in theta
+#            True, # (x,y,z) = (-1, 1.50, 3.570714214271425) + 0.01 in theta
+#            False, # (x,y,z) = (-1, -1.50, 3.570714214271425)
+#            False, # (x,y,z) = (-1, -1.50, 3.570714214271425) - 0.01 in theta
+#            True, # (x,y,z) = (-1, -1.50, 3.570714214271425) + 0.01 in theta
+#            False, # bottom of mirror (x,y,z) = (-2.475, 0, 0.5) - 0.01 in theta
+#            True, # bottom of mirror (x,y,z) = (-2.475, 0, 0.5) - 0.01 in theta
+#            True, # (x,y,z) = (2.475, 0, 0.5) - 0.01 in theta
+#            True, # (x,y,z) = (2.475, 0, 0.5) + 0.01 in theta
+#            False, # top edge of mirror (x,y,z)=(10.75, 0, 132.5) -0.01 in theta
+#            True, # top edge of mirror (x,y,z)=(10.75, 0, 132.5) +0.01 in theta
+#            False, # (x,y,z)=(-10.75, 0, 132.5) -0.01 in theta
+#            False, # (x,y,z)=(-10.75, 0, 132.5) +0.01 in theta
+            ])
         calculated = cl_calcs.ar_mask_calc(
             theta,
             phi,
@@ -223,75 +338,83 @@ class ARMaskCalcTest(parameterized.TestCase):
 #        '''
 #        edges of off-centre slit
 #        '''
-#        #z_at_y0 = np.sqrt(2.5*10-1.5**2) # z^2 = 10(x+2.5)-y^2
-#        z_at_positive_y = np.sqrt(2.5*10-2**2) # x=0, y=2
-#        z_at_negative_y = np.sqrt(2.5*10-(-1)**2) # x=0, y=-1
-#        print(z_at_negative_y)
-#        z_at_y_negative1_positive = np.sqrt(11) # x=-1, y=2
-#        z_at_y_negative1_negative = np.sqrt(10*(-1+2.5)-(1)**2) # x=-1, y=1
+#        # z = sqrt(10*(x+2.5)-y^2)
+##        #z_at_y0 = np.sqrt(2.5*10-1.5**2) # z^2 = 10(x+2.5)-y^2
+##        z_at_positive_y = 4.58257569495584 # np.sqrt(2.5*10-2**2) # x=0, y=2
+##        #z_at_negative_y = np.sqrt(2.5*10-(-1)**2) # x=0, y=-1
+##        #z_at_y_negative1_positive = np.sqrt(11) # x=-1, y=2
+##        #z_at_y_negative1_negative = np.sqrt(10*(-1+2.5)-(1)**2) # x=-1, y=1
+#        # theta = arctan((sqrt(x^2+y^2)/z)
 #        theta = np.array([
-#                        #np.arctan(np.sqrt(0+1.5**2)/z_at_y0), # to spherical coordinates, +y edge, x=0
-##                        np.arctan(np.sqrt(0+2**2)/z_at_positive_y), # to spherical coordinates, +y edge, x=0
-##                        np.arctan(np.sqrt(0+2**2)/z_at_positive_y), # to spherical coordinates, +y edge, x=0
-##                        np.arctan(np.sqrt(0+2**2)/z_at_positive_y)-0.01, # to spherical coordinates, +y edge, x=0
-##                        np.arctan(np.sqrt(0+2**2)/z_at_positive_y)+0.01, # to spherical coordinates, +y edge, x=0
-##                        np.arctan(np.sqrt(0+(2-0.01)**2)/z_at_positive_y), # to spherical coordinates, +y edge, x=0
-##                        np.arctan(np.sqrt(0+(2+0.01)**2)/z_at_positive_y), # to spherical coordinates, +y edge, x=0
-##                        #np.arctan(np.sqrt(0+1.5**2)/z_at_y0), # to spherical coordinates, -y edge, x=0
-##                        np.arctan(np.sqrt(0+1**2)/z_at_negative_y)-0.01, # to spherical coordinates, -y edge, x=0
-##                        np.arctan(np.sqrt(0+1**2)/z_at_negative_y)+0.01, # to spherical coordinates, -y edge, x=0
-##                        np.arctan(np.sqrt(0+(-1+0.01)**2)/z_at_negative_y), # to spherical coordinates, -y edge, x=0
-##                        np.arctan(np.sqrt(0+(-1-0.01)**2)/z_at_negative_y), # to spherical coordinates, -y edge, x=0
-#                        #np.arctan(np.sqrt((-1)**2+1.5**2)/z_at_y_negative1), # to spherical coordinates, +y edge, x=-1
-#                        np.arctan(np.sqrt((-1)**2+2**2)/z_at_y_negative1_positive)-0.01, # to spherical coordinates, +y edge, x=-1
-#                        np.arctan(np.sqrt((-1)**2+2**2)/z_at_y_negative1_positive)+0.01, # to spherical coordinates, +y edge, x=-1
-#                        #np.arctan(np.sqrt((-1)**2+1.5**2)/z_at_y_negative1), # to spherical coordinates, -y edge, x=-1
-#                        np.arctan(np.sqrt((-1)**2+1**2)/z_at_y_negative1_negative)-0.01, # to spherical coordinates, -y edge, x=-1
-#                        np.arctan(np.sqrt((-1)**2+1**2)/z_at_y_negative1_negative)+0.01, # to spherical coordinates, -y edge, x=-1
-#                        np.arctan(2.475/0.5)-0.01,# bottom of mirror
-#                        np.arctan(2.475/0.5)+0.01,# bottom of mirror
-#                        np.arctan(2.475/0.5)-0.01,# bottom of mirror
-#                        np.arctan(2.475/0.5)+0.01,# bottom of mirror
-#                        np.arctan(10.75/np.sqrt(10*(10.75+2.5)))-0.01, # top edge of mirror
-#                        np.arctan(10.75/np.sqrt(10*(10.75+2.5)))+0.01, # top edge of mirror
-#                        np.arctan(10.75/np.sqrt(10*(10.75+2.5)))-0.01, # top edge of mirror
-#                        np.arctan(10.75/np.sqrt(10*(10.75+2.5)))+0.01, # top edge of mirror
+#                        0.411516846067488, # (x,y,z)=(0, 2, 4.58257569495584)
+#                        0.411516846067488, # (x,y,z)=(-0.01, 2, 4.58257569495584)
+#                        0.411516846067488, # (x,y,z)=(0.01, 2, 4.58257569495584)
+#                        0.401516846067488, # (x,y,z)=(0.01, 2, 4.58257569495584) - 0.01 in theta
+#                        0.421516846067488, # (x,y,z)=(0.01, 2, 4.58257569495584) + 0.01 in theta
+#                        0.4093357035812775, # (x,y,z)=(0.01, 1.99, 4.486927075940928)
+#                        0.41370006682909855, # (x,y,z)=(0.01, 2.01, 4.578198335590105)
+#                        0.19135792079033082, # (x,y,z)=(0, -1, 4.898979485566356) - 0.01 in theta, -y edge
+#                        0.21135792079033082, # (x,y,z)=(0, -1, 4.898979485566356) + 0.01 in theta, -y edge
+#                        0.20127672852222292, # (x,y,z)=(0, -0.99, 4.901010099969189), -y edge
+#                        0.2014400288989755, # (x,y,z)=(0, -1.01, 4.896927608204965), -y edge
+#                        0.5931997761496288, #np.arctan(np.sqrt((-1)**2+1.5**2)/z_at_y_negative1), # (x,y,z)=(-1, 2, 3.3166247903554), +y edge, x=-1
+##                        np.arctan(np.sqrt((-1)**2+2**2)/z_at_y_negative1_positive)-0.01, # to spherical coordinates, +y edge, x=-1
+##                        np.arctan(np.sqrt((-1)**2+2**2)/z_at_y_negative1_positive)+0.01, # to spherical coordinates, +y edge, x=-1
+##                        #np.arctan(np.sqrt((-1)**2+1.5**2)/z_at_y_negative1), # to spherical coordinates, -y edge, x=-1
+##                        np.arctan(np.sqrt((-1)**2+1**2)/z_at_y_negative1_negative)-0.01, # to spherical coordinates, -y edge, x=-1
+##                        np.arctan(np.sqrt((-1)**2+1**2)/z_at_y_negative1_negative)+0.01, # to spherical coordinates, -y edge, x=-1
+##                        np.arctan(2.475/0.5)-0.01,# bottom of mirror
+##                        np.arctan(2.475/0.5)+0.01,# bottom of mirror
+##                        np.arctan(2.475/0.5)-0.01,# bottom of mirror
+##                        np.arctan(2.475/0.5)+0.01,# bottom of mirror
+##                        np.arctan(10.75/np.sqrt(10*(10.75+2.5)))-0.01, # top edge of mirror
+##                        np.arctan(10.75/np.sqrt(10*(10.75+2.5)))+0.01, # top edge of mirror
+##                        np.arctan(10.75/np.sqrt(10*(10.75+2.5)))-0.01, # top edge of mirror
+##                        np.arctan(10.75/np.sqrt(10*(10.75+2.5)))+0.01, # top edge of mirror
 #                        ])
-#        print(np.arctan(np.sqrt(0+1**2)/z_at_negative_y) , np.rad2deg(theta))
+#        xyz = np.array([[-1, 2, 3.3166247903554]])
+#        print(coord_transforms.cartesian_to_spherical_coords(xyz))
+#        
 #        phi = np.array([
-#                    #np.pi/2,
-##                    np.pi/2-0.01,
-##                    np.pi/2+0.01,
-##                    np.pi/2,
-##                    np.pi/2,
-##                    np.pi/2,
-##                    np.pi/2,
-##                    #-3*np.pi/2,
-##                    3*np.pi/2,
-##                    3*np.pi/2,
-##                    3*np.pi/2,
-##                    3*np.pi/2,
-#                    #np.arctan(1.5/-1),
-#                    np.arctan(2/-1),
-#                    np.arctan(2/-1),
-#                    #-np.arctan(1.5/-1),
-#                    -np.arctan(1.5/-1),
-#                    -np.arctan(1.5/-1),
-#                    0,
-#                    0,
-#                    np.pi,
-#                    np.pi,
-#                    np.pi,
-#                    np.pi,
-#                    0,
-#                    0,
+#                     np.pi/2,
+#                     np.pi/2-0.01,
+#                     np.pi/2+0.01,
+#                     np.pi/2,
+#                     np.pi/2,
+#                     np.pi/2,
+#                     np.pi/2,
+#                    3*np.pi/2,
+#                    3*np.pi/2,
+#                    3*np.pi/2,
+#                    3*np.pi/2,
+#                    2.03444394, #-1.1071487177940904,
+##                    np.arctan(2/-1),
+##                    np.arctan(2/-1),
+##                    #-np.arctan(1.5/-1),
+##                    -np.arctan(1.5/-1),
+##                    -np.arctan(1.5/-1),
+##                    0,
+##                    0,
+##                    np.pi,
+##                    np.pi,
+##                    np.pi,
+##                    np.pi,
+##                    0,
+##                    0,
 #                    ])
 #        expected = np.array([
-#            #False, 
-##            False, 
-##            True, 
-##            False, 
-##            True, 
+#             False, 
+#             False, 
+#             True, 
+#             False, 
+#             True, 
+#            False, 
+#            True, 
+#            False, 
+#            True, 
+#            False, 
+#            True, 
+#            False, 
 ##            False, 
 ##            True, 
 ##            #False, 
@@ -299,20 +422,12 @@ class ARMaskCalcTest(parameterized.TestCase):
 ##            True, 
 ##            False, 
 ##            True, 
-#            #False, 
-#            False, 
-#            True, 
-#            #False, 
-#            False, 
-#            True, 
-#            False, 
-#            True, 
-#            True, 
-#            True, 
-#            False, 
-#            True, 
-#            False, 
-#            False
+##            True, 
+##            True, 
+##            False, 
+##            True, 
+##            False, 
+##            False
 #            ])
 #        calculated = cl_calcs.ar_mask_calc(
 #            theta,
