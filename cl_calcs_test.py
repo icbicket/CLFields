@@ -138,16 +138,16 @@ class ARMaskCalcTest(parameterized.TestCase):
             )
         np.testing.assert_array_equal(mask, mask_calc)
 
-'''
-        centre of slit-done
-        edges of 3 mm slit-done
-        edges of different size slit-done
-        edges of different size, rotated slit
-        edges of off-centre slit
-        edges of rotated slit-done
-        edges of rotate, off-centre slit
-        with and without hole
-'''
+    '''
+            centre of slit-done
+            edges of 3 mm slit-done
+            edges of different size slit-done
+            edges of different size, rotated slit
+            edges of off-centre slit
+            edges of rotated slit-done
+            edges of rotate, off-centre slit
+            with and without hole
+    '''
 
     def test_edges_of_centred_3mm_slit(self):
         # z = sqrt(10*(2.5-x)-y^2)
