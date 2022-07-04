@@ -138,8 +138,7 @@ class ARMaskCalcTest(parameterized.TestCase):
             )
         np.testing.assert_array_equal(mask, mask_calc)
 
-    def test_edges_of_centred_3mm_slit(self):
-        '''
+'''
         centre of slit-done
         edges of 3 mm slit-done
         edges of different size slit-done
@@ -148,7 +147,9 @@ class ARMaskCalcTest(parameterized.TestCase):
         edges of rotated slit-done
         edges of rotate, off-centre slit
         with and without hole
-        '''
+'''
+
+    def test_edges_of_centred_3mm_slit(self):
         # z = sqrt(10*(2.5-x)-y^2)
         xyz = np.array([
                         [0, 1.49, 4.772829349557766], # inside slit, +y
@@ -240,6 +241,7 @@ class ARMaskCalcTest(parameterized.TestCase):
     def test_edges_of_offcentre_3mm_slit(self):
         '''
         edges of off-centre slit, moved 0.5 mm to the positive y
+        Hole in
         '''
         # z = sqrt(10*(2.5-x)-y^2)
         xyz = np.array([
@@ -273,70 +275,6 @@ class ARMaskCalcTest(parameterized.TestCase):
                          [2.37198, -1.01, 0.51], # inside mirror bottom -y slit edge outside mirror
                         ])
         r, theta, phi = coord_transforms.cartesian_to_spherical_coords(xyz)
-        # z = sqrt(10*(x+2.5)-y^2)
-#        #z_at_y0 = np.sqrt(2.5*10-1.5**2) # z^2 = 10(x+2.5)-y^2
-#        z_at_positive_y = 4.58257569495584 # np.sqrt(2.5*10-2**2) # x=0, y=2
-#        #z_at_negative_y = np.sqrt(2.5*10-(-1)**2) # x=0, y=-1
-#        #z_at_y_negative1_positive = np.sqrt(11) # x=-1, y=2
-#        #z_at_y_negative1_negative = np.sqrt(10*(-1+2.5)-(1)**2) # x=-1, y=1
-        # theta = arctan((sqrt(x^2+y^2)/z)
-#        theta = np.array([
-#                        0.411516846067488, # (x,y,z)=(0, 2, 4.58257569495584)
-#                        0.411516846067488, # (x,y,z)=(-0.01, 2, 4.58257569495584)
-#                        0.411516846067488, # (x,y,z)=(0.01, 2, 4.58257569495584)
-#                        0.401516846067488, # (x,y,z)=(0.01, 2, 4.58257569495584) - 0.01 in theta
-#                        0.421516846067488, # (x,y,z)=(0.01, 2, 4.58257569495584) + 0.01 in theta
-#                        0.4093357035812775, # (x,y,z)=(0.01, 1.99, 4.486927075940928)
-#                        0.41370006682909855, # (x,y,z)=(0.01, 2.01, 4.578198335590105)
-#                        0.19135792079033082, # (x,y,z)=(0, -1, 4.898979485566356) - 0.01 in theta, -y edge
-#                        0.21135792079033082, # (x,y,z)=(0, -1, 4.898979485566356) + 0.01 in theta, -y edge
-#                        0.20127672852222292, # (x,y,z)=(0, -0.99, 4.901010099969189), -y edge
-#                        0.2014400288989755, # (x,y,z)=(0, -1.01, 4.896927608204965), -y edge
-#                        0.5931997761496288, #np.arctan(np.sqrt((-1)**2+1.5**2)/z_at_y_negative1), # (x,y,z)=(-1, 2, 3.3166247903554), +y edge, x=-1
-#                        np.arctan(np.sqrt((-1)**2+2**2)/z_at_y_negative1_positive)-0.01, # to spherical coordinates, +y edge, x=-1
-#                        np.arctan(np.sqrt((-1)**2+2**2)/z_at_y_negative1_positive)+0.01, # to spherical coordinates, +y edge, x=-1
-#                        #np.arctan(np.sqrt((-1)**2+1.5**2)/z_at_y_negative1), # to spherical coordinates, -y edge, x=-1
-#                        np.arctan(np.sqrt((-1)**2+1**2)/z_at_y_negative1_negative)-0.01, # to spherical coordinates, -y edge, x=-1
-#                        np.arctan(np.sqrt((-1)**2+1**2)/z_at_y_negative1_negative)+0.01, # to spherical coordinates, -y edge, x=-1
-#                        np.arctan(2.475/0.5)-0.01,# bottom of mirror
-#                        np.arctan(2.475/0.5)+0.01,# bottom of mirror
-#                        np.arctan(2.475/0.5)-0.01,# bottom of mirror
-#                        np.arctan(2.475/0.5)+0.01,# bottom of mirror
-#                        np.arctan(10.75/np.sqrt(10*(10.75+2.5)))-0.01, # top edge of mirror
-#                        np.arctan(10.75/np.sqrt(10*(10.75+2.5)))+0.01, # top edge of mirror
-#                        np.arctan(10.75/np.sqrt(10*(10.75+2.5)))-0.01, # top edge of mirror
-#                        np.arctan(10.75/np.sqrt(10*(10.75+2.5)))+0.01, # top edge of mirror
-#                        ])
-#        xyz = np.array([[-1, 2, 3.3166247903554]])
-#        print(coord_transforms.cartesian_to_spherical_coords(xyz))
-#        
-#        phi = np.array([
-#                     np.pi/2,
-#                     np.pi/2-0.01,
-#                     np.pi/2+0.01,
-#                     np.pi/2,
-#                     np.pi/2,
-#                     np.pi/2,
-#                     np.pi/2,
-#                    3*np.pi/2,
-#                    3*np.pi/2,
-#                    3*np.pi/2,
-#                    3*np.pi/2,
-#                    2.03444394, #-1.1071487177940904,
-#                    np.arctan(2/-1),
-#                    np.arctan(2/-1),
-#                    #-np.arctan(1.5/-1),
-#                    -np.arctan(1.5/-1),
-#                    -np.arctan(1.5/-1),
-#                    0,
-#                    0,
-#                    np.pi,
-#                    np.pi,
-#                    np.pi,
-#                    np.pi,
-#                    0,
-#                    0,
-#                    ])
         expected = np.array([
              False,
              True,
@@ -377,10 +315,71 @@ class ARMaskCalcTest(parameterized.TestCase):
             )
         np.testing.assert_array_equal(expected, calculated)
 
-#    def test_edges_of_centred_2p5mm_slit(self):
-#        '''
-#        edges of different size slit
-#        '''
+    def test_edges_of_centred_2p5mm_slit(self):
+        '''
+        edges of different size slit: 2.5 mm
+        '''
+        xyz = np.array([
+                        [0, 1.24, 4.843800161030593], # inside slit, +y
+                        [0, 1.26, 4.838636171484688], # outside slit, +y
+                        [0, -1.24, 4.843800161030593], # inside slit, -y
+                        [0, -1.26, 4.838636171484688], # outside slit, -y
+                         [-1, 1.24, 5.784669394183215], # inside slit
+                         [-1, 1.26, 5.780346010404568], # outside slit
+                         [-1, -1.24, 5.784669394183215], # inside slit
+                         [-1, -1.26, 5.780346010404568], # outside slit
+                         [1, 1.24, 3.6691143345499606], # inside slit
+                         [1, 1.26, 3.6622943628277613], # outside slit
+                         [1, -1.24, 3.6691143345499606], # inside slit
+                         [1, -1.26, 3.6622943628277613], # outside slit
+                         [-10.74, 1.24, 11.439510479037116], # top edge, +y slit edge inside mirror
+                         [-10.74, 1.26, 11.437324862047069], # top edge, +y slit edge outside mirror
+                         [-10.76, 1.24, 11.44824877437593], # top edge, +y slit edge outside mirror
+                         [-10.76, 1.26, 11.44606482595656], # top edge, +y slit edge outside mirror
+                         [-10.74, -1.24, 11.439510479037116], # top edge, -y slit edge inside mirror
+                         [-10.74, -1.26, 11.437324862047069], # top edge, -y slit edge outside mirror
+                         [-10.76, -1.24, 11.44824877437593], # top edge, -y slit edge outside mirror
+                         [-10.76, -1.26, 11.44606482595656], # top edge, -y slit edge outside mirror
+                         [2.32223, 1.24, 0.49], # inside mirror bottom +y slit edge outside mirror
+                         [2.32023, 1.24, 0.51], # inside mirror bottom +y slit edge inside mirror
+                         [2.31723, 1.26, 0.49], # inside mirror bottom +y slit edge outside mirror
+                         [2.31523, 1.26, 0.51], # inside mirror bottom +y slit edge outside mirror
+                         [2.32223, -1.24, 0.49], # inside mirror bottom -y slit edge outside mirror
+                         [2.32023, -1.24, 0.51], # inside mirror bottom -y slit edge inside mirror
+                         [2.31723, -1.26, 0.49], # inside mirror bottom -y slit edge outside mirror
+                         [2.31523, -1.26, 0.51], # inside mirror bottom -y slit edge outside mirror
+                        ])
+        r, theta, phi = coord_transforms.cartesian_to_spherical_coords(xyz)
+        expected = np.array([
+             False,
+             True,
+             False,
+             True,
+             False,
+             True,
+             False,
+             True,
+             False,
+             True,
+             False,
+             True,
+             False,
+             True,
+             True,
+             True,
+             False,
+             True,
+             True,
+             True,
+             True,
+             False,
+             True,
+             True,
+             True,
+             False,
+             True,
+             True,
+            ])
 #        z_at_y0 = np.sqrt(2.5*10-1.25**2) # from parabola equation at x=1.5, y=0
 #        z_at_y_negative1 = np.sqrt(10*(-1+2.5)-(1.25)**2) # x=1.25, y=-1
 #        theta = np.array([
@@ -466,15 +465,15 @@ class ARMaskCalcTest(parameterized.TestCase):
 #            True, 
 #            False, 
 #            False])
-#        calculated = cl_calcs.ar_mask_calc(
-#            theta,
-#            phi,
-#            holein=True,
-#            slit=2.5,
-#            slit_center=0,
-#            orientation=0,
-#            )
-#        np.testing.assert_array_equal(expected, calculated)
+        calculated = cl_calcs.ar_mask_calc(
+            theta,
+            phi,
+            holein=True,
+            slit=2.5,
+            slit_center=0,
+            orientation=0,
+            )
+        np.testing.assert_array_equal(expected, calculated)
 
 #    def test_edges_of_centred_3mm_slit_hole_out(self):
 #        '''
