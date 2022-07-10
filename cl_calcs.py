@@ -36,11 +36,12 @@ def ar_mask_calc(theta, phi, holein=True, slit=None, slit_center=0, orientation=
     c[c_denominator!=0] = 1/(2*c_denominator[c_denominator!=0])
 #    c = 1./(2*(a*np.cos(phi)*np.sin(theta)+a))
 
-    z = np.cos(theta)*c
-    x = np.sin(theta)*np.cos(phi)*c#-1/(4.*a)
-    y = np.sin(theta)*np.sin(phi)*c
+#    z = np.cos(theta)*c
+#    x = np.sin(theta)*np.cos(phi)*c#-1/(4.*a)
+#    y = np.sin(theta)*np.sin(phi)*c
+    x, y, z = mirror_xyz(theta, phi, c)
     condition = (-x > xcut) | (z < dfoc)
-    
+    print('x', x, 'y\n', y, 'z\n', z)
     if slit is not None:
         ycut_positive = slit_center + slit/2.  ##
         ycut_negative = slit_center - slit/2.  ##
@@ -55,6 +56,12 @@ def ar_mask_calc(theta, phi, holein=True, slit=None, slit_center=0, orientation=
         pass
 
     return condition
+
+def mirror_xyz(theta, phi, c):
+    z = np.cos(theta)*c
+    x = np.sin(theta)*np.cos(phi)*c#-1/(4.*a)
+    y = np.sin(theta)*np.sin(phi)*c
+    return x, y, z
 
 def degree_of_polarization(S0, S1, S2, S3):
     DoP = np.zeros(np.shape(S0))
