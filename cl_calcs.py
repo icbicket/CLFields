@@ -41,7 +41,7 @@ def ar_mask_calc(theta, phi, holein=True, slit=None, slit_center=0, orientation=
 #    y = np.sin(theta)*np.sin(phi)*c
     x, y, z, c = mirror_xyz(theta, phi, a)
     condition = (-x > xcut) | (z < dfoc)
-    print('x', x, '\ny', y, '\nz', z)
+#    print('x', x, '\ny', y, '\nz', z)
     if slit is not None:
         ycut_positive = slit_center + slit/2.  ##
         ycut_negative = slit_center - slit/2.  ##
@@ -57,11 +57,12 @@ def ar_mask_calc(theta, phi, holein=True, slit=None, slit_center=0, orientation=
 
     return condition
 
-def mirror_xyz(theta, phi, a):
+def mirror_xyz(theta, phi, a=0.1):
     c = np.empty(np.shape(phi))
     c_denominator = a*np.cos(phi)*np.sin(theta) + a
     c[c_denominator==0] = np.inf
     c[c_denominator!=0] = 1/(2*c_denominator[c_denominator!=0])
+#    spherical_vector = 
     z = np.cos(theta)*c
     x = np.sin(theta)*np.cos(phi)*c#-1/(4.*a)
     y = np.sin(theta)*np.sin(phi)*c
