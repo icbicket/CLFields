@@ -1134,21 +1134,336 @@ class ARMaskCalcTest(parameterized.TestCase):
             ]), (2, 2, 5))
         np.testing.assert_array_equal(calculated, expected)
 
-#class DoPTest(unittest.TestCase):
-#    def test_pol(self):
-#        S0 = np.array([3,])
-#        S1 = np.array([1,])
-#        S2 = np.array([2,])
-#        S3 = np.array([-2,])
-#        dop = np.transpose(np.array([[1, np.sqrt(5)/S0[0], -2/3, -2/(3+np.sqrt(5))]]))
-#        DoP, DoLP, DoCP, ell = cl_calcs.degree_of_polarization(S0, S1, S2, S3)
-#        dop_calc = np.array([DoP, DoLP, DoCP, ell])
-#        np.testing.assert_array_almost_equal(dop, dop_calc)
 
+class DegreeOfPolarizationTest(parameterized.TestCase):
+    '''
+    fully polarized light-mixed states
+    fully linearly polarized light
+    fully circularly polarized light
+    partially polarized linear light
+    partially polarized circular light
+    totally unpolarized light
+    S0 is 0
+    S0 is negative
+    square sums of S1-3 greater than square of S0
+    single value array
+    single float/integer
+    n by 1 array
+    1 by n array
+    n by m by p array
+    '''
+    def test_mixed_polarized_light(self):
+        '''
+        Polarized light with mixed polarization states
+        '''
+        S0 = np.array([3, 3, 3, 3, 3, 3, 3, 3, 0.9273618495495703])
+        S1 = np.array([1, 1, -1, 1, -1, 1, -1, -1, 0.6])
+        S2 = np.array([2, 2, 2, -2, -2, -2, 2, -2, 0.7])
+        S3 = np.array([-2, 2, 2, 2, 2, -2, -2, -2, 0.1])
+        expected = np.array([
+            [1, 1, 1, 1, 1, 1, 1, 1, 1], 
+            [0.7453559924999299, 0.7453559924999299, 0.7453559924999299, 
+                0.7453559924999299, 0.7453559924999299, 0.7453559924999299, 
+                0.7453559924999299, 0.7453559924999299, 0.994169046], 
+            [2/3, 2/3, 2/3, 2/3, 2/3, 2/3, 2/3, 2/3, 0.107832773], 
+            [-0.38196601125010515, 0.38196601125010515, 0.38196601125010515, 
+                0.38196601125010515, 0.38196601125010515, -0.38196601125010515,
+                -0.38196601125010515, -0.38196601125010515, 0.054074038]
+            ])
+        DoP, DoLP, DoCP, ell = cl_calcs.degree_of_polarization(S0, S1, S2, S3)
+        calculated = np.array([DoP, DoLP, DoCP, ell])
+        np.testing.assert_array_almost_equal(expected, calculated)
 
-#class MirrorMask3dTest(unittest.TestCase):
-#    def testMirrorMask(self):
-#        pass
+    def test_linear_polarized_light(self):
+        '''
+        Various types of linearly polarized light
+        '''
+        S0 = np.array([1, 1, 1, 1, 
+            np.sqrt(2), np.sqrt(2), np.sqrt(2), np.sqrt(2), 1/np.sqrt(2)])
+        S1 = np.array([1, 0, -1, 0, 1, 1, -1, -1, 0.5])
+        S2 = np.array([0, 1, 0, -1, 1, -1, 1, -1, 0.5])
+        S3 = np.array([0, 0, 0, 0, 0, 0, 0, 0, 0])
+        expected = np.array([
+            [1, 1, 1, 1, 1, 1, 1, 1, 1],  # DoP
+            [1, 1, 1, 1, 1, 1, 1, 1, 1],  # DoLP
+            [0, 0, 0, 0, 0, 0, 0, 0, 0],  # DoCP
+            [0, 0, 0, 0, 0, 0, 0, 0, 0],  # ellipticity
+            ])
+        DoP, DoLP, DoCP, ell = cl_calcs.degree_of_polarization(S0, S1, S2, S3)
+        calculated = np.array([DoP, DoLP, DoCP, ell])
+        np.testing.assert_array_almost_equal(calculated, expected)
+
+    def test_circular_polarized_light(self):
+        '''
+        Various types of pure circularly polarized light
+        '''
+        S0 = np.array([1, 1, 0.5, 0.5])
+        S1 = np.array([0, 0, 0, 0])
+        S2 = np.array([0, 0, 0, 0])
+        S3 = np.array([1, -1, 0.5, -0.5])
+        expected = np.array([
+            [1, 1, 1, 1],  # DoP
+            [0, 0, 0, 0],  # DoLP
+            [1, 1, 1, 1],  # DoCP
+            [1, -1, 1, -1],  # ellipticity
+            ])
+        DoP, DoLP, DoCP, ell = cl_calcs.degree_of_polarization(S0, S1, S2, S3)
+        calculated = np.array([DoP, DoLP, DoCP, ell])
+        np.testing.assert_array_almost_equal(calculated, expected)
+
+    def test_partially_linear_polarized_light(self):
+        '''
+        Partially linearly polarized light - no circular
+        '''
+        S0 = np.array([2, 2, 2, 2, 3, 3, 3, 3, 2])
+        S1 = np.array([1, -1, 0, 0, 1, -1, 1, -1, 0.5])
+        S2 = np.array([0, 0, 1, -1, 1, 1, -1, -1, 0.5])
+        S3 = np.array([0, 0, 0, 0, 0, 0, 0, 0, 0])
+        expected = np.array([
+            [0.5, 0.5, 0.5, 0.5, 0.47140452079103173, 0.47140452079103173, 
+                0.47140452079103173, 0.47140452079103173, 
+                0.35355339059327373],  # DoP
+            [0.5, 0.5, 0.5, 0.5, 0.47140452079103173, 0.47140452079103173, 
+                0.47140452079103173, 0.47140452079103173, 
+                0.35355339059327373],  # DoLP
+            [0, 0, 0, 0, 0, 0, 0, 0, 0],  # DoCP
+            [0, 0, 0, 0, 0, 0, 0, 0, 0],  # ellipticity
+            ])
+        DoP, DoLP, DoCP, ell = cl_calcs.degree_of_polarization(S0, S1, S2, S3)
+        calculated = np.array([DoP, DoLP, DoCP, ell])
+        np.testing.assert_array_almost_equal(calculated, expected)
+
+    def test_partially_circular_polarized_light(self):
+        '''
+        Various types of partial circularly polarized light
+        '''
+        S0 = np.array([1.5, 1.5, 2, 2])
+        S1 = np.array([0, 0, 0, 0])
+        S2 = np.array([0, 0, 0, 0])
+        S3 = np.array([1, -1, 0.5, -0.5])
+        expected = np.array([
+            [2/3, 2/3, 0.25, 0.25],  # DoP
+            [0, 0, 0, 0],  # DoLP
+            [2/3, 2/3, 0.25, 0.25],  # DoCP
+            [2/3, -2/3, 0.25, -0.25],  # ellipticity
+            ])
+        DoP, DoLP, DoCP, ell = cl_calcs.degree_of_polarization(S0, S1, S2, S3)
+        calculated = np.array([DoP, DoLP, DoCP, ell])
+        np.testing.assert_array_almost_equal(calculated, expected)
+
+    def test_unpolarized_light(self):
+        '''
+        Unpolarized light
+        '''
+        S0 = np.array([1, 1.5])
+        S1 = np.array([0, 0])
+        S2 = np.array([0, 0])
+        S3 = np.array([0, 0])
+        expected = np.array([
+            [0, 0],  # DoP
+            [0, 0],  # DoLP
+            [0, 0],  # DoCP
+            [0, 0],  # ellipticity
+            ])
+        DoP, DoLP, DoCP, ell = cl_calcs.degree_of_polarization(S0, S1, S2, S3)
+        calculated = np.array([DoP, DoLP, DoCP, ell])
+        np.testing.assert_array_almost_equal(calculated, expected)
+
+    def test_S0_zero(self):
+        '''
+        S0 is 0
+        '''
+        S0 = np.array([0])
+        S1 = np.array([0])
+        S2 = np.array([0])
+        S3 = np.array([0])
+        expected = np.array([
+            [0],  # DoP
+            [0],  # DoLP
+            [0],  # DoCP
+            [0],  # ellipticity
+            ])
+        DoP, DoLP, DoCP, ell = cl_calcs.degree_of_polarization(S0, S1, S2, S3)
+        calculated = np.array([DoP, DoLP, DoCP, ell])
+        np.testing.assert_array_almost_equal(calculated, expected)
+
+    @parameterized.named_parameters(
+        dict(testcase_name='S0: one is less than 0',
+            S0 = np.array([-1, 1]),
+            S1 = np.array([1, 1]),
+            S2 = np.array([0, 0]),
+            S3 = np.array([0, 0]),
+            ),
+        dict(testcase_name='S0: all are less than 0',
+            S0 = np.array([-1]),
+            S1 = np.array([0]),
+            S2 = np.array([1]),
+            S3 = np.array([0]),
+            ),
+        )
+    def test_S0_negative(self, S0, S1, S2, S3):
+        '''
+        S0 is < 0
+        '''
+        with self.assertRaises(ValueError):
+            DoP, DoLP, DoCP, ell = cl_calcs.degree_of_polarization(S0, S1, S2, S3)
+
+    @parameterized.named_parameters(
+        dict(testcase_name='S0 less in integers',
+            S0 = np.array([2]),
+            S1 = np.array([5]),
+            S2 = np.array([0]),
+            S3 = np.array([0]),
+            ),
+        dict(testcase_name='S0 less in floats',
+            S0 = np.array([0.1]),
+            S1 = np.array([1]),
+            S2 = np.array([0.5]),
+            S3 = np.array([0.2]),
+            ),
+        dict(testcase_name='S0 less, on the edge',
+            S0 = np.array([1.12]),
+            S1 = np.array([1]),
+            S2 = np.array([0.5]),
+            S3 = np.array([0.2]),
+            ),
+        dict(testcase_name='one S0 value is less, on the edge',
+            S0 = np.array([1.12, 1.14]),
+            S1 = np.array([1, 1]),
+            S2 = np.array([0.5, 0.5]),
+            S3 = np.array([0.2, 0.2]),
+            ),
+        )
+    def test_S0_greater_than_sum_squares(self, S0, S1, S2, S3):
+        '''
+        S0^2 is < (S1^2+S2^2+S3^2)
+        '''
+        with self.assertRaises(ValueError):
+            DoP, DoLP, DoCP, ell = cl_calcs.degree_of_polarization(S0, S1, S2, S3)
+
+    def test_single_value_array(self):
+        '''
+        input is a single value
+        '''
+        S0 = np.array([3])
+        S1 = np.array([1])
+        S2 = np.array([2])
+        S3 = np.array([-2])
+        expected = np.array([
+            [1], 
+            [0.7453559924999299], 
+            [2/3], 
+            [-0.38196601125010515]
+            ])
+        DoP, DoLP, DoCP, ell = cl_calcs.degree_of_polarization(S0, S1, S2, S3)
+        calculated = np.array([DoP, DoLP, DoCP, ell])
+        np.testing.assert_array_almost_equal(expected, calculated)
+        
+    def test_single_integer(self):
+        '''
+        input for each Stokes parameter is a single integer
+        '''
+        S0 = 3
+        S1 = 1
+        S2 = 2
+        S3 = -2
+        expected = np.array([
+            [1], 
+            [0.7453559924999299], 
+            [2/3], 
+            [-0.38196601125010515]
+            ])
+        with self.assertRaises(TypeError):
+            DoP, DoLP, DoCP, ell = cl_calcs.degree_of_polarization(S0, S1, S2, S3)
+
+    def test_single_float(self):
+        '''
+        input for each Stokes parameter is a single float
+        '''
+        S0 = 3.
+        S1 = 1.
+        S2 = 2.
+        S3 = -2.
+        expected = np.array([
+            [1], 
+            [0.7453559924999299], 
+            [2/3], 
+            [-0.38196601125010515]
+            ])
+        with self.assertRaises(TypeError):
+            DoP, DoLP, DoCP, ell = cl_calcs.degree_of_polarization(S0, S1, S2, S3)
+
+    def test_n_by_1_array(self):
+        '''
+        Input is an n by 1 array
+        '''
+        S0 = np.array([3, 3, 3, 3, 3, 3, 3, 3, 0.9273618495495703]).reshape((9,1))
+        S1 = np.array([1, 1, -1, 1, -1, 1, -1, -1, 0.6]).reshape((9,1))
+        S2 = np.array([2, 2, 2, -2, -2, -2, 2, -2, 0.7]).reshape((9,1))
+        S3 = np.array([-2, 2, 2, 2, 2, -2, -2, -2, 0.1]).reshape((9,1))
+        expected_DoP = np.array([1, 1, 1, 1, 1, 1, 1, 1, 1]).reshape((9,1))
+        expected_DoLP = np.array([0.7453559924999299, 0.7453559924999299, 0.7453559924999299, 0.7453559924999299, 0.7453559924999299, 0.7453559924999299, 0.7453559924999299, 0.7453559924999299, 0.994169046]).reshape((9,1))
+        expected_DoCP = np.array([2/3, 2/3, 2/3, 2/3, 2/3, 2/3, 2/3, 2/3, 0.107832773]).reshape((9,1))
+        expected_ell = np.array([-0.38196601125010515, 0.38196601125010515, 
+            0.38196601125010515, 0.38196601125010515, 0.38196601125010515, 
+            -0.38196601125010515, -0.38196601125010515, -0.38196601125010515, 
+            0.054074038]).reshape((9,1))
+        DoP, DoLP, DoCP, ell = cl_calcs.degree_of_polarization(S0, S1, S2, S3)
+        calculated = np.array([DoP, DoLP, DoCP, ell])
+        np.testing.assert_array_almost_equal(expected_DoP, DoP)
+        np.testing.assert_array_almost_equal(expected_DoLP, DoLP)
+        np.testing.assert_array_almost_equal(expected_DoCP, DoCP)
+        np.testing.assert_array_almost_equal(expected_ell, ell)
+
+    def test_1_by_n_array(self):
+        '''
+        Input is a 1 by n array
+        '''
+        S0 = np.array([3, 3, 3, 3, 3, 3, 3, 3, 0.9273618495495703]).reshape((1,9))
+        S1 = np.array([1, 1, -1, 1, -1, 1, -1, -1, 0.6]).reshape((1,9))
+        S2 = np.array([2, 2, 2, -2, -2, -2, 2, -2, 0.7]).reshape((1,9))
+        S3 = np.array([-2, 2, 2, 2, 2, -2, -2, -2, 0.1]).reshape((1,9))
+        expected_DoP = np.array([1, 1, 1, 1, 1, 1, 1, 1, 1]).reshape((1,9))
+        expected_DoLP = np.array([0.7453559924999299, 0.7453559924999299, 0.7453559924999299, 0.7453559924999299, 0.7453559924999299, 0.7453559924999299, 0.7453559924999299, 0.7453559924999299, 0.994169046]).reshape((1,9))
+        expected_DoCP = np.array([2/3, 2/3, 2/3, 2/3, 2/3, 2/3, 2/3, 2/3, 0.107832773]).reshape((1,9))
+        expected_ell = np.array([-0.38196601125010515, 0.38196601125010515, 
+            0.38196601125010515, 0.38196601125010515, 0.38196601125010515, 
+            -0.38196601125010515, -0.38196601125010515, -0.38196601125010515, 
+            0.054074038]).reshape((1,9))
+        DoP, DoLP, DoCP, ell = cl_calcs.degree_of_polarization(S0, S1, S2, S3)
+        calculated = np.array([DoP, DoLP, DoCP, ell])
+        np.testing.assert_array_almost_equal(expected_DoP, DoP)
+        np.testing.assert_array_almost_equal(expected_DoLP, DoLP)
+        np.testing.assert_array_almost_equal(expected_DoCP, DoCP)
+        np.testing.assert_array_almost_equal(expected_ell, ell)
+
+    def test_3D_array(self):
+        '''
+        Input is a 3d array
+        '''
+        S0 = np.array([3, 3, 3, 3, 3, 3, 3, 0.9273618495495703]).reshape((2,2,2))
+        S1 = np.array([1, 1, -1, 1, -1, 1, -1, 0.6]).reshape((2,2,2))
+        S2 = np.array([2, 2, 2, -2, -2, -2, 2, 0.7]).reshape((2,2,2))
+        S3 = np.array([-2, 2, 2, 2, 2, -2, -2, 0.1]).reshape((2,2,2))
+        expected_DoP = np.array([1, 1, 1, 1, 1, 1, 1, 1]).reshape((2,2,2))
+        expected_DoLP = np.array([0.7453559924999299, 0.7453559924999299, 0.7453559924999299, 0.7453559924999299, 0.7453559924999299, 0.7453559924999299, 0.7453559924999299, 0.994169046]).reshape((2,2,2))
+        expected_DoCP = np.array([2/3, 2/3, 2/3, 2/3, 2/3, 2/3, 2/3, 0.107832773]).reshape((2,2,2))
+        expected_ell = np.array([-0.38196601125010515, 0.38196601125010515, 
+            0.38196601125010515, 0.38196601125010515, 0.38196601125010515, 
+            -0.38196601125010515, -0.38196601125010515, 
+            0.054074038]).reshape((2,2,2))
+        DoP, DoLP, DoCP, ell = cl_calcs.degree_of_polarization(S0, S1, S2, S3)
+        calculated = np.array([DoP, DoLP, DoCP, ell])
+        np.testing.assert_array_almost_equal(expected_DoP, DoP)
+        np.testing.assert_array_almost_equal(expected_DoLP, DoLP)
+        np.testing.assert_array_almost_equal(expected_DoCP, DoCP)
+        np.testing.assert_array_almost_equal(expected_ell, ell)
+
+class MirrorMask3dTest(unittest.TestCase):
+    '''
+    '''
+    def testMirrorMask(self):
+        pass
 
 
 #class MirrorOutlineTest(unittest.TestCase):
@@ -1543,5 +1858,3 @@ if __name__ == '__main__':
     # Show full diff in self.assertEqual.
         __import__('sys').modules['unittest.util']._MAX_LENGTH = 999999999
     unittest.main()
-
-

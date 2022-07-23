@@ -69,17 +69,30 @@ def mirror_xyz(theta, phi, a=0.1):
     return x, y, z, c
 
 def degree_of_polarization(S0, S1, S2, S3):
+    '''
+    Calculate the total degree of polarization, degree of linear polarization, 
+     degree of circular polarization, and the ellipticity
+    '''
+    if np.any(S0 < 0):
+        raise ValueError(f'Element {np.where(S0<0)} is less than 0. S0 should be >= 0.')
+    S0_check = S1**2 + S2**2 + S3**2
+    if np.any(S0**2 < S0_check*0.99):
+        raise ValueError(f'{np.where(S0**2 < S0_check*0.99)} is not valid input')
     DoP = np.zeros(np.shape(S0))
     DoLP = np.zeros(np.shape(S0))
     DoCP = np.zeros(np.shape(S0))
     ellipticity = np.zeros(np.shape(S0))
     DoP[S0 != 0] = np.sqrt(np.square(S1[S0 != 0]) + np.square(S2[S0 != 0]) + np.square(S3[S0 != 0]))/S0[S0 != 0]
     DoLP[S0 != 0] = np.sqrt(np.square(S1[S0 != 0]) + np.square(S2[S0 != 0]))/S0[S0 != 0]
-    DoCP[S0 != 0] = S3[S0 != 0]/S0[S0 != 0]
+    DoCP[S0 != 0] = np.abs(S3[S0 != 0]/S0[S0 != 0])
+    # ellipticity from Bass 2010, Handbook of Optics
     ellipticity[S0 != 0] = S3[S0 != 0]/(S0[S0 != 0] + np.sqrt(np.square(S1[S0 != 0]) + np.square(S2[S0 != 0])))
     return DoP, DoLP, DoCP, ellipticity
 
-def mirror_mask3d(theta, phi, **kwargs): ##
+def mirror_mask3d(theta, phi, **kwargs):
+    '''
+    Given theta and phi, return a mask representing the mirror in 3D
+    '''
     mirror = ar_mask_calc(theta, phi, **kwargs)
     mirror = np.expand_dims(mirror, axis=1)
     mirror_3 = np.expand_dims(mirror, axis=1)
