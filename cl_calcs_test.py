@@ -1446,12 +1446,16 @@ class DegreeOfPolarizationTest(parameterized.TestCase):
         S2 = np.array([2, 2, 2, -2, -2, -2, 2, 0.7]).reshape((2,2,2))
         S3 = np.array([-2, 2, 2, 2, 2, -2, -2, 0.1]).reshape((2,2,2))
         expected_DoP = np.array([1, 1, 1, 1, 1, 1, 1, 1]).reshape((2,2,2))
-        expected_DoLP = np.array([0.7453559924999299, 0.7453559924999299, 0.7453559924999299, 0.7453559924999299, 0.7453559924999299, 0.7453559924999299, 0.7453559924999299, 0.994169046]).reshape((2,2,2))
-        expected_DoCP = np.array([2/3, 2/3, 2/3, 2/3, 2/3, 2/3, 2/3, 0.107832773]).reshape((2,2,2))
+        expected_DoLP = np.array([0.7453559924999299, 0.7453559924999299, 
+            0.7453559924999299, 0.7453559924999299, 0.7453559924999299, 
+            0.7453559924999299, 0.7453559924999299, 0.994169046
+            ]).reshape((2,2,2))
+        expected_DoCP = np.array([
+            2/3, 2/3, 2/3, 2/3, 2/3, 2/3, 2/3, 0.107832773]).reshape((2,2,2))
         expected_ell = np.array([-0.38196601125010515, 0.38196601125010515, 
             0.38196601125010515, 0.38196601125010515, 0.38196601125010515, 
-            -0.38196601125010515, -0.38196601125010515, 
-            0.054074038]).reshape((2,2,2))
+            -0.38196601125010515, -0.38196601125010515, 0.054074038
+            ]).reshape((2,2,2))
         DoP, DoLP, DoCP, ell = cl_calcs.degree_of_polarization(S0, S1, S2, S3)
         calculated = np.array([DoP, DoLP, DoCP, ell])
         np.testing.assert_array_almost_equal(expected_DoP, DoP)
@@ -1461,10 +1465,188 @@ class DegreeOfPolarizationTest(parameterized.TestCase):
 
 class MirrorMask3dTest(unittest.TestCase):
     '''
+    ar_mask_calc has been tested: test that output size is as expected given:
+    - 1 element array
+    - n element array
+    - n by 1 array
+    - 1 by n array
+    - n by m array
+    - n by m by p array
     '''
-    def testMirrorMask(self):
-        pass
+    def test_1_element_array(self):
+        '''
+        Shape should be 1 by 3 by 3, full of False
+        '''
+        theta = np.array([np.pi/4])
+        phi = np.array([0.1])
+        expected = np.array([False, False, False, False, False, False, False, False, False]).reshape(1,3,3)
+        calculated_mirror_3d = cl_calcs.mirror_mask3d(
+            theta, 
+            phi, 
+            holein=True, slit=None, orientation=0,
+            )
+        self.assertFalse(np.any(calculated_mirror_3d))
+        self.assertEqual((1,3,3), np.shape(calculated_mirror_3d))
 
+    def test_n_element_array(self):
+        '''
+        Shape should be n by 3 by 3
+        n values are repeated along the other axes
+        '''
+        theta = np.array([np.pi/4, 0, 0, np.pi/3])
+        phi = np.array([0, np.pi/6, np.pi/2, 0.1])
+        expected = np.array([
+            [[False, False, False], [False, False, False], [False, False, False]], 
+            [[True, True, True], [True, True, True], [True, True, True]], 
+            [[True, True, True], [True, True, True], [True, True, True]], 
+            [[False, False, False], [False, False, False], [False, False, False]]
+            ])
+        calculated_mirror_3d = cl_calcs.mirror_mask3d(
+            theta, 
+            phi, 
+            holein=True, slit=None, orientation=0,
+            )
+        self.assertEqual((4,3,3), np.shape(calculated_mirror_3d))
+        np.testing.assert_array_equal(expected, calculated_mirror_3d)
+
+    def test_n_by_1_array(self):
+        '''
+        Shape should be n by 1 by 3 by 3
+        n values are repeated along the other axes
+        '''
+        theta = np.array([np.pi/4, 0, 0, np.pi/3]).reshape((4, 1))
+        phi = np.array([0, np.pi/6, np.pi/2, 0.1]).reshape((4, 1))
+        expected = np.array([
+            [[[False, False, False], [False, False, False], [False, False, False]]], 
+            [[[True, True, True], [True, True, True], [True, True, True]]], 
+            [[[True, True, True], [True, True, True], [True, True, True]]], 
+            [[[False, False, False], [False, False, False], [False, False, False]]]
+            ])
+        calculated_mirror_3d = cl_calcs.mirror_mask3d(
+            theta, 
+            phi, 
+            holein=True, slit=None, orientation=0,
+            )
+        self.assertEqual((4, 1, 3, 3), np.shape(calculated_mirror_3d))
+        np.testing.assert_array_equal(expected, calculated_mirror_3d)
+
+    def test_1_by_n_array(self):
+        '''
+        Shape should be 1 by n by 3 by 3
+        n values are repeated along the other axes
+        '''
+        theta = np.array([np.pi/4, 0, 0, np.pi/3]).reshape((1, 4))
+        phi = np.array([0, np.pi/6, np.pi/2, 0.1]).reshape((1, 4))
+        expected = np.array([[
+            [[False, False, False], [False, False, False], [False, False, False]], 
+            [[True, True, True], [True, True, True], [True, True, True]], 
+            [[True, True, True], [True, True, True], [True, True, True]], 
+            [[False, False, False], [False, False, False], [False, False, False]]
+            ]])
+        calculated_mirror_3d = cl_calcs.mirror_mask3d(
+            theta, 
+            phi, 
+            holein=True, slit=None, orientation=0,
+            )
+        self.assertEqual((1, 4, 3, 3), np.shape(calculated_mirror_3d))
+        np.testing.assert_array_equal(expected, calculated_mirror_3d)
+
+    def test_n_by_m_by_p_array(self):
+        '''
+        Shape should be n by m by p by 3 by 3
+        n by m by p values are repeated along the other axes
+        '''
+        theta = np.array([[[np.pi/4, 0], [0, 0.1]], [[3, np.pi/3], [np.pi/2, 3]]])  
+            #[[[False, True], [True, False]], [[True, False], [True, True]]]
+        phi = np.array([[[0, np.pi/6], [np.pi/2, np.pi/6]], [[-1, 0.1], [0.1, 1]]])
+        expected = np.array(
+            [
+                [
+                    [
+                        [[False, False, False], [False, False, False], [False, False, False]], 
+                        [[True, True, True], [True, True, True], [True, True, True]]
+                    ],
+                    [
+                        [[True, True, True], [True, True, True], [True, True, True]], 
+                        [[False, False, False], [False, False, False], [False, False, False]]
+                    ],
+                ],
+                [
+                    [
+                        [[True, True, True], [True, True, True], [True, True, True]], 
+                        [[False, False, False], [False, False, False], [False, False, False]]
+                    ],
+                    [
+                        [[True, True, True], [True, True, True], [True, True, True]],
+                        [[True, True, True], [True, True, True], [True, True, True]]
+                    ]
+                ]
+            ]
+            )
+        calculated_mirror_3d = cl_calcs.mirror_mask3d(
+            theta, 
+            phi, 
+            holein=True, slit=None, orientation=0,
+            )
+        self.assertEqual((2, 2, 2, 3, 3), np.shape(calculated_mirror_3d))
+        np.testing.assert_array_equal(expected, calculated_mirror_3d)
+
+
+#theta_phi = np.array([
+#            [np.pi/4, 0],
+#            [np.pi/4, 0.1],
+#            [np.pi/4, -0.1],
+#            [np.pi/2, 0.1], #T
+#            [np.pi/3, 0.1],
+#            [np.pi/3, np.pi],
+#            [np.pi/3, -np.pi],
+#            [np.pi/3, np.pi/2],
+#            [np.pi/3, -np.pi/2],
+#            [0, np.pi/2], #T
+#            [0, np.pi/6], #T
+#            [0.1, np.pi/6],
+#            [np.pi/6, 3*np.pi/2],
+#            [np.pi/6, 1],
+#            [np.pi/6, 2],
+#            [np.pi/6, -1],
+#            [np.pi/6, -2],
+#            [np.pi/2, 1], #T
+#            [3, 1],  # T
+#            [3, -1],  # T
+#            ])
+#        theta = np.reshape(theta_phi[:, 0], (2, 2, 5))
+#        phi = np.reshape(theta_phi[:, 1], (2, 2, 5))
+#        calculated = cl_calcs.ar_mask_calc(
+#            theta,
+#            phi,
+#            holein=True,
+#            slit=None,
+#            slit_center=0,
+#            orientation=0,
+#            )
+#        expected = np.reshape(np.array([
+#            False,
+#            False,
+#            False,
+#            True,
+#            False,
+#            True,
+#            True,
+#            False,
+#            False,
+#            True,
+#            True,
+#            False,
+#            False,
+#            False,
+#            False,
+#            False,
+#            False,
+#            True,
+#            True,
+#            True,
+#            ]), (2, 2, 5))
+#        np.testing.assert_array_equal(calculated, expected)
 
 #class MirrorOutlineTest(unittest.TestCase):
 #    def testMirrorOutline(self):

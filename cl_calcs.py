@@ -92,12 +92,13 @@ def degree_of_polarization(S0, S1, S2, S3):
 def mirror_mask3d(theta, phi, **kwargs):
     '''
     Given theta and phi, return a mask representing the mirror in 3D
+    Add two axes at the end
     '''
     mirror = ar_mask_calc(theta, phi, **kwargs)
-    mirror = np.expand_dims(mirror, axis=1)
-    mirror_3 = np.expand_dims(mirror, axis=1)
-    mirror_3 = np.repeat(mirror_3, 3, axis=1)
-    mirror_3 = np.repeat(mirror_3, 3, axis=2)
+    mirror = np.expand_dims(mirror, axis=-1)
+    mirror_3 = np.expand_dims(mirror, axis=-1)
+    mirror_3 = np.repeat(mirror_3, 3, axis=-2)
+    mirror_3 = np.repeat(mirror_3, 3, axis=-1)
     return mirror_3
 
 def mirror_outline(holein=True, slit=3, slit_center=0, orientation=0 ): ##
@@ -114,7 +115,13 @@ def mirror_outline(holein=True, slit=3, slit_center=0, orientation=0 ): ##
     phi_patch = np.linspace(0, 2*np.pi, 1000)
     theta_mesh, phi_mesh = np.meshgrid(theta_patch, phi_patch)
 
-    mirror4patch = np.invert(ar_mask_calc(theta_mesh, phi_mesh, holein=holein, slit=slit, slit_center=slit_center, orientation=orientation))
+    mirror4patch = np.invert(ar_mask_calc(
+        theta_mesh, 
+        phi_mesh, 
+        holein=holein, 
+        slit=slit, 
+        slit_center=slit_center, 
+        orientation=orientation))
     theta_mesh *= mirror4patch
     phi_mesh *= mirror4patch
     
