@@ -38,9 +38,9 @@ def cartesian_to_spherical_coords(vectors):
     phi[x_not_zero_condition] = np.arctan(
         vectors[:, 1][x_not_zero_condition]
         /vectors[:, 0][x_not_zero_condition])
-    phi[(vectors[:, 1] > 0) * (vectors[:, 0] < 0)] += np.pi # +y, -z
-    phi[(vectors[:, 1] < 0) * (vectors[:, 0] >= 0)] += 2*np.pi # -y, +z
-    phi[(vectors[:, 1] < 0) * (vectors[:, 0] < 0)] += np.pi # -y, -z
+    phi[(vectors[:, 1] > 0) * (vectors[:, 0] < 0)] += np.pi # +y, -x
+    phi[(vectors[:, 1] < 0) * (vectors[:, 0] >= 0)] += 2*np.pi # -y, +x
+    phi[(vectors[:, 1] < 0) * (vectors[:, 0] < 0)] += np.pi # -y, -x
     phi[(vectors[:, 1] > 0) * (vectors[:, 0] == 0)] = np.pi/2
     phi[(vectors[:, 1] < 0) * (vectors[:, 0] == 0)] = 3*np.pi/2
     phi[(vectors[:, 1] == 0) * (vectors[:, 0] <= 0)] = np.pi

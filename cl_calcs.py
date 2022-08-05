@@ -1,7 +1,18 @@
 import numpy as np
 import coord_transforms as coord
+from dataclasses import dataclass
 
-def ar_mask_calc(theta, phi, holein=True, slit=None, slit_center=0, orientation=0):
+@dataclass(frozen=True)
+class ParabolicMirror:
+    """Class for keeping track of mirror parameters."""
+    a: float
+    dfoc: float
+    xcut: float
+    thetacutoffhole: float
+
+AMOLF_MIRROR = ParabolicMirror(a=0.1, dfoc=0.5, xcut=-10.75, thetacutoffhole=4.)
+
+def ar_mask_calc(theta, phi, holein=True, slit=None, slit_center=0, orientation=0, mirror=AMOLF_MIRROR):
     '''
     Define a mask representing the mirror used in SEM-CL system at AMOLF
     x and y axes are exchanged relative to the normal spherical coordinate convention (is it normal?)
@@ -20,15 +31,15 @@ def ar_mask_calc(theta, phi, holein=True, slit=None, slit_center=0, orientation=
     True: outside mirror
     '''
     
-    a = 0.1
-    xcut = 10.75
     phi = phi + orientation
-    ##thetacutoff can actually be calculated
-    holesize = 0.6
-    holeheight = np.sqrt(2.5/a)
-#    thetacutoffhole=np.arctan(holesize/(2*holeheight))*180/np.pi
-    thetacutoffhole = 4
-    dfoc = 0.5
+    #    a = mirror.a
+    #    xcut = 10.75
+    #    ##thetacutoff can actually be calculated
+    #    holesize = 0.6
+    #    holeheight = np.sqrt(2.5/mirror.a)
+    ##    thetacutoffhole=np.arctan(holesize/(2*holeheight))*180/np.pi
+    #    thetacutoffhole = 4
+    #    dfoc = 0.5
 ##    phi,theta=np.meshgrid(phi1,theta1) ##Toon
 #    c = np.empty(np.shape(phi))
 #    c_denominator = a*np.cos(phi)*np.sin(theta) + a
@@ -39,8 +50,8 @@ def ar_mask_calc(theta, phi, holein=True, slit=None, slit_center=0, orientation=
 #    z = np.cos(theta)*c
 #    x = np.sin(theta)*np.cos(phi)*c#-1/(4.*a)
 #    y = np.sin(theta)*np.sin(phi)*c
-    x, y, z, c = mirror_xyz(theta, phi, a)
-    condition = (-x > xcut) | (z < dfoc)
+    x, y, z, c = mirror_xyz(theta, phi, mirror)
+    condition = (x < mirror.xcut) | (z < mirror.dfoc)
 #    print('x', x, '\ny', y, '\nz', z)
     if slit is not None:
         ycut_positive = slit_center + slit/2.  ##
@@ -51,15 +62,15 @@ def ar_mask_calc(theta, phi, holein=True, slit=None, slit_center=0, orientation=
         pass
 
     if holein is True:
-        condition = (condition | (theta <= (thetacutoffhole*np.pi/180)))
+        condition = (condition | (theta <= (mirror.thetacutoffhole*np.pi/180)))
     else:
         pass
 
     return condition
 
-def mirror_xyz(theta, phi, a=0.1):
+def mirror_xyz(theta, phi, mirror=AMOLF_MIRROR):
     c = np.empty(np.shape(phi))
-    c_denominator = a*np.cos(phi)*np.sin(theta) + a
+    c_denominator = mirror.a*np.cos(phi)*np.sin(theta) + mirror.a
     c[c_denominator==0] = np.inf
     c[c_denominator!=0] = 1/(2*c_denominator[c_denominator!=0])
 #    spherical_vector = 
@@ -101,41 +112,67 @@ def mirror_mask3d(theta, phi, **kwargs):
     mirror_3 = np.repeat(mirror_3, 3, axis=-1)
     return mirror_3
 
-def mirror_outline(holein=True, slit=3, slit_center=0, orientation=0 ): ##
+def mirror_outline(phi=np.linspace(0, 2*np.pi, 1000), holein=True, slit=None, slit_center=None, orientation=0, mirror=AMOLF_MIRROR):
     '''
     provide the coordinates for an outline of the mirror and slit combination
+    Returns an n by 2 array of (theta, phi) values for the edges of the mirror,
+    and an n by 2 array of (theta, phi) values for the edges of the hole, if in
+    TODO: add slit
     '''
     # hole
-    r = 4*np.ones((1000))
-    phi = np.linspace(0, 2*np.pi, 1000)
-    r_phi = np.transpose(np.array([phi, r]))
+    if holein:
+        hole_theta = 4*np.ones(np.shape(phi))
+#        hole_phi = np.linspace(0, 2*np.pi, n)
+        hole_theta_phi = np.transpose(np.array([hole_theta, phi]))
+    else:
+        hole_theta_phi = np.array([[None, None]])
     
-    #outsides of mirror
-    theta_patch = np.linspace(np.radians(14), np.pi/2, 1000)
-    phi_patch = np.linspace(0, 2*np.pi, 1000)
-    theta_mesh, phi_mesh = np.meshgrid(theta_patch, phi_patch)
-
-    mirror4patch = np.invert(ar_mask_calc(
-        theta_mesh, 
-        phi_mesh, 
-        holein=holein, 
-        slit=slit, 
-        slit_center=slit_center, 
-        orientation=orientation))
-    theta_mesh *= mirror4patch
-    phi_mesh *= mirror4patch
-    
-    th_sort = np.argsort(theta_mesh.flatten())[::-1]
-    
-    diff_phi, diff_ind = np.unique(
-        np.degrees(phi_mesh.flatten()[th_sort]).astype(int), 
-        return_index=True,
-        )
-    
-    th_max = theta_mesh.flatten()[th_sort][diff_ind]
-    ph_max = phi_mesh.flatten()[th_sort][diff_ind]
-    maxthph = np.transpose(np.array([ph_max, np.degrees(th_max)]))
-    return maxthph, r_phi
+#    mirror_phi = np.linspace(0, 2*np.pi, n)
+    z = np.ones(np.shape(phi))*mirror.dfoc
+    y = np.zeros(np.shape(phi))
+    y1 = (10/np.tan(phi) - np.sqrt(np.square(10/np.tan(phi)) - 4 * -1 * (25-z**2)))/(2*-1)
+    y[phi<np.pi] = y1[phi < np.pi]
+    y[phi==0] = 0
+    y[phi == np.pi] = 0
+    y2 = (10/np.tan(phi) + np.sqrt(np.square(10/np.tan(phi)) - 4 * -1 * (25-z**2)))/(2*-1)
+    y[phi > np.pi] = y2[phi > np.pi]
+    y[phi == 2*np.pi] = 0
+    x = y / np.tan(phi)
+    x[phi == 0] = 2.5-mirror.dfoc**2/10
+    x[phi == 2*np.pi] = 2.5-mirror.dfoc**2/10
+    x[phi == np.pi] = mirror.xcut
+    x_condition = x<= mirror.xcut
+    x[x_condition] = mirror.xcut
+    y[x_condition] = x[x_condition] * np.tan(phi[x_condition])
+    z[x_condition] = np.sqrt((2.5-x[x_condition])*10-y[x_condition]**2)
+    vector = np.transpose(np.array([x, y, z]))
+    _, theta, _ = coord.cartesian_to_spherical_coords(vector)
+    mirror_theta_phi = np.transpose(np.array([theta, phi]))
+#    #outsides of mirror
+#    theta_patch = np.linspace(np.radians(14), np.pi/2, n)
+#    phi_patch = np.linspace(0, 2*np.pi, n)
+#    theta_mesh, phi_mesh = np.meshgrid(theta_patch, phi_patch)
+#    mirror4patch = np.invert(ar_mask_calc(
+#        theta_mesh, 
+#        phi_mesh, 
+#        holein=holein, 
+#        slit=slit, 
+#        slit_center=slit_center, 
+#        orientation=orientation))
+#    theta_mesh *= mirror4patch
+#    phi_mesh *= mirror4patch
+#    
+#    th_sort = np.argsort(theta_mesh.flatten())[::-1]
+#    
+#    diff_phi, diff_ind = np.unique(
+#        np.degrees(phi_mesh.flatten()[th_sort]).astype(int), 
+#        return_index=True,
+#        )
+#    
+#    th_max = theta_mesh.flatten()[th_sort][diff_ind]
+#    ph_max = phi_mesh.flatten()[th_sort][diff_ind]
+#    maxthph = np.transpose(np.array([ph_max, th_max]))
+    return mirror_theta_phi, hole_theta_phi
 
 def angle_of_incidence(incident_vector, normal):
     '''
