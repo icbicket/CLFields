@@ -1734,8 +1734,33 @@ class MirrorOutlineTest(unittest.TestCase):
             )
         np.testing.assert_array_almost_equal(expected_mirror_edge, calculated_mirror_edge)
     
-    def test_2p5mm_slit(self):
-        pass
+    def test_0p8mm_slit(self):
+        '''
+        A mirror with a 0.8 mm slit inserted. Check the corners and some points on each edge.
+        '''
+        expected_mirror_edge = np.array([
+            [1.3714590218125726, 0], # +x axis
+            [1.3714590218125726, 2*np.pi], # +x axis
+            [0.7512319991266359, np.pi], # -x axis
+            [0.08008558003365901, np.pi/2], # +y axis
+            [0.08008558003365901, 3*np.pi/2], # -y axis
+            [1.3727309261351577, 0.1612553355979321], # slit corner (x, 0.4, 0.5)
+            [1.0622647376869492, 0.1712553355979321], # slit corner +0.01 (x, 0.4, z)
+            [1.372578332865518, 0.1512553355979321], # slit corner -0.01 (x, y, 0.5)
+            [0.7518784782278566, 3.1044005095049334], # slit corner (-10.75, 0.4 ,z)
+            [0.7515774301358702, 3.1144005095049334], # slit corner +0.01 (-10.75, y ,z)
+            [0.6809058866539073, 3.0944005095049334], # slit corner -0.01 (x, 0.4 ,z)
+            [0.7518784782278566, 3.178784797674653], # slit corner (-10.75, -0.4 ,z)
+            [0.6809058866539073, 3.188784797674653], # slit corner +0.01 (x, -0.4 ,z)
+            [0.7515774301358702, 3.168784797674653], # slit corner -0.01 (-10.75, y ,z)
+            [1.3727309261351577, 6.121929971581654], # slit corner (x, -0.4, 0.5)
+            [1.372578332865518, 6.131929971581654], # slit corner +0.01 (x, y, 0.5)
+            [1.0622647376869492, 6.111929971581654], # slit corner -0.01 (x, -0.4, z)
+            ])
+        calculated_mirror_edge, calculated_hole = cl_calcs.mirror_outline(
+            phi=expected_mirror_edge[:, 1], holein=True, slit=0.8, slit_center=0, orientation=0
+            )
+        np.testing.assert_array_almost_equal(expected_mirror_edge, calculated_mirror_edge)
     
     def test_off_centre_3mm_slit(self):
         '''
@@ -1764,7 +1789,6 @@ class MirrorOutlineTest(unittest.TestCase):
             )
         np.testing.assert_array_almost_equal(expected_mirror_edge, calculated_mirror_edge)
     
-    
     def test_off_centre_2p5mm_slit(self):
         '''
         A mirror with an off-centre 2.5 mm slit inserted. Check the corners and some points on each edge. Off-centre more towards -y
@@ -1772,20 +1796,20 @@ class MirrorOutlineTest(unittest.TestCase):
         expected_mirror_edge = np.array([
             [1.3714590218125726, 0], # +x axis
             [0.7512319991266359, np.pi], # -x axis
-            [0.411516846067488, np.pi/2], # +y axis
-            [0.20135792079033082, 3*np.pi/2], # -y axis
-            [1.3990125208448267, 0.7669953331631361], # slit corner (x, 2, 0.5)
-            [1.2931324309226961, 0.7769953331631361], # slit corner +0.01 (x, 2, z)
-            [1.3983307321248761, 0.7569953331631361], # slit corner -0.01 (x, y, 0.5)
-            [0.7673796503892008, 2.9576491970526178], # slit corner (-10.75, 2 ,z)
-            [0.7656379287223979, 2.9676491970526178], # slit corner +0.01 (-10.75, y ,z)
-            [0.7525347363355261, 2.9476491970526178], # slit corner -0.01 (x, 2 ,z)
-            [0.7552715982942766, 3.2343489737779367], # slit corner (-10.75, -1 ,z)
-            [0.7252259353121417, 3.2443489737779367], # slit corner +0.01 (x, -1 ,z)
-            [0.7544439319383743, 3.2243489737779367], # slit corner -0.01 (-10.75, y ,z)
-            [1.3791491318194802, 5.884662861513166], # slit corner (x, -1, 0.5)
-            [1.378772446265661, 5.894662861513166], # slit corner +0.01 (x, y, 0.5)
-            [1.2106314002043548, 5.874662861513166], # slit corner -0.01 (x, -1, z)
+            [0.15056827277668602, np.pi/2], # +y axis
+            [0.3575711036455103, 3*np.pi/2], # -y axis
+            [1.3758594573582716, 0.3006763914001276], # slit corner (x, 0.75, 0.5)
+            [1.170389926772985, 0.3106763914001276], # slit corner +0.01 (x, 0.75, z)
+            [1.3755734771006127, 0.2906763914001276], # slit corner -0.01 (x, y, 0.5)
+            [0.7535045315198744, 3.071938079861225], # slit corner (-10.75, 0.75 ,z)
+            [0.7528974833480605, 3.081938079861225], # slit corner +0.01 (-10.75, y ,z)
+            [0.7138530239410341, 3.061938079861225], # slit corner -0.01 (x, 0.75 ,z)
+            [0.7635973537167893, 3.3029677640104844], # slit corner (-10.75, -1.75 ,z)
+            [0.7464956862960416, 3.3129677640104844], # slit corner +0.01 (x, -1.75 ,z)
+            [0.7620902804694006, 3.2929677640104844], # slit corner -0.01 (-10.75, y ,z)
+            [1.393264797106423, 5.604241237343148], # slit corner (x, -1.75, 0.5)
+            [1.3926493701581706, 5.614241237343148], # slit corner +0.01 (x, y, 0.5)
+            [1.2780609545496133, 5.594241237343148], # slit corner -0.01 (x, -1.75, z)
             ])
         calculated_mirror_edge, calculated_hole = cl_calcs.mirror_outline(
             phi=expected_mirror_edge[:, 1], holein=True, slit=2.5, slit_center=-0.5, orientation=0
@@ -1793,11 +1817,128 @@ class MirrorOutlineTest(unittest.TestCase):
         np.testing.assert_array_almost_equal(expected_mirror_edge, calculated_mirror_edge)
     
     def test_no_slit_rot90_clockwise(self):
-        pass
+        '''
+        Check some mirror limits with n=10 and with no slit inserted. Mirror is rotated by 90 degrees clockwise
+        '''
+        calculated_mirror_edge, calculated_hole = cl_calcs.mirror_outline(
+            phi=np.linspace(0, 2*np.pi, 10), holein=True, slit=None, slit_center=0, orientation=np.pi/2
+            )
+        expected_hole = np.array([
+            [4, 0], 
+            [4, 2/9*np.pi], 
+            [4, 4/9*np.pi], 
+            [4, 6/9*np.pi], 
+            [4, 8/9*np.pi], 
+            [4, 10/9*np.pi], 
+            [4, 12/9*np.pi], 
+            [4, 14/9*np.pi], 
+            [4, 16/9*np.pi], 
+            [4, 2*np.pi]
+            ]) + np.array([0, np.pi/2])
+        expected_mirror_edge = np.array([
+            [1.3714590218125726, 0],
+            [1.3944673746950647, 2/9*np.pi],
+            [1.4532809822903292, 4/9*np.pi],
+            [1.520712695226306, 6/9*np.pi],
+            [0.8129871265307131, 8/9*np.pi],
+            [0.8129871265307131, 10/9*np.pi],
+            [1.520712695226306, 12/9*np.pi],
+            [1.4532809822903292, 14/9*np.pi],
+            [1.3944673746950647, 16/9*np.pi],
+            [1.3714590218125726, 2*np.pi]
+            ]) + np.array([0, np.pi/2])
+        np.testing.assert_array_almost_equal(expected_hole, calculated_hole)
+        np.testing.assert_array_almost_equal(expected_mirror_edge, calculated_mirror_edge)
     
     def test_no_slit_rot90_counterclockwise(self):
-        pass
+        '''
+        Check some mirror limits with n=10 and with no slit inserted. Mirror is rotated by 90 degrees clockwise
+        '''
+        calculated_mirror_edge, calculated_hole = cl_calcs.mirror_outline(
+            phi=np.linspace(0, 2*np.pi, 10), holein=True, slit=None, slit_center=0, orientation=-np.pi/2
+            )
+        expected_hole = np.array([
+            [4, 0], 
+            [4, 2/9*np.pi], 
+            [4, 4/9*np.pi], 
+            [4, 6/9*np.pi], 
+            [4, 8/9*np.pi], 
+            [4, 10/9*np.pi], 
+            [4, 12/9*np.pi], 
+            [4, 14/9*np.pi], 
+            [4, 16/9*np.pi], 
+            [4, 2*np.pi]
+            ]) - np.array([0, np.pi/2])
+        expected_mirror_edge = np.array([
+            [1.3714590218125726, 0],
+            [1.3944673746950647, 2/9*np.pi],
+            [1.4532809822903292, 4/9*np.pi],
+            [1.520712695226306, 6/9*np.pi],
+            [0.8129871265307131, 8/9*np.pi],
+            [0.8129871265307131, 10/9*np.pi],
+            [1.520712695226306, 12/9*np.pi],
+            [1.4532809822903292, 14/9*np.pi],
+            [1.3944673746950647, 16/9*np.pi],
+            [1.3714590218125726, 2*np.pi]
+            ]) - np.array([0, np.pi/2])
+        np.testing.assert_array_almost_equal(expected_hole, calculated_hole)
+        np.testing.assert_array_almost_equal(expected_mirror_edge, calculated_mirror_edge)
 
+    def test_3mm_slit_rot45_CW(self):
+        '''
+        Check mirror limits with a 3 mm slit, rotated by 45 degrees in the clockwise direction
+        '''
+        expected_hole = np.array([
+            [4, 0], 
+            [4, np.pi], 
+            [4, np.pi/4], 
+            [4, 3*np.pi/4], 
+            [4, 5*np.pi/4], 
+            [4, np.pi/2], 
+            [4, 2.992952916455635], 
+            [4, 3.002952916455635], 
+            [4, 3.012952916455635], 
+            [4, 3.2802323907239512],
+            [4, 3.2702323907239512],
+            [4, 3.2902323907239512],
+            [4, 3*np.pi/2],
+            [4, 7*np.pi/4],
+            [4, 0.5880026035475675],
+            [4, 0.5780026035475675],
+            [4, 0.5980026035475675],
+            [4, 5.695182703632018],
+            [4, 5.705182703632019],
+            [4, 5.685182703632018],
+            ]) + np.array([0, np.pi/4])
+        expected_mirror_edge = np.array([
+            [1.3714590218125726, 0], # +x axis
+            [0.7512319991266359, np.pi], # -x axis
+            [0.6511374590101888, np.pi/4], # 45 degrees +x, +y
+            [0.3324469517442621, 3*np.pi/4], # 135 degrees +x, +y
+            [0.3324469517442621, 5*np.pi/4], # 225 degrees +x, +y
+            [0.3046926540153975, np.pi/2], # +y axis
+            [0.740264374552439, 2.992952916455635], #slit corner -0.01
+            [0.7603183610079051, 3.002952916455635], #slit corner (x,y)=(-10.75, 1.5)
+            [0.759041372600021, 3.012952916455635], # slit corner +0.01
+            [0.7603183610079051, 3.2802323907239512], #slit corner (x,y)=(-10.75, -1.5)
+            [0.759041372600021, 3.2702323907239512], #slit corner -0.01
+            [0.740264374552439, 3.2902323907239512], #slit corner +0.01
+            [0.3046926540153975, 3*np.pi/2], # -y axis
+            [0.6511374590101888, 7*np.pi/4], # 315 degrees +x, -y
+            [1.387961189801988, 0.5880026035475675], # slit corner (y,z)=(1.5, 0.5)
+            [1.3874190401273974, 0.5780026035475675], # slit corner -0.01 (y,z)=(1.5, 0.5)
+            [1.2604138938978349, 0.5980026035475675], # slit corner +0.01 (y,z)=(1.5, 0.5)
+            [1.387961189801988, 5.695182703632018], # slit corner (y,z)=(-1.5, 0.5)
+            [1.3874190401273974, 5.705182703632019], # slit corner +0.01 (y,z)=(-1.5, 0.5)
+            [1.2604138938978349, 5.685182703632018], # slit corner -0.01 (y,z)=(-1.5, 0.5)
+            ])
+        calculated_mirror_edge, calculated_hole = cl_calcs.mirror_outline(
+            phi=expected_mirror_edge[:, 1], holein=True, slit=3, slit_center=0, orientation=np.pi/4
+            )
+        expected_mirror_edge += np.array([0, np.pi/4])
+        np.testing.assert_array_almost_equal(expected_hole, calculated_hole)
+        np.testing.assert_array_almost_equal(expected_mirror_edge, calculated_mirror_edge)
+        
 #class AngleOfIncidenceTest(parameterized.TestCase):
 #    '''
 #    Test the function for calculating the angle of incidence of a wave on a 

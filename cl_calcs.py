@@ -125,7 +125,8 @@ def mirror_outline(phi=np.linspace(0, 2*np.pi, 1000), holein=True, slit=None, sl
     if holein:
         hole_theta = 4*np.ones(np.shape(phi))
 #        hole_phi = np.linspace(0, 2*np.pi, n)
-        hole_theta_phi = np.transpose(np.array([hole_theta, phi]))
+        hole_phi = phi + orientation
+        hole_theta_phi = np.transpose(np.array([hole_theta, hole_phi]))
     else:
         hole_theta_phi = np.array([[None, None]])
     
