@@ -1939,91 +1939,91 @@ class MirrorOutlineTest(unittest.TestCase):
         np.testing.assert_array_almost_equal(expected_hole, calculated_hole)
         np.testing.assert_array_almost_equal(expected_mirror_edge, calculated_mirror_edge)
         
-#class AngleOfIncidenceTest(parameterized.TestCase):
-#    '''
-#    Test the function for calculating the angle of incidence of a wave on a 
-#    surface, given the incoming wavevector and the surface normal
-#    '''
-#    
-#    @parameterized.named_parameters(
-#        ('45 degrees', 
-#            np.array([0, 1, 1]), 
-#            np.array([0, 0, 1]), 
-#            np.array(np.pi/4),
-#        ),
-#        ('0 degrees',
-#            np.array([0, 1, 0]),
-#            np.array([0, 1, 0]),
-#            np.array([0]),
-#        ),
-#        ('90 degrees',
-#            np.array([0, 1, 0]),
-#            np.array([1, 0, 0]),
-#            np.array([np.pi/2]),
-#        ),
-#        ('45 degrees opposite to normal (+y,+z):(-z)',
-#            np.array([0, 1, 1]),
-#            np.array([0, 0, -1]),
-#            np.array(np.pi/4),
-#        ),
-#        ('45 degrees opposite to normal (-y,+z):(-z)',
-#            np.array([0, -1, 1]),
-#            np.array([0, 0, -1]),
-#            np.array(np.pi/4),
-#        ),
-#        ('45 degrees to normal (+y,-z):(-z)',
-#            np.array([0, 1, -1]),
-#            np.array([0, 0, -1]),
-#            np.array(np.pi/4),
-#        ),
-#        ('45 degrees to normal (-y,-z):(-z)',
-#            np.array([0, -1, -1]),
-#            np.array([0, 0, -1]),
-#            np.array(np.pi/4),
-#        ),
-#    )
-#    def test_angle_of_incidence_single_values(self, incident, normal, expected_angle):
-#        '''
-#        check that the angle of incidence is calculated correctly given
-#        several simple cases
-#        '''
-#        angle = cl_calcs.angle_of_incidence(incident, normal)
-#        np.testing.assert_allclose(angle, expected_angle, atol=1e-7)
+class AngleOfIncidenceTest(parameterized.TestCase):
+    '''
+    Test the function for calculating the angle of incidence of a wave on a 
+    surface, given the incoming wavevector and the surface normal
+    '''
+    
+    @parameterized.named_parameters(
+        ('45 degrees', 
+            np.array([0, 1, 1]), 
+            np.array([0, 0, 1]), 
+            np.array(np.pi/4),
+        ),
+        ('0 degrees',
+            np.array([0, 1, 0]),
+            np.array([0, 1, 0]),
+            np.array([0]),
+        ),
+        ('90 degrees',
+            np.array([0, 1, 0]),
+            np.array([1, 0, 0]),
+            np.array([np.pi/2]),
+        ),
+        ('45 degrees opposite to normal (+y,+z):(-z)',
+            np.array([0, 1, 1]),
+            np.array([0, 0, -1]),
+            np.array(np.pi/4),
+        ),
+        ('45 degrees opposite to normal (-y,+z):(-z)',
+            np.array([0, -1, 1]),
+            np.array([0, 0, -1]),
+            np.array(np.pi/4),
+        ),
+        ('45 degrees to normal (+y,-z):(-z)',
+            np.array([0, 1, -1]),
+            np.array([0, 0, -1]),
+            np.array(np.pi/4),
+        ),
+        ('45 degrees to normal (-y,-z):(-z)',
+            np.array([0, -1, -1]),
+            np.array([0, 0, -1]),
+            np.array(np.pi/4),
+        ),
+    )
+    def test_angle_of_incidence_single_values(self, incident, normal, expected_angle):
+        '''
+        check that the angle of incidence is calculated correctly given
+        several simple cases
+        '''
+        angle = cl_calcs.angle_of_incidence(incident, normal)
+        np.testing.assert_allclose(angle, expected_angle, atol=1e-7)
 
-#    def test_angle_of_incidence_multi_value_array(self):
-#        '''
-#        check that the angle of incidence is calculated correctly given an 
-#        N by 3 array
-#        '''
-#        incident = np.array([
-#            [0, 1, 1], 
-#            [0, 1, 0], 
-#            [0, 1, 0], 
-#            [0, 1, 1],
-#            [0, -1, 1],
-#            [0, 1, -1],
-#            [0, -1, -1],
-#            ])
-#        normal = np.array([
-#            [0, 1, 0], 
-#            [0, 1, 0], 
-#            [1, 0, 0], 
-#            [0, 0, -1],
-#            [0, 0, -1],
-#            [0, 0, -1],
-#            [0, 0, -1],
-#            ])
-#        expected_angles = np.array([
-#            np.pi/4, 
-#            0, 
-#            np.pi/2, 
-#            np.pi/4,
-#            np.pi/4,
-#            np.pi/4,
-#            np.pi/4,
-#            ])
-#        angles = cl_calcs.angle_of_incidence(incident, normal)
-#        np.testing.assert_allclose(angles, expected_angles)
+    def test_angle_of_incidence_multi_value_array(self):
+        '''
+        check that the angle of incidence is calculated correctly given an 
+        N by 3 array
+        '''
+        incident = np.array([
+            [0, 1, 1], 
+            [0, 1, 0], 
+            [0, 1, 0], 
+            [0, 1, 1],
+            [0, -1, 1],
+            [0, 1, -1],
+            [0, -1, -1],
+            ])
+        normal = np.array([
+            [0, 1, 0], 
+            [0, 1, 0], 
+            [1, 0, 0], 
+            [0, 0, -1],
+            [0, 0, -1],
+            [0, 0, -1],
+            [0, 0, -1],
+            ])
+        expected_angles = np.array([
+            np.pi/4, 
+            0, 
+            np.pi/2, 
+            np.pi/4,
+            np.pi/4,
+            np.pi/4,
+            np.pi/4,
+            ])
+        angles = cl_calcs.angle_of_incidence(incident, normal)
+        np.testing.assert_allclose(angles, expected_angles)
 
 
 #class SnellsLawTest(parameterized.TestCase):
