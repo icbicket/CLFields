@@ -117,7 +117,9 @@ def mirror_outline(phi=np.linspace(0, 2*np.pi, 1000), holein=True, slit=None, sl
     provide the coordinates for an outline of the mirror and slit combination
     Returns an n by 2 array of (theta, phi) values for the edges of the mirror,
     and an n by 2 array of (theta, phi) values for the edges of the hole, if in
-    TODO: add slit
+    Won't work if the slit is too far off the centre of the mirror (such that 
+    it doesn't cover the x-axis): one side of the slit must be on positive y,
+    the other on negative y
     '''
     # hole
     if holein:
@@ -127,26 +129,128 @@ def mirror_outline(phi=np.linspace(0, 2*np.pi, 1000), holein=True, slit=None, sl
     else:
         hole_theta_phi = np.array([[None, None]])
     
-#    mirror_phi = np.linspace(0, 2*np.pi, n)
-    z = np.ones(np.shape(phi))*mirror.dfoc
-    y = np.zeros(np.shape(phi))
-    y1 = (10/np.tan(phi) - np.sqrt(np.square(10/np.tan(phi)) - 4 * -1 * (25-z**2)))/(2*-1)
-    y[phi<np.pi] = y1[phi < np.pi]
-    y[phi==0] = 0
-    y[phi == np.pi] = 0
-    y2 = (10/np.tan(phi) + np.sqrt(np.square(10/np.tan(phi)) - 4 * -1 * (25-z**2)))/(2*-1)
-    y[phi > np.pi] = y2[phi > np.pi]
-    y[phi == 2*np.pi] = 0
-    x = y / np.tan(phi)
-    x[phi == 0] = 2.5-mirror.dfoc**2/10
-    x[phi == 2*np.pi] = 2.5-mirror.dfoc**2/10
-    x[phi == np.pi] = mirror.xcut
-    x_condition = x<= mirror.xcut
-    x[x_condition] = mirror.xcut
-    y[x_condition] = x[x_condition] * np.tan(phi[x_condition])
-    z[x_condition] = np.sqrt((2.5-x[x_condition])*10-y[x_condition]**2)
+    x = np.empty(np.shape(phi))
+    y = np.empty(np.shape(phi))
+    z = np.empty(np.shape(phi))
+    
+    if slit is None:
+        corner1_y = np.sqrt(25-mirror.xcut*10-mirror.dfoc**2)
+        _, _, corner1_phi = coord.cartesian_to_spherical_coords(np.array([[mirror.xcut, corner1_y, 1]]))
+        corner2_y = -np.sqrt(25-mirror.xcut*10-mirror.dfoc**2)
+        _, _, corner2_phi = coord.cartesian_to_spherical_coords(np.array([[mirror.xcut, corner2_y, 1]]))
+        
+        # zcut/dfoc plane
+        z[phi<=corner1_phi] = mirror.dfoc
+        z[phi>=corner2_phi] = mirror.dfoc
+        y[phi<=corner1_phi] = (
+            (10/np.tan(phi[phi<=corner1_phi]) 
+            - np.sqrt(np.square(10/np.tan(phi[phi<=corner1_phi])) 
+            - 4 * -1 * (25-z[phi<=corner1_phi]**2)))/(2*-1)
+            )
+        y[phi>=corner1_phi] = (
+            (10/np.tan(phi[phi>=corner1_phi]) 
+            + np.sqrt(np.square(10/np.tan(phi[phi>=corner1_phi])) 
+            - 4 * -1 * (25-z[phi>=corner1_phi]**2)))/(2*-1)
+            )
+        y[phi==0] = 0
+        y[phi == np.pi] = 0
+        y[phi == 2*np.pi] = 0
+        x[phi<=corner1_phi] = 2.5-(y[phi<=corner1_phi]**2 + z[phi<=corner1_phi]**2)/10
+        x[phi>=corner1_phi] = 2.5-(y[phi>=corner1_phi]**2 + z[phi>=corner1_phi]**2)/10
+        # xcut plane
+        edge_1_2 = np.logical_and((phi>corner1_phi), (phi<corner2_phi))
+        x[edge_1_2] = mirror.xcut
+        y[edge_1_2] = x[edge_1_2]*np.tan(phi[edge_1_2])
+        z[edge_1_2] = np.sqrt(25 - 10*x[edge_1_2] - y[edge_1_2]**2)
+    else:
+        ycut_positive = slit_center + slit/2
+        ycut_negative = slit_center - slit/2
+        corner1_x = 2.5 - (ycut_positive**2 + mirror.dfoc**2)/10
+        _, _, corner1_phi = coord.cartesian_to_spherical_coords(
+            np.array([[corner1_x, ycut_positive, mirror.dfoc]])
+            )
+        _, _, corner2_phi = coord.cartesian_to_spherical_coords(
+            np.array([[mirror.xcut, ycut_positive, mirror.dfoc]])
+            )
+        _, _, corner3_phi = coord.cartesian_to_spherical_coords(
+            np.array([[mirror.xcut, ycut_negative, mirror.dfoc]])
+            )
+        corner4_x = 2.5 - (ycut_negative**2 + mirror.dfoc**2)/10
+        _, _, corner4_phi = coord.cartesian_to_spherical_coords(
+            np.array([[corner4_x, ycut_negative, mirror.dfoc]])
+            )
+        # zcut/dfoc plane
+        edge_0_1 = phi<=corner1_phi
+        z[edge_0_1] = mirror.dfoc
+        y[edge_0_1] = (
+            (10/np.tan(phi[edge_0_1]) 
+            - np.sqrt(np.square(10/np.tan(phi[edge_0_1])) 
+            - 4 * -1 * (25-z[edge_0_1]**2)))/(2*-1)
+            )
+        y[phi==0] = 0
+        y[phi == np.pi] = 0
+        y[phi == 2*np.pi] = 0
+        x[edge_0_1] = 2.5-(y[edge_0_1]**2 + z[edge_0_1]**2)/10
+        
+        edge_1_2 = np.logical_and(phi>corner1_phi, phi<corner2_phi)
+        y[edge_1_2] = ycut_positive
+        x[edge_1_2] = y[edge_1_2]/np.tan(phi[edge_1_2])
+        z[edge_1_2] = np.sqrt(25 - 10*x[edge_1_2] - y[edge_1_2]**2)
+        
+        edge_2_3 = np.logical_and(phi>=corner2_phi, phi<=corner3_phi)
+        x[edge_2_3] = mirror.xcut
+        y[edge_2_3] = x[edge_2_3]*np.tan(phi[edge_2_3])
+        z[edge_2_3] = np.sqrt(25 - 10*x[edge_2_3] - y[edge_2_3]**2)
+        
+        edge_3_4 = np.logical_and(phi>=corner3_phi, phi<=corner4_phi)
+        y[edge_3_4] = ycut_negative
+        x[edge_3_4] = y[edge_3_4]/np.tan(phi[edge_3_4])
+        z[edge_3_4] = np.sqrt(25 - 10*x[edge_3_4] - y[edge_3_4]**2)
+        
+        edge_4_0 = phi>corner4_phi
+        z[edge_4_0] = mirror.dfoc
+        y[edge_4_0] = (
+            (10/np.tan(phi[edge_4_0]) 
+            + np.sqrt(np.square(10/np.tan(phi[edge_4_0])) 
+            - 4 * -1 * (25-z[edge_4_0]**2)))/(2*-1)
+            )
+        y[phi==0] = 0
+        y[phi == np.pi] = 0
+        y[phi == 2*np.pi] = 0
+        x[edge_4_0] = 2.5-(y[edge_4_0]**2 + z[edge_4_0]**2)/10
+    
+##    mirror_phi = np.linspace(0, 2*np.pi, n)
+#    z = np.ones(np.shape(phi))*mirror.dfoc
+#    y = np.zeros(np.shape(phi))
+#    y1 = (10/np.tan(phi) - np.sqrt(np.square(10/np.tan(phi)) - 4 * -1 * (25-z**2)))/(2*-1)
+#    y[phi<np.pi] = y1[phi < np.pi]
+#    y[phi==0] = 0
+#    y[phi == np.pi] = 0
+#    y2 = (10/np.tan(phi) + np.sqrt(np.square(10/np.tan(phi)) - 4 * -1 * (25-z**2)))/(2*-1)
+#    y[phi > np.pi] = y2[phi > np.pi]
+#    y[phi == 2*np.pi] = 0
+#    x = y / np.tan(phi)
+#    x[phi == 0] = 2.5-mirror.dfoc**2/10
+#    x[phi == 2*np.pi] = 2.5-mirror.dfoc**2/10
+#    x[phi == np.pi] = mirror.xcut
+#    x_condition = x<= mirror.xcut
+#    x[x_condition] = mirror.xcut
+#    y[x_condition] = x[x_condition] * np.tan(phi[x_condition])
+#    z[x_condition] = np.sqrt((2.5-x[x_condition])*10-y[x_condition]**2)
+#    if slit is not None:
+#        y_condition_positive = y > slit/2
+#        y_condition_negative = y < slit/2
+#        y[y_condition_positive] = slit/2
+#        y[y_condition_negative] = -slit/2
+#        x[y_condition_positive] = y[y_condition_positive]/np.tan(phi[y_condition_positive])
+#        x[y_condition_positive * x_condition] = -10.75
+#        x[y_condition_negative] = y[y_condition_negative]/np.tan(phi[y_condition_negative])
+#        x[y_condition_negative * x_condition] = -10.75
+#        z[y_condition_positive] = np.sqrt((2.5-x[y_condition_positive])*10-y[y_condition_positive]**2)
+#        z[y_condition_negative] = np.sqrt((2.5-x[y_condition_negative])*10-y[y_condition_negative]**2)
     vector = np.transpose(np.array([x, y, z]))
     _, theta, _ = coord.cartesian_to_spherical_coords(vector)
+    phi = phi + orientation
     mirror_theta_phi = np.transpose(np.array([theta, phi]))
 #    #outsides of mirror
 #    theta_patch = np.linspace(np.radians(14), np.pi/2, n)
