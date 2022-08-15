@@ -232,10 +232,14 @@ def angle_of_incidence(incident_vector, normal):
     '''
     incident_vector_magnitude = coord.field_magnitude(incident_vector)
     normal_magnitude = coord.field_magnitude(normal)
+    if np.any(incident_vector_magnitude)==0:
+        raise ValueError('Magnitude of the incident vector cannot be 0')
+    elif np.any(normal_magnitude)==0:
+        raise ValueError('Magnitude of the normal vector cannot be 0')
     cosine_angle = np.array((np.sum(incident_vector * normal, axis=-1))
         /(incident_vector_magnitude * normal_magnitude))
     float_error_condition = np.logical_and(
-        (abs(cosine_angle)-1) < 1e-5, 
+        (abs(cosine_angle)-1) < 1e-5,
         (abs(cosine_angle)-1)>0)
     if np.any(float_error_condition):
         cosine_angle[float_error_condition] = np.round(  ##
@@ -254,7 +258,7 @@ def snells_law(incidence_angles, n_surface, n_environment=1):
     n_environment: refractive index of the environment through which light 
         travels to impinge upon the surface
     '''
-    angle_refraction = np.arcsin(n_environment/n_surface * np.sin(incidence_angles))
+    angle_refraction = np.arcsin(np.real(n_environment)/np.real(n_surface) * np.sin(incidence_angles))
     return angle_refraction
     
 def brewsters_angle(n_surface, n_environment=1):
@@ -264,7 +268,10 @@ def brewsters_angle(n_surface, n_environment=1):
     n_environment: refractive index of the medium the incident light travels
         through
     '''
-    brewster = np.arctan(n_surface/n_environment)
+    n_surface = np.real(n_surface)
+    n_environment = np.real(n_environment)
+    brewster = np.array(np.arctan(n_surface/n_environment))
+    brewster[n_surface==n_environment] = np.nan
     return brewster
 
 def reflection_coefficients(incidence_angle, n_surface, n_environment=1):

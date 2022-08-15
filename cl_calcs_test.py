@@ -1938,7 +1938,8 @@ class MirrorOutlineTest(unittest.TestCase):
         expected_mirror_edge += np.array([0, np.pi/4])
         np.testing.assert_array_almost_equal(expected_hole, calculated_hole)
         np.testing.assert_array_almost_equal(expected_mirror_edge, calculated_mirror_edge)
-        
+
+
 class AngleOfIncidenceTest(parameterized.TestCase):
     '''
     Test the function for calculating the angle of incidence of a wave on a 
@@ -1981,6 +1982,21 @@ class AngleOfIncidenceTest(parameterized.TestCase):
             np.array([0, 0, -1]),
             np.array(np.pi/4),
         ),
+        ('off-axis incident and normal vectors',
+            np.array([1, 2, 0.5]),
+            np.array([5, -2, 1]),
+            1.450987042,
+        ),
+        ('small angle',
+            np.array([1, 2, 0.5]),
+            np.array([1, 2, 0.49]),
+            4.263210237e-3,
+        ),
+        ('very large',
+            np.array([1, 2, 0.5]),
+            np.array([-1, -2, -0.49]),
+            4.263210237e-3,
+        ),
     )
     def test_angle_of_incidence_single_values(self, incident, normal, expected_angle):
         '''
@@ -1989,6 +2005,25 @@ class AngleOfIncidenceTest(parameterized.TestCase):
         '''
         angle = cl_calcs.angle_of_incidence(incident, normal)
         np.testing.assert_allclose(angle, expected_angle, atol=1e-7)
+
+    @parameterized.named_parameters(
+        ('zero incident',
+            np.array([0,0,0]),
+            np.array([1,1,1])
+        ),
+        ('zero normal',
+            np.array([1,1,1]),
+            np.array([0,0,0]),
+        ),
+        )
+    def test_vector_magnitude_zero(self, incident, normal):
+        '''
+        check that given a vector of zeros, it fails
+        '''
+        incident = np.array([0, 0, 0])
+        normal = np.array([1, 1, 1])
+        with self.assertRaises(ValueError):
+            cl_calcs.angle_of_incidence(incident, normal)
 
     def test_angle_of_incidence_multi_value_array(self):
         '''
@@ -2026,298 +2061,347 @@ class AngleOfIncidenceTest(parameterized.TestCase):
         np.testing.assert_allclose(angles, expected_angles)
 
 
-#class SnellsLawTest(parameterized.TestCase):
-#    '''
-#    Test the Snell's law function for calculating the angle of refraction
-#    '''
-#    def test_angle_array(self):
-#        '''
-#        test the standard case in which an array of angles is used and the 
-#        surface has a refractive index of 2
-#        '''
-#        incidence_angles = np.array([
-#            0, 
-#            np.pi/8, 
-#            np.pi/4, 
-#            np.pi/3, 
-#            np.pi/2-0.1,
-#            np.pi/2,
-#            ])
-#        n_surface = 2
-#        n_environment = 1
-#        expected_refraction_angles = np.array([
-#            0, 
-#            0.192528938, 
-#            0.361367123, 
-#            0.447832396, 
-#            0.520716822,
-#            0.523598775,
-#            ])
-#        refraction_angles = cl_calcs.snells_law(incidence_angles, n_surface, n_environment)
-#        np.testing.assert_allclose(refraction_angles, expected_refraction_angles, atol=1e-7)
+class SnellsLawTest(parameterized.TestCase):
+    '''
+    Test the Snell's law function for calculating the angle of refraction
+    '''
+    def test_angle_array(self):
+        '''
+        test the standard case in which an array of angles is used and the 
+        surface has a refractive index of 2
+        '''
+        incidence_angles = np.array([
+            0, 
+            np.pi/8, 
+            np.pi/4, 
+            np.pi/3, 
+            np.pi/2-0.1,
+            np.pi/2,
+            ])
+        n_surface = 2
+        n_environment = 1
+        expected_refraction_angles = np.array([
+            0, 
+            0.192528938, 
+            0.361367123, 
+            0.447832396, 
+            0.520716822,
+            0.523598775,
+            ])
+        refraction_angles = cl_calcs.snells_law(incidence_angles, n_surface, n_environment)
+        np.testing.assert_allclose(refraction_angles, expected_refraction_angles, atol=1e-7)
 
-#    def test_single_angle(self):
-#        '''
-#        test a single angle value is used as input, and the surface has a 
-#        refractive index of 2
-#        '''
-#        incidence_angles = np.pi/8
-#        n_surface = 2
-#        n_environment = 1
-#        expected_refraction_angles = 0.192528938
-#        refraction_angles = cl_calcs.snells_law(incidence_angles, n_surface, n_environment)
-#        np.testing.assert_allclose(refraction_angles, expected_refraction_angles, atol=1e-7)
+    def test_single_angle(self):
+        '''
+        test a single angle value is used as input, and the surface has a 
+        refractive index of 2
+        '''
+        incidence_angles = np.pi/8
+        n_surface = 2
+        n_environment = 1
+        expected_refraction_angles = 0.192528938
+        refraction_angles = cl_calcs.snells_law(incidence_angles, n_surface, n_environment)
+        np.testing.assert_allclose(refraction_angles, expected_refraction_angles, atol=1e-7)
 
-#    @parameterized.named_parameters(
-#        ('critical angle', np.pi/6, np.pi/2),
-#        ('below critical angle', np.pi/6-0.1, 0.965067965),
-#    )
-#    def test_critical_angle(self, incidence_angle, expected_refraction_angle):
-#        '''
-#        the second medium has a smaller refractive index than the first, test
-#        the angle at which total internal reflection occurs, and a value below 
-#        that
-#        '''
-#        n_surface = 1
-#        n_environment = 2
-#        refraction_angle = cl_calcs.snells_law(incidence_angle, n_surface, n_environment)
-#        np.testing.assert_allclose(refraction_angle, expected_refraction_angle, atol=1e-7)
-#        
-#    def test_below_critical_angle(self):
-#        '''
-#        the second medium has a smaller refractive index than the first, test
-#        an angle shallower than that at which total internal reflection occurs
-#        - the result should be NaN
-#        '''
-#        incidence_angles = np.pi/6+0.1
-#        n_surface = 1
-#        n_environment = 2
-#        refraction_angle = cl_calcs.snells_law(incidence_angles, n_surface, n_environment)
-#        assert np.isnan(refraction_angle)
+    @parameterized.named_parameters(
+        ('critical angle', np.pi/6, np.pi/2),
+        ('below critical angle', np.pi/6-0.1, 0.965067965),
+    )
+    def test_critical_angle(self, incidence_angle, expected_refraction_angle):
+        '''
+        the second medium has a smaller refractive index than the first, test
+        the angle at which total internal reflection occurs, and a value below 
+        that
+        '''
+        n_surface = 1
+        n_environment = 2
+        refraction_angle = cl_calcs.snells_law(incidence_angle, n_surface, n_environment)
+        np.testing.assert_allclose(refraction_angle, expected_refraction_angle, atol=1e-7)
 
+    def test_below_critical_angle(self):
+        '''
+        the second medium has a smaller refractive index than the first, test
+        an angle shallower than that at which total internal reflection occurs
+        - the result should be NaN
+        '''
+        incidence_angles = np.pi/6+0.1
+        n_surface = 1
+        n_environment = 2
+        refraction_angle = cl_calcs.snells_law(incidence_angles, n_surface, n_environment)
+        assert np.isnan(refraction_angle)
 
-#class BrewstersAngleTest(parameterized.TestCase):
-#    '''
-#    Test the reflection coefficient calculation
-#    '''
-#    def test_single_value(self):
-#        '''
-#        calculate Brewster's angle for n1=1, n2=2
-#        '''
-#        n_surface = 2
-#        n_environment = 1
-#        expected_brewsters = 1.107148718
-#        brewsters = cl_calcs.brewsters_angle(n_surface, n_environment)
-#        np.testing.assert_allclose(brewsters, expected_brewsters)
-#    
-#    def test_value_array(self):
-#        '''
-#        calculate Brewster's angle for n1=1, n2=2, using arrays for refractive
-#            indices
-#        '''
-#        n_surface = np.array([2, 3])
-#        n_environment = np.array([1, 2])
-#        expected_brewsters = np.array([1.107148718, 0.982793723])
-#        brewsters = cl_calcs.brewsters_angle(n_surface, n_environment)
-#        np.testing.assert_allclose(brewsters, expected_brewsters)
+    def test_complex_refractive_index_surface(self):
+        '''
+        The surface has a complex refractive index
+        '''
+        incidence_angles = np.pi/8
+        n_surface = 2+1j
+        n_environment = 1
+        expected_refraction_angles = 0.192528938
+        refraction_angles = cl_calcs.snells_law(incidence_angles, n_surface, n_environment)
+        np.testing.assert_allclose(refraction_angles, expected_refraction_angles, atol=1e-7)
 
+    def test_complex_refractive_index_environment(self):
+        '''
+        The environment has a complex refractive index
+        '''
+        incidence_angles = np.pi/8
+        n_surface = 2
+        n_environment = 1-1j
+        expected_refraction_angles = 0.192528938
+        refraction_angles = cl_calcs.snells_law(incidence_angles, n_surface, n_environment)
+        np.testing.assert_allclose(refraction_angles, expected_refraction_angles, atol=1e-7)
 
-#class ReflectionCoefficientsTest(parameterized.TestCase):
-#    '''
-#    Test the reflection coefficient calculation
-#    '''
-#    def test_brewsters_angle(self):
-#        '''
-#        the parallel reflection coefficient should be 0 at Brewster's angle
-#        '''
-#        n_surface = 2
-#        n_environment = 1
-#        incidence_angle = 1.107148718
-#        r_s, r_p = cl_calcs.reflection_coefficients(incidence_angle, n_surface, n_environment)
-#        expected_r_p = 0
-#        np.testing.assert_allclose(r_p, expected_r_p, atol=1e-7, equal_nan=False)
+class BrewstersAngleTest(parameterized.TestCase):
+    '''
+    Test the Brewster's angle calculation
+    '''
+    def test_single_value(self):
+        '''
+        calculate Brewster's angle for n1=1, n2=2
+        '''
+        n_surface = 2
+        n_environment = 1
+        expected_brewsters = 1.107148718
+        brewsters = cl_calcs.brewsters_angle(n_surface, n_environment)
+        np.testing.assert_allclose(brewsters, expected_brewsters)
+    
+    def test_value_array(self):
+        '''
+        calculate Brewster's angle for n1=1, n2=2, using arrays for refractive
+            indices
+        '''
+        n_surface = np.array([2, 3])
+        n_environment = np.array([1, 2])
+        expected_brewsters = np.array([1.107148718, 0.982793723])
+        brewsters = cl_calcs.brewsters_angle(n_surface, n_environment)
+        np.testing.assert_allclose(brewsters, expected_brewsters)
 
-#    def test_normal_incidence(self):
-#        '''
-#        the reflection coefficients should be equal at normal incidence
-#        '''
-#        n_surface = 2
-#        n_environment = 1
-#        incidence_angle = 0
-#        r_s, r_p = cl_calcs.reflection_coefficients(incidence_angle, n_surface, n_environment)
-#        np.testing.assert_allclose(r_p, r_s, atol=1e-7)
-#    
-#    def test_single_value(self):
-#        '''
-#        test the reflection coefficient calculation with a single input angle
-#        '''
-#        n_surface = 2
-#        n_environment = 1
-#        incidence_angle = 1.
-#        r = cl_calcs.reflection_coefficients(incidence_angle, n_surface, n_environment)
-#        expected_r_s = np.array([-0.54108004])
-#        expected_r_p = np.array([0.087243335])
-#        np.testing.assert_allclose(r, (expected_r_s, expected_r_p), atol=1e-7)
-#    
-#    def test_array_of_values(self):
-#        '''
-#        test the reflection coefficient calculation with a 1D numpy array input
-#            for incidence angle
-#        '''
-#        n_surface = 2
-#        n_environment = 1
-#        incidence_angle = np.array([1., np.pi/4])
-#        r = np.array(cl_calcs.reflection_coefficients(incidence_angle, n_surface, n_environment))
-#        expected_r = np.transpose(np.array([[-0.54108004, 0.087243335], [-0.451416229, 0.203776612]]))
-#        np.testing.assert_allclose(r, expected_r, atol=1e-7)
+    def test_same_refractive_index(self):
+        '''
+        Both n1 and n2 are the same - there is no surface to reflect off!
+        '''
+        n_surface = 1
+        n_environment = 1
+        brewsters = cl_calcs.brewsters_angle(n_surface, n_environment)
+        assert np.isnan(brewsters)
 
+    def test_complex_n_surface(self):
+        '''
+        calculate Brewster's angle for n1=1+1j, n2=2
+        '''
+        n_surface = 2+1j
+        n_environment = 1
+        expected_brewsters = 1.107148718
+        brewsters = cl_calcs.brewsters_angle(n_surface, n_environment)
+        np.testing.assert_allclose(brewsters, expected_brewsters)
 
-#class ReflectedETest(parameterized.TestCase):
-#    '''
-#    Test the calculation of the reflected electric field
-#    '''
-#    
-#    @parameterized.named_parameters(
-#        ('s-polarized', np.array([0, 0, 1]), np.array([0, 0, -0.451416229]), np.array([0, 0, 0])),
-#        ('p-polarized', np.array([1, -1, 0]), np.array([0, 0, 0]), 0.203776612*np.array([1, -1, 0])),
-#        ('mixed-polarized', np.array([1, -1, 1]), np.array([0, 0, -0.451416229]), 0.203776612*np.array([1, -1, 0])),
-#        ('3 by 3 array', np.array([[0, 0, 1], [1, -1, 0], [1, -1, 1]]), np.array([[0, 0, -0.451416229], [0, 0, 0], [0, 0, -0.451416229]]), 0.203776612 * np.array([[0, 0, 0], [1, -1, 0], [1, -1, 0]]))
-#    )
-#    def test_e_polarization_state(self, incident_e, expected_e_s, expected_e_p):
-#        '''
-#        An input electric field of various polarization states
-#        '''
-#        normal = np.array([1, 0, 0])
-#        incident_direction = np.array([1, 1, 0])
-#        n_surface = 2
-#        n_environment = 1
-#        e_s, e_p = cl_calcs.reflected_e(
-#            incident_direction,
-#            incident_e,
-#            normal,
-#            n_surface,
-#            n_environment
-#            )
-#        np.testing.assert_allclose(e_s, expected_e_s)
-#        np.testing.assert_allclose(e_p, expected_e_p)
+    def test_complex_n_environment(self):
+        '''
+        calculate Brewster's angle for n1=1, n2=2+1j
+        '''
+        n_surface = 2
+        n_environment = 1+1j
+        expected_brewsters = 1.107148718
+        brewsters = cl_calcs.brewsters_angle(n_surface, n_environment)
+        np.testing.assert_allclose(brewsters, expected_brewsters)
 
 
-#    @parameterized.named_parameters(
-#        ('s-polarized', np.array([0, 0, 1]), np.array([0, 0, -0.451416229]), np.array([0, 0, 0])),
-#        ('p-polarized', np.array([1, -1, 0]), np.array([0, 0, 0]), 0.203776612*np.array([1, -1, 0])),
-#        ('mixed-polarized', np.array([1, -1, 1]), np.array([0, 0, -0.451416229]), 0.203776612*np.array([1, -1, 0])),
-#    )
-#    def test_e_polarization_state_negative_normal(self, incident_e, expected_e_s, expected_e_p):
-#        '''
-#        An input electric field of various polarization states
-#        '''
-#        normal = np.array([-1, 0, 0])
-#        incident_direction = np.array([1, 1, 0])
-#        n_surface = 2
-#        n_environment = 1
-#        e_s, e_p = cl_calcs.reflected_e(
-#            incident_direction, 
-#            incident_e, 
-#            normal, 
-#            n_surface, 
-#            n_environment
-#            )
-#        np.testing.assert_allclose(e_s, expected_e_s)
-#        np.testing.assert_allclose(e_p, expected_e_p)
+class ReflectionCoefficientsTest(parameterized.TestCase):
+    '''
+    Test the reflection coefficient calculation
+    '''
+    def test_brewsters_angle(self):
+        '''
+        the parallel reflection coefficient should be 0 at Brewster's angle
+        '''
+        n_surface = 2
+        n_environment = 1
+        incidence_angle = 1.107148718
+        r_s, r_p = cl_calcs.reflection_coefficients(incidence_angle, n_surface, n_environment)
+        expected_r_p = 0
+        np.testing.assert_allclose(r_p, expected_r_p, atol=1e-7, equal_nan=False)
+
+    def test_normal_incidence(self):
+        '''
+        the reflection coefficients should be equal at normal incidence
+        '''
+        n_surface = 2
+        n_environment = 1
+        incidence_angle = 0
+        r_s, r_p = cl_calcs.reflection_coefficients(incidence_angle, n_surface, n_environment)
+        np.testing.assert_allclose(r_p, r_s, atol=1e-7)
+    
+    def test_single_value(self):
+        '''
+        test the reflection coefficient calculation with a single input angle
+        '''
+        n_surface = 2
+        n_environment = 1
+        incidence_angle = 1.
+        r = cl_calcs.reflection_coefficients(incidence_angle, n_surface, n_environment)
+        expected_r_s = np.array([-0.54108004])
+        expected_r_p = np.array([0.087243335])
+        np.testing.assert_allclose(r, (expected_r_s, expected_r_p), atol=1e-7)
+    
+    def test_array_of_values(self):
+        '''
+        test the reflection coefficient calculation with a 1D numpy array input
+            for incidence angle
+        '''
+        n_surface = 2
+        n_environment = 1
+        incidence_angle = np.array([1., np.pi/4])
+        r = np.array(cl_calcs.reflection_coefficients(incidence_angle, n_surface, n_environment))
+        expected_r = np.transpose(np.array([[-0.54108004, 0.087243335], [-0.451416229, 0.203776612]]))
+        np.testing.assert_allclose(r, expected_r, atol=1e-7)
 
 
-#class StokesParametersTest(unittest.TestCase):
-#    def testS1LinearPolarized(self):
-#        '''
-#        check inputs which should result in x or y polarization
-#        '''
-#        E1 = np.array([1, -1, 0, 0])
-#        E2 = np.array([0, 0, 1, -1])
-#        S0, S1, S2, S3 = cl_calcs.stokes_parameters(E1, E2)
-#        S_calc = np.array([S0, S1, S2, S3])
-#        stokes = np.transpose(np.array([
-#            [1, 1, 0, 0], 
-#            [1, 1, 0, 0], 
-#            [1, -1, 0, 0], 
-#            [1, -1, 0, 0]
-#            ]))
-#        np.testing.assert_array_equal(S_calc, stokes)
+class ReflectedETest(parameterized.TestCase):
+    '''
+    Test the calculation of the reflected electric field
+    '''
+    
+    @parameterized.named_parameters(
+        ('s-polarized', np.array([0, 0, 1]), np.array([0, 0, -0.451416229]), np.array([0, 0, 0])),
+        ('p-polarized', np.array([1, -1, 0]), np.array([0, 0, 0]), 0.203776612*np.array([1, -1, 0])),
+        ('mixed-polarized', np.array([1, -1, 1]), np.array([0, 0, -0.451416229]), 0.203776612*np.array([1, -1, 0])),
+        ('3 by 3 array', np.array([[0, 0, 1], [1, -1, 0], [1, -1, 1]]), np.array([[0, 0, -0.451416229], [0, 0, 0], [0, 0, -0.451416229]]), 0.203776612 * np.array([[0, 0, 0], [1, -1, 0], [1, -1, 0]]))
+    )
+    def test_e_polarization_state(self, incident_e, expected_e_s, expected_e_p):
+        '''
+        An input electric field of various polarization states
+        '''
+        normal = np.array([1, 0, 0])
+        incident_direction = np.array([1, 1, 0])
+        n_surface = 2
+        n_environment = 1
+        e_s, e_p = cl_calcs.reflected_e(
+            incident_direction,
+            incident_e,
+            normal,
+            n_surface,
+            n_environment
+            )
+        np.testing.assert_allclose(e_s, expected_e_s)
+        np.testing.assert_allclose(e_p, expected_e_p)
 
-#    def testS3CircularPolarized(self):
-#        E1 = np.array([1 + 1j, 1 + 0.5j, 1 - 1j])
-#        E2 = np.array([1 - 1j, 0.5 - 1j, 1 + 1j])
-#        S0, S1, S2, S3 = cl_calcs.stokes_parameters(E1, E2)
-#        S_calc = np.array([S0, S1, S2, S3])
-#        stokes = np.transpose(np.array([[4, 0, 0, 4], [2.5, 0, 0, 2.5], [4, 0, 0, -4]]))
-#        np.testing.assert_array_equal(stokes, S_calc)
-
-#    def test_stokes_angle_polarized(self):
-#        E1 = 1 + 1j
-#        E2 = 1 - 0j
-#        stokes = np.array([3, 1, 2, 2])
-#        S0, S1, S2, S3 = cl_calcs.stokes_parameters(E1, E2)
-#        S_calc = np.array([S0, S1, S2, S3])
-#        np.testing.assert_array_equal(stokes, S_calc)
-
-#    def testS2LinearPolarized(self):
-#        E1 = np.array([1, 1, -1, -1])
-#        E2 = np.array([1, -1, 1, -1])
-#        stokes = np.transpose(np.array([
-#            [2, 0, 2, 0], 
-#            [2, 0, -2, 0], 
-#            [2, 0, -2, 0],
-#            [2, 0, 2, 0],
-#            ]))
-#        S0, S1, S2, S3 = cl_calcs.stokes_parameters(E1, E2)
-#        S_calc = np.array([S0, S1, S2, S3])
-#        np.testing.assert_array_equal(stokes, S_calc)
+    @parameterized.named_parameters(
+        ('s-polarized', np.array([0, 0, 1]), np.array([0, 0, -0.451416229]), np.array([0, 0, 0])),
+        ('p-polarized', np.array([1, -1, 0]), np.array([0, 0, 0]), 0.203776612*np.array([1, -1, 0])),
+        ('mixed-polarized', np.array([1, -1, 1]), np.array([0, 0, -0.451416229]), 0.203776612*np.array([1, -1, 0])),
+    )
+    def test_e_polarization_state_negative_normal(self, incident_e, expected_e_s, expected_e_p):
+        '''
+        An input electric field of various polarization states
+        '''
+        normal = np.array([-1, 0, 0])
+        incident_direction = np.array([1, 1, 0])
+        n_surface = 2
+        n_environment = 1
+        e_s, e_p = cl_calcs.reflected_e(
+            incident_direction, 
+            incident_e, 
+            normal, 
+            n_surface, 
+            n_environment
+            )
+        np.testing.assert_allclose(e_s, expected_e_s)
+        np.testing.assert_allclose(e_p, expected_e_p)
 
 
-#class NormalizeStokesParametersTest(unittest.TestCase):
-#    def test_normal(self):
-#        '''
-#        Test a normal Stokes vector
-#        '''
-#        S0 = np.array([3])
-#        S1 = np.array([1])
-#        S2 = np.array([2])
-#        S3 = np.array([-2])
-#        s1_expected, s2_expected, s3_expected = np.array([1/3, 2/3, -2/3])
-#        s1, s2, s3 = cl_calcs.normalize_stokes_parameters(S0, S1, S2, S3)
-#        np.testing.assert_array_almost_equal(
-#            np.array([s1, s2, s3]),
-#            np.array([[s1_expected], [s2_expected], [s3_expected]])
-#            )
-#    
-#    def test_most_zeros(self):
-#        '''
-#        Test a Stokes vector where all but S2 are 0
-#        '''
-#        S0 = np.array([2])
-#        S1 = np.array([0])
-#        S2 = np.array([2])
-#        S3 = np.array([0])
-#        s1_expected, s2_expected, s3_expected = np.array([0, 1, 0])
-#        s1, s2, s3 = cl_calcs.normalize_stokes_parameters(S0, S1, S2, S3)
-#        np.testing.assert_array_almost_equal(
-#            np.array([s1, s2, s3]),
-#            np.array([[s1_expected], [s2_expected], [s3_expected]])
-#            )
+class StokesParametersTest(unittest.TestCase):
+    def testS1LinearPolarized(self):
+        '''
+        check inputs which should result in x or y polarization
+        '''
+        E1 = np.array([1, -1, 0, 0])
+        E2 = np.array([0, 0, 1, -1])
+        S0, S1, S2, S3 = cl_calcs.stokes_parameters(E1, E2)
+        S_calc = np.array([S0, S1, S2, S3])
+        stokes = np.transpose(np.array([
+            [1, 1, 0, 0], 
+            [1, 1, 0, 0], 
+            [1, -1, 0, 0], 
+            [1, -1, 0, 0]
+            ]))
+        np.testing.assert_array_equal(S_calc, stokes)
 
-#    def test_zero_stokes(self):
-#        '''
-#        Test a Stokes vector with all 0 components
-#        '''
-#        S0 = np.array([0])
-#        S1 = np.array([0])
-#        S2 = np.array([0])
-#        S3 = np.array([0])
-#        s1_expected, s2_expected, s3_expected = np.array([0, 0, 0])
-#        s1, s2, s3 = cl_calcs.normalize_stokes_parameters(S0, S1, S2, S3)
-#        np.testing.assert_array_almost_equal(
-#            np.array([s1, s2, s3]),
-#            np.array([[s1_expected], [s2_expected], [s3_expected]])
-#            )
+    def testS3CircularPolarized(self):
+        E1 = np.array([1 + 1j, 1 + 0.5j, 1 - 1j])
+        E2 = np.array([1 - 1j, 0.5 - 1j, 1 + 1j])
+        S0, S1, S2, S3 = cl_calcs.stokes_parameters(E1, E2)
+        S_calc = np.array([S0, S1, S2, S3])
+        stokes = np.transpose(np.array([[4, 0, 0, 4], [2.5, 0, 0, 2.5], [4, 0, 0, -4]]))
+        np.testing.assert_array_equal(stokes, S_calc)
+
+    def test_stokes_angle_polarized(self):
+        E1 = 1 + 1j
+        E2 = 1 - 0j
+        stokes = np.array([3, 1, 2, 2])
+        S0, S1, S2, S3 = cl_calcs.stokes_parameters(E1, E2)
+        S_calc = np.array([S0, S1, S2, S3])
+        np.testing.assert_array_equal(stokes, S_calc)
+
+    def testS2LinearPolarized(self):
+        E1 = np.array([1, 1, -1, -1])
+        E2 = np.array([1, -1, 1, -1])
+        stokes = np.transpose(np.array([
+            [2, 0, 2, 0], 
+            [2, 0, -2, 0], 
+            [2, 0, -2, 0],
+            [2, 0, 2, 0],
+            ]))
+        S0, S1, S2, S3 = cl_calcs.stokes_parameters(E1, E2)
+        S_calc = np.array([S0, S1, S2, S3])
+        np.testing.assert_array_equal(stokes, S_calc)
+
+
+class NormalizeStokesParametersTest(unittest.TestCase):
+    def test_normal(self):
+        '''
+        Test a normal Stokes vector
+        '''
+        S0 = np.array([3])
+        S1 = np.array([1])
+        S2 = np.array([2])
+        S3 = np.array([-2])
+        s1_expected, s2_expected, s3_expected = np.array([1/3, 2/3, -2/3])
+        s1, s2, s3 = cl_calcs.normalize_stokes_parameters(S0, S1, S2, S3)
+        np.testing.assert_array_almost_equal(
+            np.array([s1, s2, s3]),
+            np.array([[s1_expected], [s2_expected], [s3_expected]])
+            )
+    
+    def test_most_zeros(self):
+        '''
+        Test a Stokes vector where all but S2 are 0
+        '''
+        S0 = np.array([2])
+        S1 = np.array([0])
+        S2 = np.array([2])
+        S3 = np.array([0])
+        s1_expected, s2_expected, s3_expected = np.array([0, 1, 0])
+        s1, s2, s3 = cl_calcs.normalize_stokes_parameters(S0, S1, S2, S3)
+        np.testing.assert_array_almost_equal(
+            np.array([s1, s2, s3]),
+            np.array([[s1_expected], [s2_expected], [s3_expected]])
+            )
+
+    def test_zero_stokes(self):
+        '''
+        Test a Stokes vector with all 0 components
+        '''
+        S0 = np.array([0])
+        S1 = np.array([0])
+        S2 = np.array([0])
+        S3 = np.array([0])
+        s1_expected, s2_expected, s3_expected = np.array([0, 0, 0])
+        s1, s2, s3 = cl_calcs.normalize_stokes_parameters(S0, S1, S2, S3)
+        np.testing.assert_array_almost_equal(
+            np.array([s1, s2, s3]),
+            np.array([[s1_expected], [s2_expected], [s3_expected]])
+            )
 
 
 
