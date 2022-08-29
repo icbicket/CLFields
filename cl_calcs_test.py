@@ -2241,7 +2241,7 @@ class ReflectionCoefficientsTest(parameterized.TestCase):
         incidence_angle = 1.
         r = cl_calcs.reflection_coefficients(incidence_angle, n_surface, n_environment)
         expected_r_s = np.array([-0.54108004])
-        expected_r_p = np.array([0.087243335])
+        expected_r_p = np.array([-0.087243335])
         np.testing.assert_allclose(r, (expected_r_s, expected_r_p), atol=1e-7)
     
     def test_array_of_values(self):
@@ -2253,9 +2253,51 @@ class ReflectionCoefficientsTest(parameterized.TestCase):
         n_environment = 1
         incidence_angle = np.array([1., np.pi/4])
         r = np.array(cl_calcs.reflection_coefficients(incidence_angle, n_surface, n_environment))
-        expected_r = np.transpose(np.array([[-0.54108004, 0.087243335], [-0.451416229, 0.203776612]]))
+        expected_r = np.transpose(np.array([[-0.54108004, -0.087243335], [-0.451416229, -0.203776612]]))
         np.testing.assert_allclose(r, expected_r, atol=1e-7)
 
+    def test_complex_refractive_index(self):
+        '''
+        test the fresnel reflection coefficients for aluminium as the surface,
+        at different angles of incidence
+        Values obtained from Wolfram demo project at (noting this is using 
+        optical sign convention - switch the sign of r_p):
+             Tayari Colemanand Anna Petrova-Mayor 
+             "Fresnel Coefficients of Metals"
+             http://demonstrations.wolfram.com/FresnelCoefficientsOfMetals/
+             Wolfram Demonstrations Project
+             Published: August 31, 2020 
+        '''
+        n_environment = 1
+        n_surface = 0.965+6.399j
+        incidence_angle = np.deg2rad(np.array(
+            [0, 10, 20, 30, 40, 50, 60, 70, 80]))
+        expected_r_p = np.array([
+            -0.912293 - 0.285616j,
+            -0.910291 - 0.289706j,
+            -0.903869 - 0.302525j,
+            -0.891575 - 0.325905j,
+            -0.870092 - 0.363598j,
+            -0.831861 - 0.422767j,
+            -0.757610 - 0.517044j,
+            -0.587749 - 0.669632j,
+            -0.0914527 - 0.853458j
+            ])
+        expected_r_s = np.array([
+            -0.912293 - 0.285616j,
+            -0.914249 - 0.281575j,
+            -0.919947 - 0.269512j,
+            -0.928898 - 0.249618j,
+            -0.940339 - 0.222237j,
+            -0.953310 - 0.187908j,
+            -0.966749 - 0.147392j,
+            -0.979601 - 0.101696j,
+            -0.990928 - 0.0520749j
+            ])
+        calculated_r_s, calculated_r_p = cl_calcs.reflection_coefficients(
+            incidence_angle, n_surface, n_environment)
+        np.testing.assert_allclose(expected_r_s, calculated_r_s, atol=1e-6)
+        np.testing.assert_allclose(expected_r_p, calculated_r_p, atol=1e-6)
 
 class ReflectedETest(parameterized.TestCase):
     '''

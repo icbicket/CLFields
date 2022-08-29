@@ -258,7 +258,8 @@ def snells_law(incidence_angles, n_surface, n_environment=1):
     n_environment: refractive index of the environment through which light 
         travels to impinge upon the surface
     '''
-    angle_refraction = np.arcsin(np.real(n_environment)/np.real(n_surface) * np.sin(incidence_angles))
+#    angle_refraction = np.arcsin(np.real(n_environment)/np.real(n_surface) * np.sin(incidence_angles))
+    angle_refraction = np.arcsin(n_environment/n_surface * np.sin(incidence_angles))
     return angle_refraction
     
 def brewsters_angle(n_surface, n_environment=1):
@@ -296,17 +297,26 @@ def reflection_coefficients(incidence_angle, n_surface, n_environment=1):
     refraction_angle = snells_law(incidence_angle, n_surface, n_environment)
     r_s = np.empty(np.shape(incidence_angle))
     r_p = np.empty(np.shape(incidence_angle))
-    r_s[incidence_angle==0] = (n_surface - n_environment)/(n_surface + n_environment)
+    if isinstance(n_surface, complex) or isinstance(n_environment, complex):
+        r_s = r_s.astype(complex)
+        r_p = r_p.astype(complex)
+    r_s[incidence_angle==0] = (
+        (n_environment - n_surface)/(n_surface + n_environment)
+        )
     r_p[incidence_angle==0] = r_s[incidence_angle==0]
     r_s[incidence_angle!=0] = (
-                -np.sin(incidence_angle[incidence_angle!=0] - refraction_angle[incidence_angle!=0])
+                np.sin(refraction_angle[incidence_angle!=0]
+                - incidence_angle[incidence_angle!=0])
             ) / (
-                np.sin(incidence_angle[incidence_angle!=0] + refraction_angle[incidence_angle!=0])
+                np.sin(refraction_angle[incidence_angle!=0]
+                + incidence_angle[incidence_angle!=0])
             )
     r_p[incidence_angle!=0] = (
-                np.sin(2*incidence_angle[incidence_angle!=0]) - np.sin(2*refraction_angle[incidence_angle!=0])
+                np.sin(2*refraction_angle[incidence_angle!=0]) 
+                - np.sin(2*incidence_angle[incidence_angle!=0])
             ) / (
-                np.sin(2*refraction_angle[incidence_angle!=0]) + np.sin(2*incidence_angle[incidence_angle!=0])
+                np.sin(2*incidence_angle[incidence_angle!=0])
+                + np.sin(2*refraction_angle[incidence_angle!=0])
             )
 #    if incidence_angle==0 and refraction_angle==0:
 #        r_s = (n_surface - n_environment)/(n_surface + n_environment)
