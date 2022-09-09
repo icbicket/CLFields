@@ -258,10 +258,9 @@ def snells_law(incidence_angles, n_surface, n_environment=1):
     n_environment: refractive index of the environment through which light 
         travels to impinge upon the surface
     '''
-#    angle_refraction = np.arcsin(np.real(n_environment)/np.real(n_surface) * np.sin(incidence_angles))
     angle_refraction = np.arcsin(n_environment/n_surface * np.sin(incidence_angles))
     return angle_refraction
-    
+
 def brewsters_angle(n_surface, n_environment=1):
     '''
     Calculate Brewster's angle given two refractive indices

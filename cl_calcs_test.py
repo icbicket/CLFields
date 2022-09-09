@@ -2137,8 +2137,10 @@ class SnellsLawTest(parameterized.TestCase):
         incidence_angles = np.pi/8
         n_surface = 2+1j
         n_environment = 1
-        expected_refraction_angles = 0.192528938
+        expected_refraction_angles = 0.15321514223203334-0.07736669861166084j
+        print('test')
         refraction_angles = cl_calcs.snells_law(incidence_angles, n_surface, n_environment)
+        print(refraction_angles)
         np.testing.assert_allclose(refraction_angles, expected_refraction_angles, atol=1e-7)
 
     def test_complex_refractive_index_environment(self):
@@ -2148,7 +2150,7 @@ class SnellsLawTest(parameterized.TestCase):
         incidence_angles = np.pi/8
         n_surface = 2
         n_environment = 1-1j
-        expected_refraction_angles = 0.192528938
+        expected_refraction_angles = 0.18893317218363231-0.19359670723263944j
         refraction_angles = cl_calcs.snells_law(incidence_angles, n_surface, n_environment)
         np.testing.assert_allclose(refraction_angles, expected_refraction_angles, atol=1e-7)
 
@@ -2305,10 +2307,15 @@ class ReflectedETest(parameterized.TestCase):
     '''
     
     @parameterized.named_parameters(
-        ('s-polarized', np.array([0, 0, 1]), np.array([0, 0, -0.451416229]), np.array([0, 0, 0])),
-        ('p-polarized', np.array([1, -1, 0]), np.array([0, 0, 0]), 0.203776612*np.array([1, -1, 0])),
-        ('mixed-polarized', np.array([1, -1, 1]), np.array([0, 0, -0.451416229]), 0.203776612*np.array([1, -1, 0])),
-        ('3 by 3 array', np.array([[0, 0, 1], [1, -1, 0], [1, -1, 1]]), np.array([[0, 0, -0.451416229], [0, 0, 0], [0, 0, -0.451416229]]), 0.203776612 * np.array([[0, 0, 0], [1, -1, 0], [1, -1, 0]]))
+        ('s-polarized', np.array([0, 0, 1]), np.array([0, 0, -0.451416229]), 
+            np.array([0, 0, 0])),
+        ('p-polarized', np.array([1, -1, 0]), np.array([0, 0, 0]), 
+            0.203776612*np.array([-1, 1, 0])),
+        ('mixed-polarized', np.array([1, -1, 1]), 
+            np.array([0, 0, -0.451416229]), 0.203776612*np.array([-1, 1, 0])),
+        ('3 by 3 array', np.array([[0, 0, 1], [1, -1, 0], [1, -1, 1]]), 
+            np.array([[0, 0, -0.451416229], [0, 0, 0], [0, 0, -0.451416229]]), 
+            0.203776612 * np.array([[0, 0, 0], [-1, 1, 0], [-1, 1, 0]]))
     )
     def test_e_polarization_state(self, incident_e, expected_e_s, expected_e_p):
         '''
@@ -2329,9 +2336,12 @@ class ReflectedETest(parameterized.TestCase):
         np.testing.assert_allclose(e_p, expected_e_p)
 
     @parameterized.named_parameters(
-        ('s-polarized', np.array([0, 0, 1]), np.array([0, 0, -0.451416229]), np.array([0, 0, 0])),
-        ('p-polarized', np.array([1, -1, 0]), np.array([0, 0, 0]), 0.203776612*np.array([1, -1, 0])),
-        ('mixed-polarized', np.array([1, -1, 1]), np.array([0, 0, -0.451416229]), 0.203776612*np.array([1, -1, 0])),
+        ('s-polarized', np.array([0, 0, 1]), np.array([0, 0, -0.451416229]), 
+            np.array([0, 0, 0])),
+        ('p-polarized', np.array([1, -1, 0]), np.array([0, 0, 0]), 
+            0.203776612*np.array([-1, 1, 0])),
+        ('mixed-polarized', np.array([1, -1, 1]), 
+            np.array([0, 0, -0.451416229]), 0.203776612*np.array([-1, 1, 0])),
     )
     def test_e_polarization_state_negative_normal(self, incident_e, expected_e_s, expected_e_p):
         '''
@@ -2351,6 +2361,44 @@ class ReflectedETest(parameterized.TestCase):
         np.testing.assert_allclose(e_s, expected_e_s)
         np.testing.assert_allclose(e_p, expected_e_p)
 
+    @parameterized.named_parameters(
+        ('s-polarized', np.array([0, 0, 1]), 
+            np.array([0, 0, -0.928898-0.249618j]), np.array([0, 0, 0])),
+        ('p-polarized', np.array([1, -1, 0]), np.array([0, 0, 0]), 
+            np.array([-0.891575-0.325905j, 0.891575+0.325905j, 0])),
+        ('mixed-polarized', np.array([1, -1, 1]), 
+            np.array([0, 0, -0.928898-0.249618j]), 
+            np.array([-0.891575-0.325905j, 0.891575+0.325905j, 0])),
+        ('mixed-polarized not ones', np.array([5, -3, 2]), 
+            np.array([0, 0, -1.857796-0.499236j]), 
+            np.array([-4.457875-1.629525j, 2.674725+0.977715j, 0])),
+        ('3 by 3 array', 
+            np.array([[0, 0, 1], [1, -1, 0], [1, -1, 1]]), 
+            np.array([[0, 0, -0.928898-0.249618j], 
+                [0, 0, 0], 
+                [0, 0, -0.928898-0.249618j]]), 
+            np.array([[0, 0, 0], 
+                [-0.891575-0.325905j, 0.891575+0.325905j, 0], 
+                [-0.891575-0.325905j, 0.891575+0.325905j, 0]]))
+    )
+    def test_e_polarization_state_complex_surface(self, incident_e, expected_e_s, expected_e_p):
+        '''
+        An input electric field of various polarization states hits a surface
+        with a complex refractive index
+        '''
+        normal = np.array([1, 0, 0])
+        incident_direction = np.array([-0.8660254037844387, -0.5, 0])  # 30 deg
+        n_surface = 0.965+6.399j  # Aluminium
+        n_environment = 1
+        e_s, e_p = cl_calcs.reflected_e(
+            incident_direction,
+            incident_e,
+            normal,
+            n_surface,
+            n_environment
+            )
+        np.testing.assert_allclose(e_s, expected_e_s, atol=5e-6)
+        np.testing.assert_allclose(e_p, expected_e_p, atol=5e-6)
 
 class StokesParametersTest(unittest.TestCase):
     def testS1LinearPolarized(self):
