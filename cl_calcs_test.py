@@ -2020,8 +2020,6 @@ class AngleOfIncidenceTest(parameterized.TestCase):
         '''
         check that given a vector of zeros, it fails
         '''
-        incident = np.array([0, 0, 0])
-        normal = np.array([1, 1, 1])
         with self.assertRaises(ValueError):
             cl_calcs.angle_of_incidence(incident, normal)
 
@@ -2060,6 +2058,24 @@ class AngleOfIncidenceTest(parameterized.TestCase):
         angles = cl_calcs.angle_of_incidence(incident, normal)
         np.testing.assert_allclose(angles, expected_angles)
 
+    @parameterized.named_parameters(
+        ('ones',
+            np.array([1,1,1]),
+            np.array([1,1,1])
+        ),
+        ('not ones',
+            np.array([40929,40929,40929]),
+            np.array([1,1,1]),
+        ),
+        )
+    def test_floating_point_problem_sinusoids(self, incident_vector, normal):
+        '''
+        Floating point rounding errors can make the value to be fed to an 
+        inverse cosine greater than 1: test the round response is appropriate
+        '''
+        expected_angle = 0.
+        calculated_angle = cl_calcs.angle_of_incidence(incident_vector, normal)
+        self.assertAlmostEqual(expected_angle, calculated_angle)
 
 class SnellsLawTest(parameterized.TestCase):
     '''
@@ -2462,7 +2478,7 @@ class NormalizeStokesParametersTest(unittest.TestCase):
             np.array([s1, s2, s3]),
             np.array([[s1_expected], [s2_expected], [s3_expected]])
             )
-    
+
     def test_most_zeros(self):
         '''
         Test a Stokes vector where all but S2 are 0
@@ -2492,7 +2508,6 @@ class NormalizeStokesParametersTest(unittest.TestCase):
             np.array([s1, s2, s3]),
             np.array([[s1_expected], [s2_expected], [s3_expected]])
             )
-
 
 
 if __name__ == '__main__':

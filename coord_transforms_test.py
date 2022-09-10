@@ -259,7 +259,7 @@ class RotateNdVectorTest(unittest.TestCase):
         rotated_vector = coord_transforms.rotate_vector_Nd(xyz, angle, rotation_vector)
         rotated_vector_negative = coord_transforms.rotate_vector_Nd(xyz, angle, -rotation_vector)
         np.testing.assert_array_almost_equal(rotated_vector_negative, -rotated_vector)
-    
+
 
 if __name__ == '__main__':
     unittest.main()

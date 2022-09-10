@@ -1,6 +1,6 @@
 import numpy as np
 
-def polar_to_cartesion(r, phi):
+def polar_to_cartesian(r, phi):
     '''
     Two 1D vectors of polar r (radial) and phi (angular) coordinates
     Function returns the Cartesian vectors

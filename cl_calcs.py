@@ -240,9 +240,9 @@ def angle_of_incidence(incident_vector, normal):
         /(incident_vector_magnitude * normal_magnitude))
     float_error_condition = np.logical_and(
         (abs(cosine_angle)-1) < 1e-5,
-        (abs(cosine_angle)-1)>0)
+        (abs(cosine_angle)-1) > 0)
     if np.any(float_error_condition):
-        cosine_angle[float_error_condition] = np.round(  ##
+        cosine_angle[float_error_condition] = np.round(
             cosine_angle[float_error_condition], 2)
     angle = np.array(np.arccos(cosine_angle))
     if np.any(cosine_angle < 0):
