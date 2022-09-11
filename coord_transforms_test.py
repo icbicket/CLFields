@@ -1,6 +1,257 @@
 import coord_transforms
 import unittest
 import numpy as np
+from absl.testing import parameterized
+
+class PolarCartesianTransformTest(parameterized.TestCase):
+    '''
+    x, y axes
+    some intermediate values at non 90 degree angles
+    Check zero values
+    Single value
+    Array of values
+    Negative angles
+    '''
+    @parameterized.named_parameters(
+        dict(testcase_name='positive x-axis',
+            r = 1,
+            phi = 0,
+            expected_x = 1,
+            expected_y = 0,
+            ),
+        dict(testcase_name='positive y-axis',
+            r = 1,
+            phi = np.pi/2,
+            expected_x = 0,
+            expected_y = 1,
+            ),
+        dict(testcase_name='negative x-axis',
+            r = 1,
+            phi = np.pi,
+            expected_x = -1,
+            expected_y = 0,
+            ),
+        dict(testcase_name='negative y-axis',
+            r = 1,
+            phi = 3*np.pi/2,
+            expected_x = 0,
+            expected_y = -1,
+            ),
+        dict(testcase_name='negative y-axis non-integer',
+            r = 12.36,
+            phi = 3*np.pi/2,
+            expected_x = 0,
+            expected_y = -12.36,
+            ),
+        dict(testcase_name='positive x-axis 2 pi',
+            r = 1,
+            phi = 2*np.pi,
+            expected_x = 1,
+            expected_y = 0,
+            ),
+        dict(testcase_name='positive y-axis +2 pi',
+            r = 1,
+            phi = 2*np.pi+np.pi/2,
+            expected_x = 0,
+            expected_y = 1,
+            ),
+        dict(testcase_name='+45 degrees',
+            r = 2,
+            phi = np.pi/4,
+            expected_x = np.sqrt(2),
+            expected_y = np.sqrt(2),
+            ),
+        dict(testcase_name='+135 degrees',
+            r = 2,
+            phi = np.pi/2 + np.pi/4,
+            expected_x = -np.sqrt(2),
+            expected_y = np.sqrt(2),
+            ),
+        dict(testcase_name='+225 degrees',
+            r = 2,
+            phi = np.pi + np.pi/4,
+            expected_x = -np.sqrt(2),
+            expected_y = -np.sqrt(2),
+            ),
+        dict(testcase_name='+315 degrees',
+            r = 2,
+            phi = 3*np.pi/2 + np.pi/4,
+            expected_x = np.sqrt(2),
+            expected_y = -np.sqrt(2),
+            ),
+        dict(testcase_name='-45 degrees',
+            r = 2,
+            phi = -np.pi/4,
+            expected_x = np.sqrt(2),
+            expected_y = -np.sqrt(2),
+            ),
+        dict(testcase_name='-135 degrees',
+            r = 2,
+            phi = -np.pi/2 - np.pi/4,
+            expected_x = -np.sqrt(2),
+            expected_y = -np.sqrt(2),
+            ),
+        dict(testcase_name='-225 degrees',
+            r = 2,
+            phi = -np.pi - np.pi/4,
+            expected_x = -np.sqrt(2),
+            expected_y = np.sqrt(2),
+            ),
+        dict(testcase_name='-315 degrees',
+            r = 2,
+            phi = -3*np.pi/2 - np.pi/4,
+            expected_x = np.sqrt(2),
+            expected_y = np.sqrt(2),
+            ),
+        dict(testcase_name='r=0',
+            r = 0,
+            phi = np.pi/4,
+            expected_x = 0,
+            expected_y = 0,
+            ),
+        )
+    def test_single_values(self, r, phi, expected_x, expected_y):
+        '''
+        values along the x and y axes
+        '''
+        calculated_x, calculated_y = coord_transforms.polar_to_cartesian(r, phi)
+        self.assertAlmostEqual(expected_x, calculated_x)
+        self.assertAlmostEqual(expected_y, calculated_y)
+
+    def test_array_of_values(self):
+        '''
+        a numpy array of values for r and phi
+        '''
+        r = np.array([1, 2, 3])
+        phi = np.array([0, np.pi/4, -np.pi/3])
+        expected_x = np.array([1, np.sqrt(2), 1.5])
+        expected_y = np.array([0, np.sqrt(2), -np.sqrt(6.75)])
+        calculated_x, calculated_y = coord_transforms.polar_to_cartesian(r, phi)
+        np.testing.assert_allclose(expected_x, calculated_x)
+        np.testing.assert_allclose(expected_y, calculated_y)
+
+
+class CartesianPolarTransformTest(parameterized.TestCase):
+    '''
+    x, y axes
+    some intermediate values at non 90 degree angles
+    Check zero values
+    Single value
+    Array of values
+    Negative angles
+    '''
+    @parameterized.named_parameters(
+        dict(testcase_name='positive x-axis',
+            x = 1,
+            y = 0,
+            expected_r = 1,
+            expected_phi = 0,
+            ),
+        dict(testcase_name='positive y-axis',
+            x = 0,
+            y = 1,
+            expected_r = 1,
+            expected_phi = np.pi/2,
+            ),
+        dict(testcase_name='negative x-axis',
+            x = -1,
+            y = 0,
+            expected_r = 1,
+            expected_phi = np.pi,
+            ),
+        dict(testcase_name='negative y-axis',
+            x = 0,
+            y = -1,
+            expected_r = 1,
+            expected_phi = 3*np.pi/2,
+            ),
+        dict(testcase_name='negative y-axis non-integer',
+            x = 0,
+            y = -12.36,
+            expected_r = 12.36,
+            expected_phi = 3*np.pi/2,
+            ),
+        dict(testcase_name='+45 degrees',
+            x = np.sqrt(2),
+            y = np.sqrt(2),
+            expected_r = 2,
+            expected_phi = np.pi/4,
+            ),
+        dict(testcase_name='+135 degrees',
+            x = -np.sqrt(2),
+            y = np.sqrt(2),
+            expected_r = 2,
+            expected_phi = np.pi/2 + np.pi/4,
+            ),
+        dict(testcase_name='+225 degrees',
+            x = -np.sqrt(2),
+            y = -np.sqrt(2),
+            expected_r = 2,
+            expected_phi = np.pi + np.pi/4,
+            ),
+        dict(testcase_name='+315 degrees',
+            x = np.sqrt(2),
+            y = -np.sqrt(2),
+            expected_r = 2,
+            expected_phi = 3*np.pi/2 + np.pi/4,
+            ),
+        dict(testcase_name='-45 degrees',
+            x = np.sqrt(2),
+            y = -np.sqrt(2),
+            expected_r = 2,
+            expected_phi = -np.pi/4+2*np.pi,
+            ),
+        dict(testcase_name='-135 degrees',
+            x = -np.sqrt(2),
+            y = -np.sqrt(2),
+            expected_r = 2,
+            expected_phi = -np.pi/2 - np.pi/4 + 2*np.pi,
+            ),
+        dict(testcase_name='-225 degrees',
+            x = -np.sqrt(2),
+            y = np.sqrt(2),
+            expected_r = 2,
+            expected_phi = -np.pi - np.pi/4 + 2*np.pi,
+            ),
+        dict(testcase_name='-315 degrees',
+            x = np.sqrt(2),
+            y = np.sqrt(2),
+            expected_r = 2,
+            expected_phi = -3*np.pi/2 - np.pi/4 + 2*np.pi,
+            ),
+        )
+    def test_single_values(self, x, y, expected_r, expected_phi):
+        '''
+        values along the x and y axes
+        '''
+        calculated_r, calculated_phi = coord_transforms.cartesian_to_polar(np.array([x]), np.array([y]))
+        np.testing.assert_allclose(expected_r, calculated_r)
+        np.testing.assert_allclose(expected_phi, calculated_phi)
+
+    def test_r_0(self):
+        '''
+        r = 0, phi is undefined
+        '''
+        x = 0
+        y = 0
+        expected_r = 0
+        expected_phi = 0
+        calculated_r, calculated_phi = coord_transforms.cartesian_to_polar(np.array([x]), np.array([y]))
+        np.testing.assert_allclose(expected_r, calculated_r)
+        np.testing.assert_allclose(expected_phi, calculated_phi)
+
+    def test_array_of_values(self):
+        '''
+        a numpy array of values for x and y
+        '''
+        x = np.array([1, np.sqrt(2), 1.5])
+        y = np.array([0, np.sqrt(2), -np.sqrt(6.75)])
+        expected_r = np.array([1, 2, 3])
+        expected_phi = np.array([0, np.pi/4, -np.pi/3+2*np.pi])
+        calculated_r, calculated_phi = coord_transforms.cartesian_to_polar(x, y)
+        np.testing.assert_allclose(expected_r, calculated_r)
+        np.testing.assert_allclose(expected_phi, calculated_phi)
+
 
 class QuadrantSymmetryTest(unittest.TestCase):
     '''

@@ -16,6 +16,7 @@ def cartesian_to_polar(x, y):
     '''
     r = np.sqrt(np.square(x) + np.square(y))
     phi = np.arctan2(y, x)
+    phi[phi<0] = phi[phi<0] + 2 * np.pi
     return r, phi
 
 def cartesian_to_spherical_coords(vectors):
