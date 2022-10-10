@@ -1000,6 +1000,526 @@ class CartesianSphericalVectorFieldTest(parameterized.TestCase):
         np.testing.assert_array_almost_equal(expected_ftheta, calculated_ftheta)
         np.testing.assert_array_almost_equal(expected_fphi, calculated_fphi)
 
+
+class SphericalCartesianVectorFieldTest(parameterized.TestCase):
+    '''
+    Testing the Spherical to Cartesian Vector Field coordinate transform 
+    function
+    vectors along each of x,y,z axes, positive and negative
+    vector pointing into each quadrant
+    '''
+    @parameterized.named_parameters(
+        dict(testcase_name='positive x-axis positive x-vector',
+            theta = np.pi/2,
+            phi = 0,
+            f_r = 1.2,
+            f_theta = 0,
+            f_phi = 0,
+            expected_f = np.array([1.2, 0, 0])
+            ),
+        dict(testcase_name='positive x-axis negative x-vector',
+            theta = np.pi/2,
+            phi = 0,
+            f_r = -1.2,
+            f_theta = 0,
+            f_phi = 0,
+            expected_f = np.array([-1.2, 0, 0])
+            ),
+        dict(testcase_name='positive x-axis positive y-vector',
+            theta = np.pi/2,
+            phi = 0,
+            f_r = 0,
+            f_theta = 0,
+            f_phi = 0.8,
+            expected_f = np.array([0, 0.8, 0])
+            ),
+        dict(testcase_name='positive x-axis negative y-vector',
+            theta = np.pi/2,
+            phi = 0,
+            f_r = 0,
+            f_theta = 0,
+            f_phi = -0.8,
+            expected_f = np.array([0, -0.8, 0])
+            ),
+        dict(testcase_name='positive x-axis positive z-vector',
+            theta = np.pi/2,
+            phi = 0,
+            f_r = 0,
+            f_theta = -0.3,
+            f_phi = 0,
+            expected_f = np.array([0, 0, 0.3])
+            ),
+        dict(testcase_name='positive x-axis negative z-vector',
+            theta = np.pi/2,
+            phi = 0,
+            f_r = 0,
+            f_theta = 0.3,
+            f_phi = 0,
+            expected_f = np.array([0, 0, -0.3])
+            ),
+        dict(testcase_name='positive x-axis positive xyz vector',
+            theta = np.pi/2,
+            phi = 0,
+            f_r = 1.2,
+            f_theta = -0.3,
+            f_phi = 0.8,
+            expected_f = np.array([1.2, 0.8, 0.3])
+            ),
+        dict(testcase_name='positive x-axis positive xy negative z vector',
+            theta = np.pi/2,
+            phi = 0,
+            f_r = 1.2,
+            f_theta = 0.3,
+            f_phi = 0.8,
+            expected_f = np.array([1.2, 0.8, -0.3])
+            ),
+        dict(testcase_name='positive x-axis positive xz negative y vector',
+            theta = np.pi/2,
+            phi = 0,
+            f_r = 1.2,
+            f_theta = -0.3,
+            f_phi = -0.8,
+            expected_f = np.array([1.2, -0.8, 0.3])
+            ),
+        dict(testcase_name='positive x-axis positive yz negative x vector',
+            theta = np.pi/2,
+            phi = 0,
+            f_r = -1.2,
+            f_theta = -0.3,
+            f_phi = 0.8,
+            expected_f = np.array([-1.2, 0.8, 0.3])
+            ),
+        dict(testcase_name='positive x-axis positive z negative xy vector',
+            theta = np.pi/2,
+            phi = 0,
+            f_r = -1.2,
+            f_theta = -0.3,
+            f_phi = -0.8,
+            expected_f = np.array([-1.2, -0.8, 0.3])
+            ),
+        dict(testcase_name='positive x-axis positive y negative xz vector',
+            theta = np.pi/2,
+            phi = 0,
+            f_r = -1.2,
+            f_theta = 0.3,
+            f_phi = 0.8,
+            expected_f = np.array([-1.2, 0.8, -0.3])
+            ),
+        dict(testcase_name='positive x-axis positive x negative yz vector',
+            theta = np.pi/2,
+            phi = 0,
+            f_r = 1.2,
+            f_theta = 0.3,
+            f_phi = -0.8,
+            expected_f = np.array([1.2, -0.8, -0.3])
+            ),
+        dict(testcase_name='positive x-axis negative xyz vector',
+            theta = np.pi/2,
+            phi = 0,
+            f_r = -1.2,
+            f_theta = 0.3,
+            f_phi = -0.8,
+            expected_f = np.array([-1.2, -0.8, -0.3])
+            ),
+        dict(testcase_name='positive y-axis positive y-vector',
+            theta = np.pi/2,
+            phi = np.pi/2,
+            f_r = 0.8,
+            f_theta = 0,
+            f_phi = 0,
+            expected_f = np.array([0, 0.8, 0])
+            ),
+        dict(testcase_name='positive y-axis negative y-vector',
+            theta = np.pi/2,
+            phi = np.pi/2,
+            f_r = -0.8,
+            f_theta = 0,
+            f_phi = 0,
+            expected_f = np.array([0, -0.8, 0])
+            ),
+        dict(testcase_name='positive y-axis positive xyz-vector',
+            theta = np.pi/2,
+            phi = np.pi/2,
+            f_r = 0.8,
+            f_theta = -0.3,
+            f_phi = -1.2,
+            expected_f = np.array([1.2, 0.8, 0.3])
+            ),
+        dict(testcase_name='positive y-axis negative xyz-vector',
+            theta = np.pi/2,
+            phi = np.pi/2,
+            f_r = -0.8,
+            f_theta = 0.3,
+            f_phi = 1.2,
+            expected_f = np.array([-1.2, -0.8, -0.3])
+            ),
+        dict(testcase_name='negative x-axis positive x-vector',
+            theta = np.pi/2,
+            phi = np.pi,
+            f_r = -1.2,
+            f_theta = 0,
+            f_phi = 0,
+            expected_f = np.array([1.2, 0, 0])
+            ),
+        dict(testcase_name='negative x-axis negative x-vector',
+            theta = np.pi/2,
+            phi = np.pi,
+            f_r = 1.2,
+            f_theta = 0,
+            f_phi = 0,
+            expected_f = np.array([-1.2, 0, 0])
+            ),
+        dict(testcase_name='negative x-axis positive xyz-vector',
+            theta = np.pi/2,
+            phi = np.pi,
+            f_r = -1.2,
+            f_theta = -0.3,
+            f_phi = -0.8,
+            expected_f = np.array([1.2, 0.8, 0.3])
+            ),
+        dict(testcase_name='negative x-axis negative xyz-vector',
+            theta = np.pi/2,
+            phi = np.pi,
+            f_r = 1.2,
+            f_theta = 0.3,
+            f_phi = 0.8,
+            expected_f = np.array([-1.2, -0.8, -0.3,])
+            ),
+        dict(testcase_name='negative y-axis positive y-vector',
+            theta = np.pi/2,
+            phi = 3*np.pi/2,
+            f_r = -0.8,
+            f_theta = 0,
+            f_phi = 0,
+            expected_f = np.array([0, 0.8, 0])
+            ),
+        dict(testcase_name='negative y-axis negative y-vector',
+            theta = np.pi/2,
+            phi = 3*np.pi/2,
+            f_r = 0.8,
+            f_theta = 0,
+            f_phi = 0,
+            expected_f = np.array([0, -0.8, 0])
+            ),
+        dict(testcase_name='negative y-axis positive xyz-vector',
+            theta = np.pi/2,
+            phi = 3*np.pi/2,
+            f_r = -0.8,
+            f_theta = -0.3,
+            f_phi = 1.2,
+            expected_f = np.array([1.2, 0.8, 0.3])
+            ),
+        dict(testcase_name='negative y-axis negative xyz-vector',
+            theta = np.pi/2,
+            phi = 3*np.pi/2,
+            f_r = 0.8,
+            f_theta = 0.3,
+            f_phi = -1.2,
+            expected_f = np.array([-1.2, -0.8, -0.3])
+            ),
+        dict(testcase_name='positive z-axis positive z-vector',
+            theta = 0,
+            phi = 0,
+            f_r = 0.3,
+            f_theta = 0,
+            f_phi = 0,
+            expected_f = np.array([0, 0, 0.3])
+            ),
+        dict(testcase_name='positive z-axis negative z-vector',
+            theta = 0,
+            phi = 0,
+            f_r = -0.3,
+            f_theta = 0,
+            f_phi = 0,
+            expected_f = np.array([0, 0, -0.3])
+            ),
+        dict(testcase_name='positive z-axis positive xyz-vector',
+            theta = 0,
+            phi = 0,
+            f_r = 0.3,
+            f_theta = 1.2,
+            f_phi = 0.8,
+            expected_f = np.array([1.2, 0.8, 0.3])
+            ),
+        dict(testcase_name='positive z-axis negative xyz-vector',
+            theta = 0,
+            phi = 0,
+            f_r = -0.3,
+            f_theta = -1.2,
+            f_phi = -0.8,
+            expected_f = np.array([-1.2, -0.8, -0.3])
+            ),
+        dict(testcase_name='negative z-axis positive z-vector',
+            theta = np.pi,
+            phi = 0,
+            f_r = -0.3,
+            f_theta = 0,
+            f_phi = 0,
+            expected_f = np.array([0, 0, 0.3])
+            ),
+        dict(testcase_name='negative z-axis negative z-vector',
+            theta = np.pi,
+            phi = 0,
+            f_r = 0.3,
+            f_theta = 0,
+            f_phi = 0,
+            expected_f = np.array([0, 0, -0.3])
+            ),
+        dict(testcase_name='negative z-axis positive xyz-vector',
+            theta = np.pi,
+            phi = 0,
+            f_r = -0.3,
+            f_theta = -1.2,
+            f_phi = 0.8,
+            expected_f = np.array([1.2, 0.8, 0.3])
+            ),
+        dict(testcase_name='negative z-axis negative xyz-vector',
+            theta = np.pi,
+            phi = 0,
+            f_r = 0.3,
+            f_theta = 1.2,
+            f_phi = -0.8,
+            expected_f = np.array([-1.2, -0.8, -0.3])
+            ),
+        dict(testcase_name='positive xyz positive xyz-vector',
+            theta = 0.1,
+            phi = 0.2,
+            f_r = 0.4317803940530825,
+            f_theta = 1.2983958169713976,
+            f_phi = 0.5456500653189199,
+            expected_f = np.array([1.2, 0.8, 0.3])
+            ),
+        dict(testcase_name='positive xyz negative xyz-vector',
+            theta = 0.1,
+            phi = 0.2,
+            f_r = -0.4317803940530825,
+            f_theta = -1.2983958169713976,
+            f_phi = -0.5456500653189199,
+            expected_f = np.array([-1.2, -0.8, -0.3])
+            ),
+        dict(testcase_name='positive xy negative z positive xyz-vector',
+            theta = 0.1 + np.pi/2,
+            phi = 0.2,
+            f_r = 1.2983958169713974,
+            f_theta = -0.43178039405308244,
+            f_phi = 0.5456500653189199,
+            expected_f = np.array([1.2, 0.8, 0.3])
+            ),
+        dict(testcase_name='positive xy negative z negative xyz-vector',
+            theta = 0.1 + np.pi/2,
+            phi = 0.2,
+            f_r = -1.2983958169713974,
+            f_theta = 0.43178039405308244,
+            f_phi = -0.5456500653189199,
+            expected_f = np.array([-1.2, -0.8, -0.3])
+            ),
+        dict(testcase_name='positive xz negative y positive xyz-vector',
+            theta = 0.1,
+            phi = 0.2 + 3*np.pi/2,
+            f_r = 0.244027139269055,
+            f_theta = -0.5728741127706006,
+            f_phi = 1.3350153580455388,
+            expected_f = np.array([1.2, 0.8, 0.3])
+            ),
+        dict(testcase_name='positive xz negative y negative xyz-vector',
+            theta = 0.1,
+            phi = 0.2 + 3*np.pi/2,
+            f_r = -0.244027139269055,
+            f_theta = 0.5728741127706006,
+            f_phi = -1.3350153580455388,
+            expected_f = np.array([-1.2, -0.8, -0.3])
+            ),
+        dict(testcase_name='positive yz negative x positive xyz-vector',
+            theta = 0.1,
+            phi = 0.2 + np.pi,
+            f_r = 0.16522210511373298,
+            f_theta = -1.3582958669594947,
+            f_phi = -0.5456500653189198,
+            expected_f = np.array([1.2, 0.8, 0.3])
+            ),
+        dict(testcase_name='positive yz negative x negative xyz-vector',
+            theta = 0.1,
+            phi = 0.2 + np.pi,
+            f_r = -0.16522210511373298,
+            f_theta = 1.3582958669594947,
+            f_phi = 0.5456500653189198,
+            expected_f = np.array([-1.2, -0.8, -0.3])
+            ),
+        dict(testcase_name='positive x negative yz positive xyz-vector',
+            theta = 0.1 + np.pi/2,
+            phi = 0.2 + 3*np.pi/2,
+            f_r = -0.5728741127706005,
+            f_theta = -0.24402713926905495,
+            f_phi = 1.3350153580455388,
+            expected_f = np.array([1.2, 0.8, 0.3])
+            ),
+        dict(testcase_name='positive x negative yz negative xyz-vector',
+            theta = 0.1 + np.pi/2,
+            phi = 0.2 + 3*np.pi/2,
+            f_r = 0.5728741127706005,
+            f_theta = 0.24402713926905495,
+            f_phi = -1.3350153580455388,
+            expected_f = np.array([-1.2, -0.8, -0.3])
+            ),
+        dict(testcase_name='positive y negative xz positive xyz-vector',
+            theta = 0.1 + np.pi/2,
+            phi = 0.2 + np.pi/2,
+            f_r = 0.5129740627825038,
+            f_theta = -0.3529753598977604,
+            f_phi = -1.3350153580455388,
+            expected_f = np.array([1.2, 0.8, 0.3])
+            ),
+        dict(testcase_name='positive y negative xz negative xyz-vector',
+            theta = 0.1 + np.pi/2,
+            phi = 0.2 + np.pi/2,
+            f_r = -0.5129740627825038,
+            f_theta = 0.3529753598977604,
+            f_phi = 1.3350153580455388,
+            expected_f = np.array([-1.2, -0.8, -0.3])
+            ),
+        dict(testcase_name='positive z negative xy positive xyz-vector',
+            theta = 0.1,
+            phi = 0.2 + np.pi,
+            f_r = 0.16522210511373298,
+            f_theta = -1.3582958669594947,
+            f_phi = -0.5456500653189198,
+            expected_f = np.array([1.2, 0.8, 0.3])
+            ),
+        dict(testcase_name='positive z negative xy negative xyz-vector',
+            theta = 0.1,
+            phi = 0.2 + np.pi,
+            f_r = -0.16522210511373298,
+            f_theta = 1.3582958669594947,
+            f_phi = 0.5456500653189198,
+            expected_f = np.array([-1.2, -0.8, -0.3])
+            ),
+        dict(testcase_name='negative xyz positive xyz-vector',
+            theta = 0.1 + np.pi/2,
+            phi = 0.2 + np.pi,
+            f_r = -1.3582958669594944,
+            f_theta = -0.1652221051137329,
+            f_phi = -0.5456500653189198,
+            expected_f = np.array([1.2, 0.8, 0.3])
+            ),
+        dict(testcase_name='negative xyz negative xyz-vector',
+            theta = 0.1 + np.pi/2,
+            phi = 0.2 + np.pi,
+            f_r = 1.3582958669594944,
+            f_theta = 0.1652221051137329,
+            f_phi = 0.5456500653189198,
+            expected_f = np.array([-1.2, -0.8, -0.3])
+            ),
+            )
+    def test_axes(self, theta, phi, f_r, f_theta, f_phi, expected_f):
+        calculated_fx, calculated_fy, calculated_fz = coord_transforms.spherical_to_cartesian_vector_field(
+            theta, phi, f_r, f_theta, f_phi)
+        np.testing.assert_array_almost_equal(
+            expected_f, 
+            np.squeeze(np.array([calculated_fx, calculated_fy, calculated_fz])))
+
+    def test_multi_element_array(self):
+        theta = np.array([0.1 + np.pi/2, 0.1, 0.1, np.pi/2])
+        phi = np.array([0.2 + np.pi, 0.2 + 3*np.pi/2, 0.2, 3*np.pi/2])
+        f_r = np.array([1.3582958669594944, 0.244027139269055, 0.4317803940530825, -0.8])
+        f_theta = np.array([0.1652221051137329, -0.5728741127706006, 1.2983958169713976, 0])
+        f_phi = np.array([0.5456500653189198, 1.3350153580455388, 0.5456500653189199, 0])
+        expected_fx = np.array([-1.2, 1.2, 1.2, 0])
+        expected_fy = np.array([-0.8, 0.8, 0.8, 0.8])
+        expected_fz = np.array([-0.3, 0.3, 0.3, 0])
+        calculated_fx, calculated_fy, calculated_fz = coord_transforms.spherical_to_cartesian_vector_field(
+            theta, phi, f_r, f_theta, f_phi)
+        np.testing.assert_array_almost_equal(expected_fx, calculated_fx)
+        np.testing.assert_array_almost_equal(expected_fy, calculated_fy)
+        np.testing.assert_array_almost_equal(expected_fz, calculated_fz)
+
+
+class FieldMagnitudeTest(parameterized.TestCase):
+    '''
+    Testing the field_magnitude function
+    - 3 element array
+    - Nx3 element array
+    - 3xN element array with different axis input
+    - real values
+    - imaginary values
+    - floats
+    - 2 element array
+    '''
+    @parameterized.named_parameters(
+        dict(testcase_name='positive real three-vector',
+            vector = np.array([1,1,1]),
+            expected_magnitude = np.array([1.7320508075688772])
+            ),
+        dict(testcase_name='negative real three-vector',
+            vector = np.array([-1, -1, -1]),
+            expected_magnitude = np.array([1.7320508075688772])
+            ),
+        dict(testcase_name='mixed sign real three-vector',
+            vector = np.array([-1, 1, -1]),
+            expected_magnitude = np.array([1.7320508075688772])
+            ),
+        dict(testcase_name='mixed sign real three-vector floats',
+            vector = np.array([-1.4, 1.1, -0.1]),
+            expected_magnitude = np.array([1.783255450012701])
+            ),
+        dict(testcase_name='positive imaginary three-vector',
+            vector = np.array([2+0.5j, 3+1j, 1+5j]),
+            expected_magnitude = np.array([6.34428877022476])
+            ),
+        dict(testcase_name='negative imaginary three-vector',
+            vector = np.array([-2-0.5j, -3-1j, -1-5j]),
+            expected_magnitude = np.array([6.34428877022476])
+            ),
+        dict(testcase_name='mixed sign imaginary three-vector',
+            vector = np.array([-2+0.5j, 3-1j, 1+5j]),
+            expected_magnitude = np.array([6.34428877022476])
+            ),
+        dict(testcase_name='mixed sign imaginary two-vector',
+            vector = np.array([-2+0.5j, 3-1j]),
+            expected_magnitude = np.array([3.774917217635375])
+            ),
+        dict(testcase_name='mixed sign imaginary one-vector',
+            vector = np.array([-2+0.5j]),
+            expected_magnitude = np.array([2.0615528128088303])
+            ),
+        dict(testcase_name='mixed sign imaginary 1x3 vector',
+            vector = np.array([[-2+0.5j, 3-1j, 1+5j]]),
+            expected_magnitude = np.array([[6.34428877022476]])
+            ),
+        dict(testcase_name='mixed sign imaginary 3x1 vector',
+            vector = np.array([[-2+0.5j], [3-1j], [1+5j]]),
+            expected_magnitude = np.array([[2.0615528128088303], [3.1622776601683795], [5.0990195135927845]])
+            ),
+        dict(testcase_name='0 three-vector',
+            vector = np.array([0, 0, 0]),
+            expected_magnitude = np.array([0])
+            ),
+        )
+    def test_three_vector(self, vector, expected_magnitude):
+        calculated_magnitude = coord_transforms.field_magnitude(vector)
+        np.testing.assert_array_almost_equal(expected_magnitude, calculated_magnitude)
+
+    @parameterized.named_parameters(
+        dict(testcase_name='2D array axis 1',
+            vector = np.array([[-2+0.5j, 3-1j, 1+5j], [0.5-3j, -10-0.6j, 0]]),
+            axis = 1,
+            expected_magnitude = np.array([[6.34428877022476], [10.469479452198184]]),
+            ),
+        dict(testcase_name='2D array axis 0',
+            vector = np.array([[-2+0.5j, 3-1j, 1+5j], [0.5-3j, -10-0.6j, 0]]),
+            axis = 0,
+            expected_magnitude = np.array([[3.6742346141747673, 10.505236789335116, 5.0990195135927845]]),
+            ),
+        dict(testcase_name='1x3x3 array axis 0',
+            vector = np.array([[[-2+0.5j, 3-1j, 1+5j], [0.5-3j, -10-0.6j, 0], [0-2.1j, 5.3, -7-2.4j]]]),
+            axis = 0,
+            expected_magnitude = np.array([[[2.0615528128088303, 3.1622776601683795, 5.0990195135927845], [3.0413812651491097, 10.017983829094554, 0], [2.1, 5.3, 7.3999999999999995]]]),
+            ),
+        )
+    def test_axis(self, vector, axis, expected_magnitude):
+        calculated_magnitude = coord_transforms.field_magnitude(vector, axis=axis)
+        np.testing.assert_array_almost_equal(expected_magnitude, calculated_magnitude)
+
+
 class RotateVectorTest(unittest.TestCase):
     def test010rot001by90(self):
         '''
@@ -1040,7 +1560,7 @@ class RotateNdVectorTest(unittest.TestCase):
         rotation_vector = np.array([0,0,1])
         rotated_vector = coord_transforms.rotate_vector_Nd(xyz, angle, rotation_vector)
         np.testing.assert_array_almost_equal(np.array([[-1, 0, 0],[0, 1, 0],[0, 0, 1]]), rotated_vector)
-    
+
     def testFloatsVectorsRotateBy90(self):
         '''
         take (0.707, 0.707, 0), (1, 1, 1) and rotate around (0,0,1) by pi/2

@@ -82,7 +82,12 @@ def spherical_to_cartesian_vector_field(theta, phi, f_r, f_th, f_ph):
     return f_x, f_y, f_z
 
 def field_magnitude(f, axis=-1):
-    f_mag = np.sqrt(np.sum(f * np.conj(f), axis=axis))
+    '''
+    Calculated the magnitude of a vector field
+    Default input is an Nx3 numpy array
+    axis kwarg allows user to calculate the magnitude along arbitrary axes
+    '''
+    f_mag = np.sqrt(np.sum(f * np.conj(f), axis=axis, keepdims=True))
     f_mag = np.real(f_mag)
     return f_mag
 
