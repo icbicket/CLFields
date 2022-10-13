@@ -248,8 +248,8 @@ class FresnelReflectionCoefficientsTest(parameterized.TestCase):
         n_mirror = 2
         n_environment = 1
         r_s, r_p = miop.fresnel_reflection_coefficients(normal, k_vector, n_mirror, n_environment)
-        self.assertAlmostEqual(r_s, expected_r_s)
-        self.assertAlmostEqual(r_p, expected_r_p)
+        np.testing.assert_allclose(r_s, expected_r_s, atol=1e-7)
+        np.testing.assert_allclose(r_p, expected_r_p, atol=1e-7)
 
     def test_mirror_refractive_index_is_zero(self):
         '''

@@ -1,6 +1,8 @@
 import numpy as np
 import coord_transforms as coord
 from dataclasses import dataclass
+import constants
+import scipy.interpolate as scint
 
 @dataclass(frozen=True)
 class ParabolicMirror:
@@ -9,8 +11,9 @@ class ParabolicMirror:
     dfoc: float
     xcut: float
     thetacutoffhole: float
+    dielectric_file: str
 
-AMOLF_MIRROR = ParabolicMirror(a=0.1, dfoc=0.5, xcut=-10.75, thetacutoffhole=4.)
+AMOLF_MIRROR = ParabolicMirror(a=0.1, dfoc=0.5, xcut=-10.75, thetacutoffhole=4., dielectric_file='al_pa.mat')
 
 def ar_mask_calc(theta, phi, holein=True, slit=None, slit_center=0, orientation=0, mirror=AMOLF_MIRROR):
     '''
@@ -229,14 +232,15 @@ def angle_of_incidence(incident_vector, normal):
     '''
     calculate the angle of incidence of 'incident_vector' onto the surface 
     with a surface normal described by 'normal'
+    tested under the assumption that the incident vector and normal vector are Nx3
     '''
-    incident_vector_magnitude = coord.field_magnitude(incident_vector)
-    normal_magnitude = coord.field_magnitude(normal)
+    incident_vector_magnitude = coord.field_magnitude(incident_vector, keepdims=True)
+    normal_magnitude = coord.field_magnitude(normal, keepdims=True)
     if np.any(incident_vector_magnitude)==0:
         raise ValueError('Magnitude of the incident vector cannot be 0')
     elif np.any(normal_magnitude)==0:
         raise ValueError('Magnitude of the normal vector cannot be 0')
-    cosine_angle = np.array((np.sum(incident_vector * normal, axis=-1))
+    cosine_angle = np.array((np.sum(incident_vector * normal, axis=-1, keepdims=True))
         /(incident_vector_magnitude * normal_magnitude))
     float_error_condition = np.logical_and(
         (abs(cosine_angle)-1) < 1e-5,
@@ -356,7 +360,7 @@ def reflected_e(incident_direction, incident_e, surface_normal, n_surface, n_env
     
     # isolate e_s (electric field polarized perpendicular to the plane of incidence)
     s_direction = np.cross(surface_normal, incident_direction)
-    s_direction = s_direction/np.expand_dims(coord.field_magnitude(s_direction), axis=-1)
+    s_direction = s_direction/np.expand_dims(coord.field_magnitude(s_direction, keepdims=True), axis=-1)
     e_s = np.sum(incident_e * s_direction, axis=-1, keepdims=True) * s_direction
     e_s_reflected = np.expand_dims(r_s, axis=-1) * e_s
     
@@ -393,3 +397,30 @@ def normalize_stokes_parameters(S0, S1, S2, S3):
     s2[S0 != 0] = S2[S0 != 0]/S0[S0 != 0]
     s3[S0 != 0] = S3[S0 != 0]/S0[S0 != 0]
     return s1, s2, s3
+
+def dielectric_to_refractive(dielectric):
+    '''
+    Convert a complex dielectric function to complex refractive index
+    '''
+    index_factor = np.sqrt(load_data[:, 1]**2 + load_data[:, 2]**2)
+    n = (np.sqrt(0.5 * (index_factor + load_data[:, 1])) 
+        + 1j * np.sqrt(0.5 * (index_factor - load_data[:, 1])))
+    return n
+
+def eV_to_wavelength(eV):
+    '''
+    Convert photon energy in eV to wavelength in m
+    '''
+    wavelength = constants.PLANCK * constants.LIGHTSPEED / (eV * constants.COULOMB)
+    return wavelength
+
+def interpolate_refractive_index(refractive_index, wavelength_list, desired_wavelength):
+    '''
+    wavelength: wavelength at which it is desired to extract the refractive index (in m)
+    filename: file containing the dielectric function (should point to al_pa.mat)
+    returns complex refractive index at the given wavelength
+    '''
+    interp_function_n = scint.interp1d(wavelength_list, refractive_index, kind='cubic')
+    n_wavelength = interp_function_n(desired_wavelength)
+    return n_wavelength
+

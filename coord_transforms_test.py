@@ -109,6 +109,12 @@ class PolarCartesianTransformTest(parameterized.TestCase):
             expected_x = 0,
             expected_y = 0,
             ),
+        dict(testcase_name='zero vector',
+            r = 0,
+            phi = 0,
+            expected_x = 0,
+            expected_y = 0,
+            )
         )
     def test_single_values(self, r, phi, expected_x, expected_y):
         '''
@@ -219,6 +225,12 @@ class CartesianPolarTransformTest(parameterized.TestCase):
             expected_r = 2,
             expected_phi = -3*np.pi/2 - np.pi/4 + 2*np.pi,
             ),
+        dict(testcase_name='zeros',
+            x = 0,
+            y = 0,
+            expected_r = 0,
+            expected_phi = 0,
+            )
         )
     def test_single_values(self, x, y, expected_r, expected_phi):
         '''
@@ -422,13 +434,17 @@ class CartesianSphericalCoordinateTransformTest(parameterized.TestCase):
             xyz = np.array([[-1, -1, -0.5]]),
             expected_r_theta_phi = np.array([np.sqrt(2.25), 1.9106332362490184, 3.9269908169872414]),
             ),
+        dict(testcase_name='zero vector',
+            xyz = np.array([[0, 0, 0]]),
+            expected_r_theta_phi = np.array([0, np.pi/2, 0])
             )
+        )
     def test_axes(self, xyz, expected_r_theta_phi):
         calculated_r, calculated_theta, calculated_phi = coord_transforms.cartesian_to_spherical_coords(xyz)
         np.testing.assert_array_almost_equal(
             expected_r_theta_phi, 
             np.squeeze(np.array([calculated_r, calculated_theta, calculated_phi])))
-    
+
     def test010(self):
         '''
         single element xyz vector
@@ -527,6 +543,10 @@ class SphericalCartesianCoordinateTransformTest(parameterized.TestCase):
         dict(testcase_name='negative xyz',
             r_theta_phi = np.array([[np.sqrt(2.25), 1.9106332362490184, 3.9269908169872414]]),
             expected_xyz = np.array([-1, -1, -0.5]),
+            ),
+        dict(testcase_name='zero vector',
+            r_theta_phi = np.array([[0, 0, 0]]),
+            expected_xyz = np.array([0, 0, 0]),
             ),
             )
     def test_axes(self, r_theta_phi, expected_xyz):
@@ -979,6 +999,14 @@ class CartesianSphericalVectorFieldTest(parameterized.TestCase):
             fz = -0.3,
             expected_f = np.array([1.3582958669594944, 0.1652221051137329, 0.5456500653189198]),
             ),
+        dict(testcase_name='zero vectors',
+            theta = 0,
+            phi = 0,
+            fx = 0,
+            fy = 0,
+            fz = 0,
+            expected_f = np.array([0, 0, 0]),
+            ),
             )
     def test_axes(self, theta, phi, fx, fy, fz, expected_f):
         calculated_fr, calculated_ftheta, calculated_fphi = coord_transforms.cartesian_to_spherical_vector_field(theta, phi, fx, fy, fz)
@@ -1409,6 +1437,14 @@ class SphericalCartesianVectorFieldTest(parameterized.TestCase):
             f_phi = 0.5456500653189198,
             expected_f = np.array([-1.2, -0.8, -0.3])
             ),
+        dict(testcase_name='zero vectors',
+            theta = 0,
+            phi = 0,
+            f_r = 0,
+            f_theta = 0,
+            f_phi = 0,
+            expected_f = np.array([0, 0, 0])
+            ),
             )
     def test_axes(self, theta, phi, f_r, f_theta, f_phi, expected_f):
         calculated_fx, calculated_fy, calculated_fz = coord_transforms.spherical_to_cartesian_vector_field(
@@ -1495,7 +1531,7 @@ class FieldMagnitudeTest(parameterized.TestCase):
             ),
         )
     def test_three_vector(self, vector, expected_magnitude):
-        calculated_magnitude = coord_transforms.field_magnitude(vector)
+        calculated_magnitude = coord_transforms.field_magnitude(vector, keepdims=True)
         np.testing.assert_array_almost_equal(expected_magnitude, calculated_magnitude)
 
     @parameterized.named_parameters(
@@ -1516,7 +1552,7 @@ class FieldMagnitudeTest(parameterized.TestCase):
             ),
         )
     def test_axis(self, vector, axis, expected_magnitude):
-        calculated_magnitude = coord_transforms.field_magnitude(vector, axis=axis)
+        calculated_magnitude = coord_transforms.field_magnitude(vector, axis=axis, keepdims=True)
         np.testing.assert_array_almost_equal(expected_magnitude, calculated_magnitude)
 
 
@@ -1560,6 +1596,26 @@ class RotateNdVectorTest(unittest.TestCase):
         rotation_vector = np.array([0,0,1])
         rotated_vector = coord_transforms.rotate_vector_Nd(xyz, angle, rotation_vector)
         np.testing.assert_array_almost_equal(np.array([[-1, 0, 0],[0, 1, 0],[0, 0, 1]]), rotated_vector)
+
+    def testAxisVectorsRotateBy0(self):
+        '''
+        take (0,1,0), (1, 0, 0) and (0,0,1) and rotate around (0,0,1) by 0
+        '''
+        xyz = np.array([[0, 1, 0], [1, 0, 0], [0, 0, 1]])
+        angle = 0
+        rotation_vector = np.array([0,0,1])
+        rotated_vector = coord_transforms.rotate_vector_Nd(xyz, angle, rotation_vector)
+        np.testing.assert_array_almost_equal(xyz, rotated_vector)
+
+    def testAxis0VectorsRotateBy90(self):
+        '''
+        take (0,0,0) and rotate around (0,0,1) by 90
+        '''
+        xyz = np.array([[0, 0, 0]])
+        angle = 0
+        rotation_vector = np.array([0,0,1])
+        rotated_vector = coord_transforms.rotate_vector_Nd(xyz, angle, rotation_vector)
+        np.testing.assert_array_almost_equal(xyz, rotated_vector)
 
     def testFloatsVectorsRotateBy90(self):
         '''

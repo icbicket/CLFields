@@ -2029,31 +2029,31 @@ class AngleOfIncidenceTest(parameterized.TestCase):
         N by 3 array
         '''
         incident = np.array([
-            [0, 1, 1], 
-            [0, 1, 0], 
-            [0, 1, 0], 
+            [0, 1, 1],
+            [0, 1, 0],
+            [0, 1, 0],
             [0, 1, 1],
             [0, -1, 1],
             [0, 1, -1],
             [0, -1, -1],
             ])
         normal = np.array([
-            [0, 1, 0], 
-            [0, 1, 0], 
-            [1, 0, 0], 
+            [0, 1, 0],
+            [0, 1, 0],
+            [1, 0, 0],
             [0, 0, -1],
             [0, 0, -1],
             [0, 0, -1],
             [0, 0, -1],
             ])
         expected_angles = np.array([
-            np.pi/4, 
-            0, 
-            np.pi/2, 
-            np.pi/4,
-            np.pi/4,
-            np.pi/4,
-            np.pi/4,
+            [np.pi/4],
+            [0],
+            [np.pi/2],
+            [np.pi/4],
+            [np.pi/4],
+            [np.pi/4],
+            [np.pi/4],
             ])
         angles = cl_calcs.angle_of_incidence(incident, normal)
         np.testing.assert_allclose(angles, expected_angles)
@@ -2154,9 +2154,7 @@ class SnellsLawTest(parameterized.TestCase):
         n_surface = 2+1j
         n_environment = 1
         expected_refraction_angles = 0.15321514223203334-0.07736669861166084j
-        print('test')
         refraction_angles = cl_calcs.snells_law(incidence_angles, n_surface, n_environment)
-        print(refraction_angles)
         np.testing.assert_allclose(refraction_angles, expected_refraction_angles, atol=1e-7)
 
     def test_complex_refractive_index_environment(self):
@@ -2323,12 +2321,12 @@ class ReflectedETest(parameterized.TestCase):
     '''
     
     @parameterized.named_parameters(
-        ('s-polarized', np.array([0, 0, 1]), np.array([0, 0, -0.451416229]), 
-            np.array([0, 0, 0])),
-        ('p-polarized', np.array([1, -1, 0]), np.array([0, 0, 0]), 
-            0.203776612*np.array([-1, 1, 0])),
-        ('mixed-polarized', np.array([1, -1, 1]), 
-            np.array([0, 0, -0.451416229]), 0.203776612*np.array([-1, 1, 0])),
+        ('s-polarized', np.array([[0, 0, 1]]), np.array([[0, 0, -0.451416229]]), 
+            np.array([[0, 0, 0]])),
+        ('p-polarized', np.array([[1, -1, 0]]), np.array([[0, 0, 0]]), 
+            0.203776612*np.array([[-1, 1, 0]])),
+        ('mixed-polarized', np.array([[1, -1, 1]]), 
+            np.array([[0, 0, -0.451416229]]), 0.203776612*np.array([[-1, 1, 0]])),
         ('3 by 3 array', np.array([[0, 0, 1], [1, -1, 0], [1, -1, 1]]), 
             np.array([[0, 0, -0.451416229], [0, 0, 0], [0, 0, -0.451416229]]), 
             0.203776612 * np.array([[0, 0, 0], [-1, 1, 0], [-1, 1, 0]]))
@@ -2352,12 +2350,12 @@ class ReflectedETest(parameterized.TestCase):
         np.testing.assert_allclose(e_p, expected_e_p)
 
     @parameterized.named_parameters(
-        ('s-polarized', np.array([0, 0, 1]), np.array([0, 0, -0.451416229]), 
-            np.array([0, 0, 0])),
-        ('p-polarized', np.array([1, -1, 0]), np.array([0, 0, 0]), 
-            0.203776612*np.array([-1, 1, 0])),
-        ('mixed-polarized', np.array([1, -1, 1]), 
-            np.array([0, 0, -0.451416229]), 0.203776612*np.array([-1, 1, 0])),
+        ('s-polarized', np.array([[0, 0, 1]]), np.array([[0, 0, -0.451416229]]), 
+            np.array([[0, 0, 0]])),
+        ('p-polarized', np.array([[1, -1, 0]]), np.array([[0, 0, 0]]), 
+            0.203776612*np.array([[-1, 1, 0]])),
+        ('mixed-polarized', np.array([[1, -1, 1]]), 
+            np.array([[0, 0, -0.451416229]]), 0.203776612*np.array([[-1, 1, 0]])),
     )
     def test_e_polarization_state_negative_normal(self, incident_e, expected_e_s, expected_e_p):
         '''
@@ -2378,16 +2376,16 @@ class ReflectedETest(parameterized.TestCase):
         np.testing.assert_allclose(e_p, expected_e_p)
 
     @parameterized.named_parameters(
-        ('s-polarized', np.array([0, 0, 1]), 
-            np.array([0, 0, -0.928898-0.249618j]), np.array([0, 0, 0])),
-        ('p-polarized', np.array([1, -1, 0]), np.array([0, 0, 0]), 
-            np.array([-0.891575-0.325905j, 0.891575+0.325905j, 0])),
-        ('mixed-polarized', np.array([1, -1, 1]), 
-            np.array([0, 0, -0.928898-0.249618j]), 
-            np.array([-0.891575-0.325905j, 0.891575+0.325905j, 0])),
-        ('mixed-polarized not ones', np.array([5, -3, 2]), 
-            np.array([0, 0, -1.857796-0.499236j]), 
-            np.array([-4.457875-1.629525j, 2.674725+0.977715j, 0])),
+        ('s-polarized', np.array([[0, 0, 1]]), 
+            np.array([[0, 0, -0.928898-0.249618j]]), np.array([[0, 0, 0]])),
+        ('p-polarized', np.array([[1, -1, 0]]), np.array([[0, 0, 0]]), 
+            np.array([[-0.891575-0.325905j, 0.891575+0.325905j, 0]])),
+        ('mixed-polarized', np.array([[1, -1, 1]]), 
+            np.array([[0, 0, -0.928898-0.249618j]]), 
+            np.array([[-0.891575-0.325905j, 0.891575+0.325905j, 0]])),
+        ('mixed-polarized not ones', np.array([[5, -3, 2]]), 
+            np.array([[0, 0, -1.857796-0.499236j]]), 
+            np.array([[-4.457875-1.629525j, 2.674725+0.977715j, 0]])),
         ('3 by 3 array', 
             np.array([[0, 0, 1], [1, -1, 0], [1, -1, 1]]), 
             np.array([[0, 0, -0.928898-0.249618j], 
@@ -2415,6 +2413,7 @@ class ReflectedETest(parameterized.TestCase):
             )
         np.testing.assert_allclose(e_s, expected_e_s, atol=5e-6)
         np.testing.assert_allclose(e_p, expected_e_p, atol=5e-6)
+
 
 class StokesParametersTest(unittest.TestCase):
     def testS1LinearPolarized(self):
@@ -2509,6 +2508,26 @@ class NormalizeStokesParametersTest(unittest.TestCase):
             np.array([[s1_expected], [s2_expected], [s3_expected]])
             )
 
+
+class eVToWavelengthTest(parameterized.TestCase):
+    '''
+    positive number
+    real number
+    negative number
+    wavelength
+    very large
+    very small
+    '''
+    @parameterized.named_parameters(
+        ('0 eV', np.array([0]), np.array([np.inf])),
+        ('3 eV', 3, 4.1328066144400093e-07),
+        ('-3 eV', -3, -4.1328066144400093e-07),
+        ('1e-6 eV', 1e-6, 1.2398419843320025),
+        ('1e6 eV', 1e6, 1.2398419843320027e-12),
+            )
+    def test_single_values(self, eV, expected_nm):
+        calculated_nm = cl_calcs.eV_to_wavelength(eV)
+        self.assertAlmostEqual(expected_nm, calculated_nm)
 
 if __name__ == '__main__':
     if 'unittest.util' in __import__('sys').modules:

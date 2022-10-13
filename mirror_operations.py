@@ -17,12 +17,13 @@ xcut = 10.75/magn
 ni = 1;
 
 
+
 def parabola_position(direction):
     '''
     direction: emission direction vector in Cartesian coordinates, a numpy 
     array of shape (N by 3)
     '''
-    direction = direction/np.expand_dims(ct.field_magnitude(direction), -1)
+    direction = direction/ct.field_magnitude(direction, keepdims=True)
     r, theta, phi = ct.cartesian_to_spherical_coords(direction)
     c = np.empty(np.shape(direction))
     positive_x_condition = np.logical_not(
@@ -121,8 +122,8 @@ def fresnel_reflection_coefficients(normal,
     n_environment: refractive index of the environment at the desired wavelength
     n_mirror: refractive index of the mirror at the desired wavelength
     '''
-    e_incident_direction = e_incident_direction/ct.field_magnitude(e_incident_direction)
-    normal = normal/ct.field_magnitude(normal)
+    e_incident_direction = e_incident_direction/ct.field_magnitude(e_incident_direction, keepdims=True)
+    normal = normal/ct.field_magnitude(normal, keepdims=True)
     incidence_angle = clc.angle_of_incidence(e_incident_direction, -normal)
 #    incidence_angle = np.arccos(
 #        np.dot(normals, e_incident_direction)
@@ -152,18 +153,17 @@ def fresnel_reflection_coefficients(normal,
         )
     return r_s, r_p
 
-def aluminium_refractive_index(wavelength, filename):
+def import_al_pa(filepath):
     '''
-    import data file containing aluminium's dielectric function
-    wavelength: wavelength at which it is desired to extract the refractive index (in m)
-    filename: file containing the dielectric function (should point to al_pa.mat)
-    returns complex refractive index at the given wavelength
+    Import al_pa.mat given the filepath to this file
+    - al_pa.mat contains the dielectric function for Aluminium, as given by Palik
     '''
-    load_data = np.loadtxt(filename, skiprows=15, max_rows=141-15) # must fix that to allow other files than al_pa.mat
-    index_factor = np.sqrt(load_data[:, 1]**2 + load_data[:, 2]**2)
-    n = np.sqrt(0.5 * (index_factor + load_data[:, 1])) + 1j * np.sqrt(0.5 * (index_factor - load_data[:, 1]))
-    wavelength_list = constants.PLANCK * constants.LIGHTSPEED / (load_data[:, 0] * constants.COULOMB)
-    interp_function_n = scint.interp1d(wavelength_list, n, kind='cubic')
-    n_wavelength = interp_function_n(wavelength)
-    return n_wavelength
+    load_data = np.loadtxt(filepath, skiprows=15, max_rows=141-15)
+    return load_data
+
+def interpolate_refractive_index_at_wavelength(refractive_index, wavelength_list, desired_wavelength):
+    '''
+    
+    '''
+    pass
 
