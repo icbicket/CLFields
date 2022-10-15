@@ -353,8 +353,6 @@ class DegreeOfPolarizationTest(parameterized.TestCase):
         np.testing.assert_array_almost_equal(expected_ell, ell)
 
 
-
-
 class AngleOfIncidenceTest(parameterized.TestCase):
     '''
     Test the function for calculating the angle of incidence of a wave on a 
@@ -943,6 +941,27 @@ class eVToWavelengthTest(parameterized.TestCase):
     def test_single_values(self, eV, expected_nm):
         calculated_nm = cl_calcs.eV_to_wavelength(eV)
         self.assertAlmostEqual(expected_nm, calculated_nm)
+
+
+class WavelengthToeVTest(parameterized.TestCase):
+    '''
+    positive number
+    real number
+    negative number
+    wavelength
+    very large
+    very small
+    '''
+    @parameterized.named_parameters(
+        ('0 eV', np.array([np.inf]), np.array([0])),
+        ('3 eV', 4.1328066144400093e-07, 3),
+        ('-3 eV', -4.1328066144400093e-07, -3),
+        ('1e-6 eV', 1.2398419843320025, 1e-6),
+        ('1e6 eV', 1.2398419843320027e-12, 1e6),
+            )
+    def test_single_values(self, nm, expected_eV):
+        calculated_eV = cl_calcs.wavelength_to_eV(nm)
+        np.testing.assert_allclose(expected_eV, calculated_eV)
 
 if __name__ == '__main__':
     if 'unittest.util' in __import__('sys').modules:
