@@ -20,14 +20,17 @@ ni = 1;
 
 @dataclass(frozen=True)
 class ParabolicMirror:
-    """Class for keeping track of mirror parameters."""
+    """
+    Class for keeping track of mirror parameters.
+    dielectric is a numpy array with the energy in eV, and the real and complex components of the material's dielectric function
+    """
     a: float
     dfoc: float
     xcut: float
     thetacutoffhole: float
-    dielectric_file: str
+    dielectric: np.array
 
-AMOLF_MIRROR = ParabolicMirror(a=0.1, dfoc=0.5, xcut=-10.75, thetacutoffhole=4., dielectric_file='al_pa.mat')
+AMOLF_MIRROR = ParabolicMirror(a=0.1, dfoc=0.5, xcut=-10.75, thetacutoffhole=4., dielectric=np.loadtxt('al_pa.mat', skiprows=15, max_rows=141-15))
 
 def ar_mask_calc(theta, phi, holein=True, slit=None, slit_center=0, orientation=0, mirror=AMOLF_MIRROR):
     '''
@@ -358,17 +361,20 @@ def fresnel_reflection_coefficients(normal,
         )
     return r_s, r_p
 
-def import_al_pa(filepath):
+def get_mirror_refractive_index(wavelength, mirror=AMOLF_MIRROR):
     '''
-    Import al_pa.mat given the filepath to this file
-    - al_pa.mat contains the dielectric function for Aluminium, as given by Palik
+    Interpolate the refractive index at the desired wavelength, given the wavelength and the mirror
     '''
-    load_data = np.loadtxt(filepath, skiprows=15, max_rows=141-15)
-    return load_data
-
-def interpolate_refractive_index_at_wavelength(refractive_index, wavelength_list, desired_wavelength):
-    '''
-    
-    '''
-    pass
+    index_factor = np.sqrt(mirror.dielectric[:, 1]**2 + mirror.dielectric[:, 2]**2)
+    n = np.sqrt(0.5 * (index_factor + mirror.dielectric[:, 1])) + 1j * np.sqrt(0.5 * (index_factor - mirror.dielectric[:, 1]))
+    print(n)
+    wavelength_list = clc.eV_to_wavelength(mirror.dielectric[:, 0])
+    print(wavelength, wavelength_list[-1])
+    print(wavelength == wavelength_list)
+#    wavelength_list = constants.PLANCK * constants.LIGHTSPEED / (load_data[:, 0] * constants.COULOMB)
+#    print(wavelength_list)
+    interp_function_n = scint.interp1d(wavelength_list, n, kind='cubic')
+#    print(interp_function_n(1))
+    n_wavelength = interp_function_n(wavelength)
+    return n_wavelength
 

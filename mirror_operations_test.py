@@ -1856,5 +1856,75 @@ class FresnelReflectionCoefficientsTest(parameterized.TestCase):
             n_mirror,
             n_environment)
 
+
+class MirrorRefractiveIndexTest(parameterized.TestCase):
+    '''
+    Testing the interpolation of the mirror refractive index
+    - wavelength greater than that existing in the provided dielectric
+    - wavelength less than the minimum in the provided dielectric
+    - wavelength inside the provided dielectric
+    '''
+    @parameterized.named_parameters(
+        dict(testcase_name='too high wavelength',
+             wavelength=182,
+            ),
+        dict(testcase_name='too low wavelength',
+             wavelength=1600,
+            ),
+        )
+    def test_outside_wavelength_limits(self, wavelength):
+        '''
+        Testing wavelength values outside the range given by the default dielectric
+        '''
+        with self.assertRaises(ValueError):
+            n = miop.get_mirror_refractive_index(wavelength)
+
+    @parameterized.named_parameters(
+        dict(testcase_name='1p55 eV',
+             wavelength=799.89802*1e-9,
+             expected_n = 2.7999999999999994 + 1j * 8.45000000000000
+            ),
+        dict(testcase_name='5p525 eV',
+             wavelength=224.40578*1e-9,
+             expected_n = 0.1533972647627147 + 1j * 2.6270656268891153
+#             expected_dielectric = -6.877943087145617 + 1j * 0.8059693630338731
+            ),
+        dict(testcase_name='6p75 eV',
+             wavelength=1.836802939751115e-07,
+             expected_n = 0.101999952506306 + 1j * 2.07000096384308
+            ),
+        dict(testcase_name='0p5 eV',
+             wavelength=2.4796839686640052e-06,
+             expected_n = 3.07 + 1j * 25.6
+            ),
+        )
+    def test_inside_wavelength_limits(self, wavelength, expected_n):
+        '''
+        Testing wavelength values inside the range given by the default dielectric
+        '''
+        calculated_n = miop.get_mirror_refractive_index(wavelength)
+        self.assertAlmostEqual(expected_n, calculated_n, places=4)
+
+    @parameterized.named_parameters(
+        dict(testcase_name='2 eV',
+             wavelength=619.92097*1e-9,
+             expected_n = 0.895977476129838 + 1j * 1.6741492280355401
+            ),
+        dict(testcase_name='2p5 eV',
+             wavelength=495.93677*1e-9,
+             expected_n = 0.7195602497125372 + 1j * 1.7371721138005782
+            ),
+        )
+    def test_different_dielectric(self, wavelength, expected_n):
+        '''
+        using a different dielectric function
+        '''
+        mirror = miop.ParabolicMirror(a=0.1, dfoc=0.5, xcut=-10.75, 
+            thetacutoffhole=4., 
+            dielectric=np.array([[1, -1, 4],[2, -2, 3],[3,-3, 2],[4, -4, 1]])
+            )
+        calculated_n = miop.get_mirror_refractive_index(wavelength, mirror=mirror)
+        self.assertAlmostEqual(expected_n, calculated_n, places=4)
+
 if __name__ == '__main__':
     unittest.main()

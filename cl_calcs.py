@@ -211,6 +211,13 @@ def eV_to_wavelength(eV):
     wavelength = constants.PLANCK * constants.LIGHTSPEED / (eV * constants.COULOMB)
     return wavelength
 
+def wavelength_to_eV(wavelength):
+    '''
+    Convert photon wavelength in m to eV
+    '''
+    eV = constants.PLANCK * constants.LIGHTSPEED / (wavelength * constants.COULOMB)
+    return eV
+
 def interpolate_refractive_index(refractive_index, wavelength_list, desired_wavelength):
     '''
     wavelength: wavelength at which it is desired to extract the refractive index (in m)
