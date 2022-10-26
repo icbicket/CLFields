@@ -490,6 +490,7 @@ class AngleOfIncidenceTest(parameterized.TestCase):
         calculated_angle = cl_calcs.angle_of_incidence(incident_vector, normal)
         self.assertAlmostEqual(expected_angle, calculated_angle)
 
+
 class SnellsLawTest(parameterized.TestCase):
     '''
     Test the Snell's law function for calculating the angle of refraction
@@ -580,6 +581,7 @@ class SnellsLawTest(parameterized.TestCase):
         expected_refraction_angles = 0.18893317218363231-0.19359670723263944j
         refraction_angles = cl_calcs.snells_law(incidence_angles, n_surface, n_environment)
         np.testing.assert_allclose(refraction_angles, expected_refraction_angles, atol=1e-7)
+
 
 class BrewstersAngleTest(parameterized.TestCase):
     '''
@@ -727,6 +729,7 @@ class ReflectionCoefficientsTest(parameterized.TestCase):
             incidence_angle, n_surface, n_environment)
         np.testing.assert_allclose(expected_r_s, calculated_r_s, atol=1e-6)
         np.testing.assert_allclose(expected_r_p, calculated_r_p, atol=1e-6)
+
 
 class ReflectedETest(parameterized.TestCase):
     '''
@@ -922,6 +925,74 @@ class NormalizeStokesParametersTest(unittest.TestCase):
             )
 
 
+class DielectricToRefraciveTest(parameterized.TestCase):
+    '''
+    normal dielectric function
+    no imaginary component
+    no real component
+    positive real and imaginary
+    negative real and imaginary
+    positive real, negative imaginary
+    negative real, positive imaginary
+    all zeros
+    1 by 2 array
+    3 by 2 array
+    2 array
+    '''
+    @parameterized.named_parameters(
+        dict(testcase_name='+ real, + imag',
+            dielectric = np.array([[1, 2]]),
+            expected_n = np.array([1.272019649514069 + 0.7861513777574233j])
+            ),
+        dict(testcase_name='+ real, - imag',
+            dielectric = np.array([[1, -2]]),
+            expected_n = np.array([1.272019649514069 + 0.7861513777574233j])
+            ),
+        dict(testcase_name='- real, + imag',
+            dielectric = np.array([[-1, 2]]),
+            expected_n = np.array([0.7861513777574233 + 1.272019649514069j])
+            ),
+        dict(testcase_name='- real, - imag',
+            dielectric = np.array([[-1, -2]]),
+            expected_n = np.array([0.7861513777574233 + 1.272019649514069j])
+            ),
+        dict(testcase_name='0 real, - imag',
+            dielectric = np.array([[0, -2]]),
+            expected_n = np.array([1 + 1j])
+            ),
+        dict(testcase_name='- real, 0 imag',
+            dielectric = np.array([[1, 0]]),
+            expected_n = np.array([1 + 0j])
+            ),
+        dict(testcase_name='0 real, 0 imag',
+            dielectric = np.array([[0, 0]]),
+            expected_n = np.array([0 + 0j])
+            ),
+        dict(testcase_name='3 by 2 array',
+            dielectric = np.array([[-1, -2], [0, -2], [1, 2]]),
+            expected_n = np.array([
+                0.7861513777574233 + 1.272019649514069j,
+                1 + 1j,
+                1.272019649514069 + 0.7861513777574233j
+                ])
+            ),
+        )
+    def test_values(self, dielectric, expected_n):
+        '''
+        Test an assortment of dielectric values that may be encountered
+        '''
+        calculated_n = cl_calcs.dielectric_to_refractive(dielectric)
+        np.testing.assert_allclose(expected_n, calculated_n)
+
+    def test_two_value_array(self):
+        '''
+        test an array of size 2 - should fail
+        '''
+        dielectric = np.array([1, 4])
+        with self.assertRaises(IndexError):
+            calculated_n = cl_calcs.dielectric_to_refractive(dielectric)
+
+
 class eVToWavelengthTest(parameterized.TestCase):
     '''
     positive number
@@ -933,6 +1004,7 @@ class eVToWavelengthTest(parameterized.TestCase):
     '''
     @parameterized.named_parameters(
         ('0 eV', np.array([0]), np.array([np.inf])),
+        ('0.5 eV', 0.5, 2.479683968664e-6),
         ('3 eV', 3, 4.1328066144400093e-07),
         ('-3 eV', -3, -4.1328066144400093e-07),
         ('1e-6 eV', 1e-6, 1.2398419843320025),

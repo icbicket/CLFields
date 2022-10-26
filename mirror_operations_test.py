@@ -1910,21 +1910,38 @@ class MirrorRefractiveIndexTest(parameterized.TestCase):
              wavelength=619.92097*1e-9,
              expected_n = 0.895977476129838 + 1j * 1.6741492280355401
             ),
-        dict(testcase_name='2p5 eV',
-             wavelength=495.93677*1e-9,
-             expected_n = 0.7195602497125372 + 1j * 1.7371721138005782
+        dict(testcase_name='4 eV',
+             wavelength=309.960496083001*1e-9,
+             expected_n = 0.248098393402356 + 1j * 2.01532945515338
             ),
         )
     def test_different_dielectric(self, wavelength, expected_n):
         '''
         using a different dielectric function
         '''
-        mirror = miop.ParabolicMirror(a=0.1, dfoc=0.5, xcut=-10.75, 
-            thetacutoffhole=4., 
+        mirror = miop.ParabolicMirror(a=0.1, dfoc=0.5, xcut=-10.75,
+            thetacutoffhole=4.,
             dielectric=np.array([[1, -1, 4],[2, -2, 3],[3,-3, 2],[4, -4, 1]])
             )
         calculated_n = miop.get_mirror_refractive_index(wavelength, mirror=mirror)
         self.assertAlmostEqual(expected_n, calculated_n, places=4)
+
+    def test_interpolated_value_2p5eV(self):
+        '''
+        check a value interpolated between two points is within the range expected
+        - not interested in testing the accuracy of the interpolation here
+        '''
+        wavelength=495.93677*1e-9,
+        n_high_limit = 0.895977476129838 + 1.67414922803554j
+        n_low_limit = 0.550250522700337 + 1.81735402102397j
+        mirror = miop.ParabolicMirror(a=0.1, dfoc=0.5, xcut=-10.75,
+            thetacutoffhole=4.,
+            dielectric=np.array([[1, -1, 4],[2, -2, 3],[3,-3, 2],[4, -4, 1]])
+            )
+        calculated_n = miop.get_mirror_refractive_index(wavelength, mirror=mirror)
+        self.assertTrue(calculated_n < n_high_limit)
+        self.assertTrue(calculated_n > n_low_limit)
+
 
 if __name__ == '__main__':
     unittest.main()

@@ -198,10 +198,11 @@ def normalize_stokes_parameters(S0, S1, S2, S3):
 def dielectric_to_refractive(dielectric):
     '''
     Convert a complex dielectric function to complex refractive index
+    input: an n by 2 array of dielectric values, first column is the real component, second column is the imaginary component
     '''
-    index_factor = np.sqrt(load_data[:, 1]**2 + load_data[:, 2]**2)
-    n = (np.sqrt(0.5 * (index_factor + load_data[:, 1])) 
-        + 1j * np.sqrt(0.5 * (index_factor - load_data[:, 1])))
+    index_factor = np.sqrt(dielectric[:, 0]**2 + dielectric[:, 1]**2)
+    n = (np.sqrt(0.5 * (index_factor + dielectric[:, 0])) 
+        + 1j * np.sqrt(0.5 * (index_factor - dielectric[:, 0])))
     return n
 
 def eV_to_wavelength(eV):
@@ -218,13 +219,13 @@ def wavelength_to_eV(wavelength):
     eV = constants.PLANCK * constants.LIGHTSPEED / (wavelength * constants.COULOMB)
     return eV
 
-def interpolate_refractive_index(refractive_index, wavelength_list, desired_wavelength):
-    '''
-    wavelength: wavelength at which it is desired to extract the refractive index (in m)
-    filename: file containing the dielectric function (should point to al_pa.mat)
-    returns complex refractive index at the given wavelength
-    '''
-    interp_function_n = scint.interp1d(wavelength_list, refractive_index, kind='cubic')
-    n_wavelength = interp_function_n(desired_wavelength)
-    return n_wavelength
+#def interpolate_refractive_index(refractive_index, wavelength_list, desired_wavelength):
+#    '''
+#    wavelength: wavelength at which it is desired to extract the refractive index (in m)
+#    filename: file containing the dielectric function (should point to al_pa.mat)
+#    returns complex refractive index at the given wavelength
+#    '''
+#    interp_function_n = scint.interp1d(wavelength_list, refractive_index, kind='cubic')
+#    n_wavelength = interp_function_n(desired_wavelength)
+#    return n_wavelength
 

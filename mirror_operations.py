@@ -361,20 +361,16 @@ def fresnel_reflection_coefficients(normal,
         )
     return r_s, r_p
 
-def get_mirror_refractive_index(wavelength, mirror=AMOLF_MIRROR):
+def get_mirror_refractive_index(wavelength, mirror=AMOLF_MIRROR, fit_kind='cubic'):
     '''
     Interpolate the refractive index at the desired wavelength, given the wavelength and the mirror
     '''
-    index_factor = np.sqrt(mirror.dielectric[:, 1]**2 + mirror.dielectric[:, 2]**2)
-    n = np.sqrt(0.5 * (index_factor + mirror.dielectric[:, 1])) + 1j * np.sqrt(0.5 * (index_factor - mirror.dielectric[:, 1]))
-    print(n)
+#    index_factor = np.sqrt(mirror.dielectric[:, 1]**2 + mirror.dielectric[:, 2]**2)
+#    n = np.sqrt(0.5 * (index_factor + mirror.dielectric[:, 1])) + 1j * np.sqrt(0.5 * (index_factor - mirror.dielectric[:, 1]))
+    n = clc.dielectric_to_refractive(mirror.dielectric[:, 1:])
     wavelength_list = clc.eV_to_wavelength(mirror.dielectric[:, 0])
-    print(wavelength, wavelength_list[-1])
-    print(wavelength == wavelength_list)
 #    wavelength_list = constants.PLANCK * constants.LIGHTSPEED / (load_data[:, 0] * constants.COULOMB)
-#    print(wavelength_list)
-    interp_function_n = scint.interp1d(wavelength_list, n, kind='cubic')
-#    print(interp_function_n(1))
+    interp_function_n = scint.interp1d(wavelength_list, n, kind=fit_kind)
     n_wavelength = interp_function_n(wavelength)
     return n_wavelength
 
