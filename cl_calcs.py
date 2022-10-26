@@ -118,25 +118,7 @@ def reflection_coefficients(incidence_angle, n_surface, n_environment=1):
                 np.sin(2*incidence_angle[incidence_angle!=0])
                 + np.sin(2*refraction_angle[incidence_angle!=0])
             )
-#    if incidence_angle==0 and refraction_angle==0:
-#        r_s = (n_surface - n_environment)/(n_surface + n_environment)
-#        r_p = r_s
-#    else:
-#        r_s = (
-#                -np.sin(incidence_angle - refraction_angle)
-#            ) / (
-#                np.sin(incidence_angle + refraction_angle)
-#            )
-#        r_p = (
-#                np.sin(2*incidence_angle) - np.sin(2*refraction_angle)
-#            ) / (
-#                np.sin(2*refraction_angle) + np.sin(2*incidence_angle)
-#            )
-    #    r_p = (
-    #            np.tan(incidence_angle - refraction_angle)
-    #        ) / (
-    #            np.tan(incidence_angle + refraction_angle)
-    #        )
+
     return r_s, r_p
 
 def reflected_e(incident_direction, incident_e, surface_normal, n_surface, n_environment=1):
@@ -164,23 +146,14 @@ def reflected_e(incident_direction, incident_e, surface_normal, n_surface, n_env
     # isolate e_p (electric field polarized parallel to the plane of incidence)
     e_p = incident_e - e_s
     e_p_reflected = np.expand_dims(r_p, axis=-1) * e_p
-    
-#    e_p1 = incident_e - e_s
-#    e_p_norm = e_p1/coord.field_magnitude(e_p1)
-#    e_p_amp = np.sqrt(np.sum(e_p1*e_p1, axis=-1))
-#    e_p = (2 * (np.sum(surface_normal*e_p_norm, axis=-1)) * surface_normal - e_p_norm) * e_p_amp
-#    e_p_reflected = e_p * r_p
-    
+
     return e_s_reflected, e_p_reflected
 
 def stokes_parameters(E_theta, E_phi):
     S0 = np.real(E_theta * np.conj(E_theta) + E_phi * np.conj(E_phi))
     S1 = np.real(E_theta * np.conj(E_theta) - E_phi * np.conj(E_phi))
     S2 = np.real((E_theta * np.conj(E_phi)) + (E_phi * np.conj(E_theta)))
-#    S3 = np.real(-1j * (E_phi * np.conj(E_theta) - 1j * E_theta * np.conj(E_phi)))
     S3 = np.real(-1j * (E_theta * np.conj(E_phi) - E_phi * np.conj(E_theta)))
-#    S2 = 2 * np.real(E_theta * np.conj(E_phi))
-#    S3 = -2 * np.imag(E_theta * np.conj(E_phi))
     return S0, S1, S2, S3
 
 def normalize_stokes_parameters(S0, S1, S2, S3):
@@ -218,14 +191,3 @@ def wavelength_to_eV(wavelength):
     '''
     eV = constants.PLANCK * constants.LIGHTSPEED / (wavelength * constants.COULOMB)
     return eV
-
-#def interpolate_refractive_index(refractive_index, wavelength_list, desired_wavelength):
-#    '''
-#    wavelength: wavelength at which it is desired to extract the refractive index (in m)
-#    filename: file containing the dielectric function (should point to al_pa.mat)
-#    returns complex refractive index at the given wavelength
-#    '''
-#    interp_function_n = scint.interp1d(wavelength_list, refractive_index, kind='cubic')
-#    n_wavelength = interp_function_n(desired_wavelength)
-#    return n_wavelength
-

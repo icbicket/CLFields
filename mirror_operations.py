@@ -52,27 +52,8 @@ def ar_mask_calc(theta, phi, holein=True, slit=None, slit_center=0, orientation=
     '''
     
     phi = phi + orientation
-    #    a = mirror.a
-    #    xcut = 10.75
-    #    ##thetacutoff can actually be calculated
-    #    holesize = 0.6
-    #    holeheight = np.sqrt(2.5/mirror.a)
-    ##    thetacutoffhole=np.arctan(holesize/(2*holeheight))*180/np.pi
-    #    thetacutoffhole = 4
-    #    dfoc = 0.5
-##    phi,theta=np.meshgrid(phi1,theta1) ##Toon
-#    c = np.empty(np.shape(phi))
-#    c_denominator = a*np.cos(phi)*np.sin(theta) + a
-#    c[c_denominator==0] = np.inf
-#    c[c_denominator!=0] = 1/(2*c_denominator[c_denominator!=0])
-##    c = 1./(2*(a*np.cos(phi)*np.sin(theta)+a))
-
-#    z = np.cos(theta)*c
-#    x = np.sin(theta)*np.cos(phi)*c#-1/(4.*a)
-#    y = np.sin(theta)*np.sin(phi)*c
     x, y, z, c = mirror_xyz(theta, phi, mirror)
     condition = (x < mirror.xcut) | (z < mirror.dfoc)
-#    print('x', x, '\ny', y, '\nz', z)
     if slit is not None:
         ycut_positive = slit_center + slit/2.  ##
         ycut_negative = slit_center - slit/2.  ##
@@ -256,15 +237,6 @@ def parabola_normals(parabola_positions):
     parabola_positions: positions on the parabola, N by 3 numpy array
     R = (a*r**2, r*cos(theta), r*sin(theta))
     '''
-#    r, theta = ct.cartesian_to_polar(parabola_positions[:, 1], parabola_positions[:, 2])
-
-#    ## One way to calculate the normals    
-#    normalizing_factor = 1/np.sqrt(1 + 4 * a**2 * r**2)
-#    normal_x = np.ones(np.shape(r))
-#    normal_y = -2 * a * r * np.cos(theta)
-#    normal_z = -2 * a * r * np.sin(theta)
-#    normals = np.transpose(normalizing_factor * np.vstack((normal_x, normal_y, normal_z)))
-#    
     # parameterize x in terms of y and z: x = (a*(y**2 + z**2)-2.5, y, z)
     normalizing_factor = np.expand_dims(1/np.sqrt(
         1 + 4 * a**2 * (
@@ -277,22 +249,6 @@ def parabola_normals(parabola_positions):
     normals = normalizing_factor * np.transpose(
         np.vstack((normal_x, normal_y, normal_z))
         )
-    
-    ## Another way to calculate the normals
-#    # derivative of parabola along r
-#    r_gradient_x = 2*a*r
-#    r_gradient_y = np.cos(theta)
-#    r_gradient_z = np.sin(theta)
-#    r_gradient = np.vstack((r_gradient_x, r_gradient_y, r_gradient_z)).transpose()
-#    
-#    # derivative of parabola along theta
-#    theta_gradient_x = np.zeros(np.shape(r_gradient_x))
-#    theta_gradient_y = -r * np.sin(theta)
-#    theta_gradient_z = r * np.cos(theta)
-#    theta_gradient = np.vstack((theta_gradient_x, theta_gradient_y, theta_gradient_z)).transpose()
-#    
-#    normals = np.cross(r_gradient, theta_gradient) #cross product of r and theta to get the surface normal
-#    normals = normals/ct.field_magnitude(normals)[:, None] # normalize the normal vectors
     return normals
 
 def surface_polarization_directions(theta, phi):
@@ -333,11 +289,6 @@ def fresnel_reflection_coefficients(normal,
     e_incident_direction = e_incident_direction/ct.field_magnitude(e_incident_direction, keepdims=True)
     normal = normal/ct.field_magnitude(normal, keepdims=True)
     incidence_angle = clc.angle_of_incidence(e_incident_direction, -normal)
-#    incidence_angle = np.arccos(
-#        np.dot(normals, e_incident_direction)
-#        ) / (
-#            ct.field_magnitude(normals)*ct.field_magnitude(e_incident_direction)
-#        )
     if n_mirror == 0:
         raise ValueError("Mirror refractive index cannot be 0")
     n_factor = np.sqrt(1-np.square(n_environment/n_mirror * np.sin(incidence_angle)))
@@ -365,11 +316,8 @@ def get_mirror_refractive_index(wavelength, mirror=AMOLF_MIRROR, fit_kind='cubic
     '''
     Interpolate the refractive index at the desired wavelength, given the wavelength and the mirror
     '''
-#    index_factor = np.sqrt(mirror.dielectric[:, 1]**2 + mirror.dielectric[:, 2]**2)
-#    n = np.sqrt(0.5 * (index_factor + mirror.dielectric[:, 1])) + 1j * np.sqrt(0.5 * (index_factor - mirror.dielectric[:, 1]))
     n = clc.dielectric_to_refractive(mirror.dielectric[:, 1:])
     wavelength_list = clc.eV_to_wavelength(mirror.dielectric[:, 0])
-#    wavelength_list = constants.PLANCK * constants.LIGHTSPEED / (load_data[:, 0] * constants.COULOMB)
     interp_function_n = scint.interp1d(wavelength_list, n, kind=fit_kind)
     n_wavelength = interp_function_n(wavelength)
     return n_wavelength
