@@ -100,3 +100,20 @@ if __name__== '__main__':
     test_parabola_normals_magnitude()
     test_surface_polarization_directions_magnitude()
     test_fresnel_reflection_coefficients_magnitude()
+
+class ARMaskCalcTest(unittest.TestCase):
+    @given(
+        st.floats(min_value=np.pi/2, max_value=3*np.pi/2, allow_nan=False, allow_infinity=False),
+        st.floats(allow_nan=False, allow_infinity=False))
+    def testARMaskCalcNegativeZTrue(self, theta, phi):
+        '''
+        all inputs in negative Z space should be True
+        '''
+        calculated = cl_calcs.ar_mask_calc(
+            theta,
+            phi,
+            holein=True,
+            slit=None,
+            slit_center=None,
+            orientation=0)
+        self.assertTrue(calculated)
