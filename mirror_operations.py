@@ -4,6 +4,7 @@ import constants
 import cl_calcs as clc
 import scipy.interpolate as scint
 from dataclasses import dataclass
+import aluminium_dielectric_palik
 
 magn = 2.16
 a = 1/10 # paraboloid scaling factor
@@ -30,7 +31,7 @@ class ParabolicMirror:
     thetacutoffhole: float
     dielectric: np.array
 
-AMOLF_MIRROR = ParabolicMirror(a=0.1, dfoc=0.5, xcut=-10.75, thetacutoffhole=4., dielectric=np.loadtxt('al_pa.mat', skiprows=15, max_rows=141-15))
+AMOLF_MIRROR = ParabolicMirror(a=0.1, dfoc=0.5, xcut=-10.75, thetacutoffhole=4., dielectric=aluminium_dielectric_palik.ALUMINIUM_DIELECTRIC)
 
 def ar_mask_calc(theta, phi, holein=True, slit=None, slit_center=0, orientation=0, mirror=AMOLF_MIRROR):
     '''
@@ -231,6 +232,7 @@ def parabola_position(direction):
         )
     parabola = direction * c
     return parabola
+
 
 def parabola_normals(parabola_positions):
     '''

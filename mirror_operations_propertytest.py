@@ -109,7 +109,7 @@ class ARMaskCalcTest(unittest.TestCase):
         '''
         all inputs in negative Z space should be True
         '''
-        calculated = cl_calcs.ar_mask_calc(
+        calculated = miop.ar_mask_calc(
             theta,
             phi,
             holein=True,
