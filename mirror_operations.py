@@ -314,6 +314,7 @@ def fresnel_reflection_coefficients(normal,
         )
     return r_s, r_p
 
+
 def get_mirror_refractive_index(wavelength, mirror=AMOLF_MIRROR, fit_kind='cubic'):
     '''
     Interpolate the refractive index at the desired wavelength, given the wavelength and the mirror
@@ -324,3 +325,26 @@ def get_mirror_refractive_index(wavelength, mirror=AMOLF_MIRROR, fit_kind='cubic
     n_wavelength = interp_function_n(wavelength)
     return n_wavelength
 
+
+def get_mirror_reflected_field(incident_direction, incident_e, wavelength, n_environment = 1, mirror=AMOLF_MIRROR, **kwargs):
+    '''
+    Reflected electric field off the mirror
+    incident_direction: in Cartesian coordinates, Nx3 numpy array
+    incident_e: incident electric field vector, numpy array, same shape as incident_direction
+    n_environment: refractive index of the environment, usually 1
+    mirror: the mirror parameters to use, includes, eg, dielectric function of the mirror
+    Returns
+        - electric field vector after reflection, should be the same shape as the incident electric field
+    '''
+    parabola_positions = parabola_position(incident_direction)
+    surface_normal = parabola_normals(parabola_positions)
+    n_surface = get_mirror_refractive_index(wavelength, mirror=mirror, **kwargs)
+    print(np.shape(incident_direction), np.shape(incident_e), np.shape(surface_normal), np.shape(n_surface), np.shape(n_environment))
+    reflected_e_s, reflected_e_p = clc.reflected_e(
+        incident_direction,
+        incident_e,
+        surface_normal,
+        n_surface,
+        n_environment=n_environment
+        )
+    return reflected_e_s, reflected_e_p

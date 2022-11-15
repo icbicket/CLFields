@@ -1931,7 +1931,7 @@ class MirrorRefractiveIndexTest(parameterized.TestCase):
         check a value interpolated between two points is within the range expected
         - not interested in testing the accuracy of the interpolation here
         '''
-        wavelength=495.93677*1e-9,
+        wavelength=495.93677*1e-9
         n_high_limit = 0.895977476129838 + 1.67414922803554j
         n_low_limit = 0.550250522700337 + 1.81735402102397j
         mirror = miop.ParabolicMirror(a=0.1, dfoc=0.5, xcut=-10.75,
@@ -1942,6 +1942,39 @@ class MirrorRefractiveIndexTest(parameterized.TestCase):
         self.assertTrue(calculated_n < n_high_limit)
         self.assertTrue(calculated_n > n_low_limit)
 
+
+class MirrorReflectedFieldTest(parameterized.TestCase):
+    '''
+    Testing the calculation of electric field vectors reflected off the mirror
+    - same shape
+    - normal incidence should return the same vector
+    - reflection should flip the sign of p-pol??
+    '''
+#    @parameterized.named_parameters(
+#        dict(testcase_name='',
+#             ,
+#            ),
+#        dict(testcase_name='',
+#             ,
+#            ),
+#        )
+    def testOutputShape(self):
+        '''
+        Check the shape of the output field is the same as the shape of the input field
+        '''
+        incident_direction = np.array([[1, 0, 0], [2, -3, 0], [-1, -1, -1], [2, 1, 0]])
+        incident_e = np.array([[0, 1, 0], [1, 5, 2], [1, -1, 0.5], [5, -2, 1]])
+        wavelength = 799.89802*1e-9
+        n_environment = 1
+        calculated_reflected_e_s, calculated_reflected_e_p = miop.get_mirror_reflected_field(
+            incident_direction,
+            incident_e,
+            wavelength,
+            n_environment
+            )
+        expected_reflected_e_shape = np.shape(incident_direction)
+        np.testing.assert_equal(np.shape(calculated_reflected_e_s), expected_reflected_e_shape)
+        np.testing.assert_equal(np.shape(calculated_reflected_e_p), expected_reflected_e_shape)
 
 if __name__ == '__main__':
     unittest.main()

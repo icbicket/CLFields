@@ -830,6 +830,65 @@ class ReflectedETest(parameterized.TestCase):
         np.testing.assert_allclose(e_s, expected_e_s, atol=5e-6)
         np.testing.assert_allclose(e_p, expected_e_p, atol=5e-6)
 
+    def test_output_shape_1x3normals(self):
+        '''
+        Check the output shape of the reflected fields is the same as the input shape
+        '''
+        incident_e = np.array([[0, 0, 1], [1, -1, 0], [1, -1, 1], [5, -3, 2]])
+        expected_e_s = np.array([[0, 0, -0.928898-0.249618j], 
+                [0, 0, 0], 
+                [0, 0, -0.928898-0.249618j],
+                [0, 0, -1.857796-0.499236j]])
+        expected_e_p = np.array([[0, 0, 0], 
+                [-0.891575-0.325905j, 0.891575+0.325905j, 0], 
+                [-0.891575-0.325905j, 0.891575+0.325905j, 0],
+                [-4.457875-1.629525j, 2.674725+0.977715j, 0]])
+        normal = np.array([[1, 0, 0]])
+        incident_direction = np.array([-0.8660254037844387, -0.5, 0])  # 30 deg
+        n_surface = 0.965+6.399j  # Aluminium
+        n_environment = 1
+        e_s, e_p = cl_calcs.reflected_e(
+            incident_direction,
+            incident_e,
+            normal,
+            n_surface,
+            n_environment
+            )
+        expected_shape = np.shape(incident_e)
+        np.testing.assert_allclose(e_s, expected_e_s, atol=5e-6)
+        np.testing.assert_allclose(e_p, expected_e_p, atol=5e-6)
+        np.testing.assert_equal(np.shape(e_s), expected_shape)
+        np.testing.assert_equal(np.shape(e_p), expected_shape)
+
+    def test_output_shape_4x3normals(self):
+        '''
+        Check the output shape of the reflected fields is the same as the input shape
+        '''
+        incident_e = np.array([[0, 0, 1], [1, -1, 0], [1, -1, 1], [5, -3, 2]])
+        expected_e_s = np.array([[0, 0, -0.928898-0.249618j], 
+                [0, 0, 0], 
+                [0, 0, -0.928898-0.249618j],
+                [0, 0, -1.857796-0.499236j]])
+        expected_e_p = np.array([[0, 0, 0], 
+                [-0.891575-0.325905j, 0.891575+0.325905j, 0], 
+                [-0.891575-0.325905j, 0.891575+0.325905j, 0],
+                [-4.457875-1.629525j, 2.674725+0.977715j, 0]])
+        normal = np.array([[1, 0, 0], [1, 0, 0], [1, 0, 0], [1, 0, 0]])
+        incident_direction = np.array([-0.8660254037844387, -0.5, 0])  # 30 deg
+        n_surface = 0.965+6.399j  # Aluminium
+        n_environment = 1
+        e_s, e_p = cl_calcs.reflected_e(
+            incident_direction,
+            incident_e,
+            normal,
+            n_surface,
+            n_environment
+            )
+        expected_shape = np.shape(incident_e)
+        np.testing.assert_equal(np.shape(e_s), expected_shape)
+        np.testing.assert_equal(np.shape(e_p), expected_shape)
+        np.testing.assert_allclose(e_s, expected_e_s, atol=5e-6)
+        np.testing.assert_allclose(e_p, expected_e_p, atol=5e-6)
 
 class StokesParametersTest(unittest.TestCase):
     def testS1LinearPolarized(self):
