@@ -95,11 +95,8 @@ def reflection_coefficients(incidence_angle, n_surface, n_environment=1):
     if not isinstance(incidence_angle, np.ndarray):
         incidence_angle = np.array([incidence_angle])
     refraction_angle = snells_law(incidence_angle, n_surface, n_environment)
-    r_s = np.empty(np.shape(incidence_angle))
-    r_p = np.empty(np.shape(incidence_angle))
-    if isinstance(n_surface, complex) or isinstance(n_environment, complex):
-        r_s = r_s.astype(complex)
-        r_p = r_p.astype(complex)
+    r_s = np.empty(np.shape(incidence_angle), dtype=np.complex64)
+    r_p = np.empty(np.shape(incidence_angle), dtype=np.complex64)
     r_s[incidence_angle==0] = (
         (n_environment - n_surface)/(n_surface + n_environment)
         )
@@ -191,3 +188,4 @@ def wavelength_to_eV(wavelength):
     '''
     eV = constants.PLANCK * constants.LIGHTSPEED / (wavelength * constants.COULOMB)
     return eV
+

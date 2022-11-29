@@ -1946,18 +1946,10 @@ class MirrorRefractiveIndexTest(parameterized.TestCase):
 class MirrorReflectedFieldTest(parameterized.TestCase):
     '''
     Testing the calculation of electric field vectors reflected off the mirror
-    - same shape
-    - normal incidence should return the same vector
-    - reflection should flip the sign of p-pol??
+    - output is the same shape as the input
+    - 
     '''
-#    @parameterized.named_parameters(
-#        dict(testcase_name='',
-#             ,
-#            ),
-#        dict(testcase_name='',
-#             ,
-#            ),
-#        )
+    
     def testOutputShape(self):
         '''
         Check the shape of the output field is the same as the shape of the input field
@@ -1975,6 +1967,104 @@ class MirrorReflectedFieldTest(parameterized.TestCase):
         expected_reflected_e_shape = np.shape(incident_direction)
         np.testing.assert_equal(np.shape(calculated_reflected_e_s), expected_reflected_e_shape)
         np.testing.assert_equal(np.shape(calculated_reflected_e_p), expected_reflected_e_shape)
+
+
+class MuellerMatrixEllipsoidalTest(parameterized.TestCase):
+    '''
+    Testing the Mueller matrix calculation for an ellipsoidal mirror
+    - all zeros
+    - all real ones
+    - all imaginary ones
+    - mixed real + imaginary ones
+    - arbitrary values
+    '''
+    @parameterized.named_parameters(
+        dict(testcase_name='All zeros',
+             e_h_h = 0,
+             e_h_v = 0,
+             e_v_h = 0,
+             e_v_v = 0,
+             expected_m = (
+                0, 0, 0, 0,
+                0, 0, 0, 0,
+                0, 0, 0, 0,
+                0, 0, 0, 0)
+            ),
+        dict(testcase_name='real ones',
+             e_h_h = 1,
+             e_h_v = 1,
+             e_v_h = 1,
+             e_v_v = 1,
+             expected_m = (
+                2, 0, 2, 0,
+                0, 0, 0, 0,
+                2, 0, 2, 0,
+                0, 0, 0, 0
+                )
+            ),
+        dict(testcase_name='Imaginary ones',
+             e_h_h = 1j,
+             e_h_v = 1j,
+             e_v_h = 1j,
+             e_v_v = 1j,
+             expected_m = (
+                2, 0, 2, 0,
+                0, 0, 0, 0,
+                2, 0, 2, 0,
+                0, 0, 0, 0
+                )
+            ),
+        dict(testcase_name='Mixed real and imag ones positive',
+             e_h_h = 1+1j,
+             e_h_v = 1+1j,
+             e_v_h = 1+1j,
+             e_v_v = 1+1j,
+             expected_m = (
+                4, 0, 4, 0,
+                0, 0, 0, 0,
+                4, 0, 4, 0,
+                0, 0, 0, 0)
+            ),
+        dict(testcase_name='Mixed real and imag ones negative',
+             e_h_h = -1-1j,
+             e_h_v = -1-1j,
+             e_v_h = -1-1j,
+             e_v_v = -1-1j,
+             expected_m = (
+                4, 0, 4, 0,
+                0, 0, 0, 0,
+                4, 0, 4, 0,
+                0, 0, 0, 0)
+            ),
+        dict(testcase_name='Mixed real and imag ones mixed case',
+             e_h_h = -1+1j,
+             e_h_v = +1-1j,
+             e_v_h = +1+1j,
+             e_v_v = -1-1j,
+             expected_m = (
+                4, 0, 0, 4,
+                0, 0, 0, 0,
+                -4, 0, 0, -4,
+                0, 0, 0, 0)
+            ),
+        dict(testcase_name='arbitrary values',
+             e_h_h = -5 + 3j,
+             e_h_v = +0.6 + 0.7j,
+             e_v_h = -2.1 - 0.8j,
+             e_v_v = 1.1 + 0.1j,
+             expected_m = (
+                20.56, 14.29, 8.83, -9.59,
+                18.49, 14.66, 7.37, -11.01,
+                -3.29, 1.49, -7.02, 2.81,
+                -4.63, -5.97, -4.79, -3.38)
+            ),
+        )
+    def test_single_values(self, e_h_h, e_h_v, e_v_h, e_v_v, expected_m):
+        '''
+        Testing single value inputs
+        '''
+        calculated_m = miop.mueller_matrix_ellipsoidal(e_h_h, e_h_v, e_v_h, e_v_v)
+        np.testing.assert_allclose(calculated_m, expected_m, atol=1e-7)
 
 if __name__ == '__main__':
     unittest.main()

@@ -731,6 +731,49 @@ class ReflectionCoefficientsTest(parameterized.TestCase):
         np.testing.assert_allclose(expected_r_p, calculated_r_p, atol=1e-6)
 
 
+    def test_numpy_array_refractive_index(self):
+        '''
+        test the fresnel reflection coefficients for aluminium as the surface,
+        at different angles of incidence
+        Values obtained from Wolfram demo project at (noting this is using 
+        optical sign convention - switch the sign of r_p):
+             Tayari Colemanand Anna Petrova-Mayor 
+             "Fresnel Coefficients of Metals"
+             http://demonstrations.wolfram.com/FresnelCoefficientsOfMetals/
+             Wolfram Demonstrations Project
+             Published: August 31, 2020 
+        '''
+        n_environment = 1
+        n_surface = np.array([0.965+6.399j])
+        incidence_angle = np.deg2rad(np.array(
+            [0, 10, 20, 30, 40, 50, 60, 70, 80]))
+        expected_r_p = np.array([
+            -0.912293 - 0.285616j,
+            -0.910291 - 0.289706j,
+            -0.903869 - 0.302525j,
+            -0.891575 - 0.325905j,
+            -0.870092 - 0.363598j,
+            -0.831861 - 0.422767j,
+            -0.757610 - 0.517044j,
+            -0.587749 - 0.669632j,
+            -0.0914527 - 0.853458j
+            ])
+        expected_r_s = np.array([
+            -0.912293 - 0.285616j,
+            -0.914249 - 0.281575j,
+            -0.919947 - 0.269512j,
+            -0.928898 - 0.249618j,
+            -0.940339 - 0.222237j,
+            -0.953310 - 0.187908j,
+            -0.966749 - 0.147392j,
+            -0.979601 - 0.101696j,
+            -0.990928 - 0.0520749j
+            ])
+        calculated_r_s, calculated_r_p = cl_calcs.reflection_coefficients(
+            incidence_angle, n_surface, n_environment)
+        np.testing.assert_allclose(expected_r_s, calculated_r_s, atol=1e-6)
+        np.testing.assert_allclose(expected_r_p, calculated_r_p, atol=1e-6)
+
 class ReflectedETest(parameterized.TestCase):
     '''
     Test the calculation of the reflected electric field
@@ -984,7 +1027,7 @@ class NormalizeStokesParametersTest(unittest.TestCase):
             )
 
 
-class DielectricToRefraciveTest(parameterized.TestCase):
+class DielectricToRefractiveTest(parameterized.TestCase):
     '''
     normal dielectric function
     no imaginary component

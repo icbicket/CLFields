@@ -339,7 +339,6 @@ def get_mirror_reflected_field(incident_direction, incident_e, wavelength, n_env
     parabola_positions = parabola_position(incident_direction)
     surface_normal = parabola_normals(parabola_positions)
     n_surface = get_mirror_refractive_index(wavelength, mirror=mirror, **kwargs)
-    print(np.shape(incident_direction), np.shape(incident_e), np.shape(surface_normal), np.shape(n_surface), np.shape(n_environment))
     reflected_e_s, reflected_e_p = clc.reflected_e(
         incident_direction,
         incident_e,
@@ -348,3 +347,52 @@ def get_mirror_reflected_field(incident_direction, incident_e, wavelength, n_env
         n_environment=n_environment
         )
     return reflected_e_s, reflected_e_p
+
+
+def mueller_matrix_ellipsoidal(e_h_h, e_h_v, e_v_h, e_v_v):
+    '''
+    Calculate the mueller matrix for an ellipsoidal mirror
+    Rodriguez-Herrera and Bruce 2006
+    Input: 
+    - e_h_h, electric field with horizontal input polarization and horizontal output polarization
+    - e_h_v, input horizontal, output vertical polarized light
+    - e_v_h, input vertical, output horizontal
+    - e_v_v, input vertical, output vertical
+    '''
+    m00 = 0.5 * (
+          e_h_h * np.conj(e_h_h) 
+        + e_h_v * np.conj(e_h_v) 
+        + e_v_h * np.conj(e_v_h)
+        + e_v_v * np.conj(e_v_v)
+        )
+    m01 = 0.5 * (
+          e_h_h * np.conj(e_h_h)
+        + e_h_v * np.conj(e_h_v)
+        - e_v_h * np.conj(e_v_h)
+        - e_v_v * np.conj(e_v_v)
+        )
+    m02 = np.real(e_h_h * np.conj(e_v_h)) + np.real(e_h_v * np.conj(e_v_v))
+    m03 = np.imag(e_h_v * np.conj(e_v_v)) + np.imag(e_h_h * np.conj(e_v_h))
+    m10 = 0.5 * (
+          e_h_h * np.conj(e_h_h)
+        - e_h_v * np.conj(e_h_v)
+        + e_v_h * np.conj(e_v_h)
+        - e_v_v * np.conj(e_v_v)
+        )
+    m11 = 0.5 * (
+          e_h_h * np.conj(e_h_h)
+        - e_h_v * np.conj(e_h_v)
+        - e_v_h * np.conj(e_v_h)
+        + e_v_v * np.conj(e_v_v)
+        )
+    m12 = np.real(e_h_h * np.conj(e_v_h)) - np.real(e_h_v * np.conj(e_v_v))
+    m13 = np.imag(e_h_h * np.conj(e_v_h)) - np.imag(e_h_v * np.conj(e_v_v))
+    m20 = np.real(e_h_h * np.conj(e_h_v)) + np.real(e_v_h * np.conj(e_v_v))
+    m21 = np.real(e_h_h * np.conj(e_h_v)) - np.real(e_v_h * np.conj(e_v_v))
+    m22 = np.real(e_h_h * np.conj(e_v_v)) + np.real(e_v_h * np.conj(e_h_v))
+    m23 = np.imag(e_h_h * np.conj(e_v_v)) - np.imag(e_v_h * np.conj(e_h_v))
+    m30 = -np.imag(e_h_h * np.conj(e_h_v)) - np.imag(e_v_h * np.conj(e_v_v))
+    m31 = -np.imag(e_h_h * np.conj(e_h_v)) + np.imag(e_v_h * np.conj(e_v_v))
+    m32 = -np.imag(e_h_h * np.conj(e_v_v)) - np.imag(e_v_h * np.conj(e_h_v))
+    m33 = np.real(e_h_h * np.conj(e_v_v)) - np.real(e_v_h * np.conj(e_h_v))
+    return m00, m01, m02, m03, m10, m11, m12, m13, m20, m21, m22, m23, m30, m31, m32, m33
