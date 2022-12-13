@@ -735,8 +735,8 @@ class ReflectionCoefficientsTest(parameterized.TestCase):
         '''
         test the fresnel reflection coefficients for aluminium as the surface,
         at different angles of incidence
-        Values obtained from Wolfram demo project at (noting this is using 
-        optical sign convention - switch the sign of r_p):
+        Values obtained from Wolfram demo project at (noting the demo project 
+        is using optical sign convention - switch the sign of r_p):
              Tayari Colemanand Anna Petrova-Mayor 
              "Fresnel Coefficients of Metals"
              http://demonstrations.wolfram.com/FresnelCoefficientsOfMetals/
