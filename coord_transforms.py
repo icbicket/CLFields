@@ -25,7 +25,7 @@ def cartesian_to_spherical_coords(vectors):
     '''
     r = np.sqrt(np.sum(np.square(vectors), axis=-1))
     # theta equation is undefined when z = 0
-    z_not_zero_condition = vectors[:, 2] != 0
+    z_not_zero_condition = np.around(vectors[:, 2], decimals=10) != 0
     theta = np.zeros(np.size(vectors[:, 0]))
     theta[z_not_zero_condition] = np.arctan(
         np.sqrt(
@@ -35,7 +35,7 @@ def cartesian_to_spherical_coords(vectors):
     theta[np.logical_not(z_not_zero_condition)] = np.pi/2
     theta[(vectors[:, 1] == 0) * (vectors[:, 0] == 0) * (vectors[:, 2] < 0)] = np.pi
     #  phi equation is undefined when x = 0
-    x_not_zero_condition = vectors[:, 0] != 0
+    x_not_zero_condition = np.around(vectors[:, 0], decimals=10) != 0
     phi = np.zeros(np.size(vectors[:, 0]))
     phi[x_not_zero_condition] = np.arctan(
         vectors[:, 1][x_not_zero_condition]

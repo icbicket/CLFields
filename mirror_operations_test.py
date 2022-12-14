@@ -1610,13 +1610,15 @@ class ParabolaPositionTest(parameterized.TestCase):
     Test the parabola_position function in mirror_operations
     '''
     @parameterized.named_parameters(
-        ('negative X axis', np.array([[-1, 0, 0]]), np.array([[-2.5, 0, 0]])),
+        ('positive X axis', np.array([[1, 0, 0]]), np.array([[2.5, 0, 0]])),
         ('positive Y axis', np.array([[0, 1, 0]]), np.array([[0, 5, 0]])),
         ('negative Y axis', np.array([[0, -1, 0]]), np.array([[0, -5, 0]])),
         ('positive Z axis', np.array([[0, 0, 1]]), np.array([[0, 0, 5]])),
         ('negative Z axis', np.array([[0, 0, -1]]), np.array([[0, 0, -5]])),
-        ('off axis', np.array([[-2.3, 1, 1]]), np.array([[-2.3, 1, 1]])),
+        ('off axis in-out equal', np.array([[2.3, -1, -1]]), np.array([[2.3, -1, -1]])),
+        ('off axis in-out not equal', np.array([[-1, 5, 3]]), np.array([[-1.017070556338178, 5.085352781690894, 3.051211669014535]])),
         ('2x3 input', np.array([[0, 1, 0], [0, 0, 1]]), np.array([[0, 5, 0], [0, 0, 5]])),
+        ('from Matlab (1)', np.array([[2.480183375807916, -0.052301218492773, 0.442075586823127]]), np.array([[2.480183375807916, -0.052301218492773, 0.442075586823127]])),
 #        ('three-vector input', np.array([-1, 0, 0]), np.array([-2.5, 0, 0]))
 #        ('2x2x3 input',
 #         np.array([[[0, 1, 0], [0, 0, 1]], [[0, -1, 0], [0, 0, -1]]]),
@@ -1630,14 +1632,15 @@ class ParabolaPositionTest(parameterized.TestCase):
         position = miop.parabola_position(direction)
         np.testing.assert_allclose(expected_position, position, atol=1e-7)
 
-    def test_parabola_position_positive_X(self):
+    def test_parabola_position_negative_X(self):
         '''
-        check the parabola positions returns NaN on positive x axis
+        check the parabola positions returns NaN on negative x axis
         '''
-        xyz = np.array([[1, 0, 0]])
+        xyz = np.array([[-1, 0, 0]])
         position_expected = np.array([[np.nan, np.nan, np.nan]])
         position = miop.parabola_position(xyz);
         self.assertTrue(np.all(np.isnan(position)))
+
 
 class ParabolaNormalsTest(parameterized.TestCase):
     '''
@@ -1645,40 +1648,42 @@ class ParabolaNormalsTest(parameterized.TestCase):
     '''
     def test_negative_x_axis(self):
         '''
-        Check that the parabola normal on the negative x-axis points along the 
-        positive x-axis
+        Check that the parabola normal on the negative x-axis does not exist
         '''
         direction = np.array([[-1, 0, 0]])
         parabola_position = miop.parabola_position(direction)
         calculated_normal = miop.parabola_normals(parabola_position)
-        expected_normal = np.array([[1, 0, 0]])
-        np.testing.assert_allclose(expected_normal, calculated_normal, atol=1e-7)
+        self.assertTrue(np.all(np.isnan(calculated_normal)))
 
     @parameterized.named_parameters(
-        dict(testcase_name='negative X axis',
-             direction=np.array([[-1, 0, 0]]),
-             expected_normal=np.array([[1, 0, 0]])
+        dict(testcase_name='positive X axis',
+             direction=np.array([[1, 0, 0]]),
+             expected_normal=np.array([[-1, 0, 0]])
         ),
         dict(testcase_name='positive Y axis',
              direction=np.array([[0, 1 , 0]]),
-             expected_normal=1/np.sqrt(1+1/25*5**2)*np.array([[1, -1/5*5, 0]])
+             expected_normal=1/np.sqrt(1+1/25*5**2)*np.array([[-1, -1/5*5, 0]])
         ),
         dict(testcase_name='negative Y axis',
              direction=np.array([[0, -1, 0]]),
-             expected_normal=1/np.sqrt(1+1/25*5**2)*np.array([[1, 1/5*5, 0]])
+             expected_normal=1/np.sqrt(1+1/25*5**2)*np.array([[-1, 1/5*5, 0]])
         ), 
         dict(testcase_name='positive Z axis',
              direction=np.array([[0, 0, 1]]),
-             expected_normal=1/np.sqrt(1+1/25*5**2)*np.array([[1, 0, -1/5*5]])
+             expected_normal=1/np.sqrt(1+1/25*5**2)*np.array([[-1, 0, -1/5*5]])
         ),
         dict(testcase_name='negative Z axis',
              direction=np.array([[0, 0, -1]]),
-             expected_normal=1/np.sqrt(1+1/25*5**2)*np.array([[1, 0, 1/5*5]])
-        ), 
+             expected_normal=1/np.sqrt(1+1/25*5**2)*np.array([[-1, 0, 1/5*5]])
+        ),
         dict(testcase_name='2 by 3 array input',
              direction=np.array([[0, 0, -1], [0, 0, 1]]),
-             expected_normal=1/np.sqrt(1+1/25*5**2)*np.array([[1, 0, 1/5*5], [1, 0, -1/5*5]])
+             expected_normal=1/np.sqrt(1+1/25*5**2)*np.array([[-1, 0, 1/5*5], [-1, 0, -1/5*5]])
         ),
+        dict(testcase_name='from Matlab',
+            direction=np.array([[2.480183375807916, -0.052301218492773, 0.442075586823127]]),
+            expected_normal=np.array([[-0.996060082509876, 0.010419031201456, -0.088066769097329]])
+            )
     )
     def test_parabola_normals_directions(self, direction, expected_normal):
         '''
@@ -1690,42 +1695,46 @@ class ParabolaNormalsTest(parameterized.TestCase):
         np.testing.assert_allclose(normal, expected_normal, atol=1e-7)
 
     @parameterized.named_parameters(
-        dict(testcase_name='negative X axis',
-             position=np.array([[-1, 0, 0]]),
-             expected_normal=np.array([[1, 0, 0]])
+        dict(testcase_name='positive X axis',
+             position=np.array([[1, 0, 0]]),
+             expected_normal=np.array([[-1, 0, 0]])
         ),
         dict(testcase_name='positive Y axis',
              position=np.array([[0, 1, 0]]),
-             expected_normal=1/np.sqrt(1+1/25)*np.array([[1, -1/5, 0]])
+             expected_normal=1/np.sqrt(1+1/25)*np.array([[-1, -1/5, 0]])
         ),
         dict(testcase_name='negative Y axis',
              position=np.array([[0, -1, 0]]),
-             expected_normal=1/np.sqrt(1+1/25)*np.array([[1, 1/5, 0]])
+             expected_normal=1/np.sqrt(1+1/25)*np.array([[-1, 1/5, 0]])
         ),
         dict(testcase_name='positive Z axis',
              position=np.array([[0, 0, 1]]),
-             expected_normal=1/np.sqrt(1+1/25)*np.array([[1, 0, -1/5]])
+             expected_normal=1/np.sqrt(1+1/25)*np.array([[-1, 0, -1/5]])
         ),
         dict(testcase_name='negative Z axis',
              position=np.array([[0, 0, -1]]),
-             expected_normal=1/np.sqrt(1+1/25)*np.array([[1, 0, 1/5]])
+             expected_normal=1/np.sqrt(1+1/25)*np.array([[-1, 0, 1/5]])
         ),
         dict(testcase_name='positive Y, positive Z',
              position=np.array([[0, 1, 3]]),
-             expected_normal=1/np.sqrt(1+10/25)*np.array([[1, -1/5, -3/5]])
+             expected_normal=1/np.sqrt(1+10/25)*np.array([[-1, -1/5, -3/5]])
         ),
         dict(testcase_name='positive Y, negative Z',
              position=np.array([[0, 1, -3]]),
-             expected_normal=1/np.sqrt(1+10/25)*np.array([[1, -1/5, 3/5]])
+             expected_normal=1/np.sqrt(1+10/25)*np.array([[-1, -1/5, 3/5]])
         ),
         dict(testcase_name='negative Y, positive Z',
              position=np.array([[0, -5, 3]]),
-             expected_normal=1/np.sqrt(1+34/25)*np.array([[1, 1, -3/5]])
+             expected_normal=1/np.sqrt(1+34/25)*np.array([[-1, 1, -3/5]])
         ),
         dict(testcase_name='negative Y, negative Z',
              position=np.array([[0, -5, -3]]),
-             expected_normal=1/np.sqrt(1+34/25)*np.array([[1, 1, 3/5]])
+             expected_normal=1/np.sqrt(1+34/25)*np.array([[-1, 1, 3/5]])
         ),
+        dict(testcase_name='from Matlab',
+            position=np.array([[2.480183375807916, -0.052301218492773, 0.442075586823127]]),
+            expected_normal=np.array([[-0.996060082509876, 0.010419031201456, -0.088066769097329]])
+            )
     )
     def test_parabola_normals_positions(self, position, expected_normal):
         '''
@@ -1734,6 +1743,7 @@ class ParabolaNormalsTest(parameterized.TestCase):
         '''
         normal = miop.parabola_normals(position)
         np.testing.assert_allclose(normal, expected_normal, atol=1e-7)
+
 
 class ParabolaSurfacePolarizationTest(parameterized.TestCase):
     '''
@@ -1947,7 +1957,7 @@ class MirrorReflectedFieldTest(parameterized.TestCase):
     '''
     Testing the calculation of electric field vectors reflected off the mirror
     - output is the same shape as the input
-    - 
+    - output is correct given a normal input
     '''
     
     def testOutputShape(self):
@@ -1968,6 +1978,21 @@ class MirrorReflectedFieldTest(parameterized.TestCase):
         np.testing.assert_equal(np.shape(calculated_reflected_e_s), expected_reflected_e_shape)
         np.testing.assert_equal(np.shape(calculated_reflected_e_p), expected_reflected_e_shape)
 
+#    @parameterized.named_parameters(
+#        dict(testcase_name='Positive x-axis',
+#             incident_direction=np.array([[1, 0, 0]]),
+#             incident_e=np.array([[0, 1, 0]]),
+#             wavelength=1800e-9,
+#             expected_e=np.array([[]]),
+#             )
+#        def test_single_values(self, incident_direction, incident_e, wavelength, expected_e):
+#            calculated_e = miop.get_mirror_reflected_field(incident_direction,
+#                incident_e,
+#                wavelength,
+#                n_environment=1,
+#                mirror=miop.AMOLF_MIRROR
+#                )
+#            np.testing.assert_allclose(calculated_e, expected_e)
 
 class MuellerMatrixEllipsoidalTest(parameterized.TestCase):
     '''

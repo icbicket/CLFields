@@ -212,20 +212,25 @@ def parabola_position(direction):
     '''
     direction: emission direction vector in Cartesian coordinates, a numpy 
     array of shape (N by 3)
+    returns an xyz coordinate where the direction vector intersects the mirror surface
     '''
     direction = direction/ct.field_magnitude(direction, keepdims=True)
     r, theta, phi = ct.cartesian_to_spherical_coords(direction)
     c = np.empty(np.shape(direction))
-    positive_x_condition = np.logical_not(
-        np.logical_and(abs(theta-np.pi/2)<5e-8, abs(phi)<5e-8)
+    negative_x_condition = np.logical_not(
+        np.logical_and(abs(theta-np.pi/2)<5e-8, abs(phi-np.pi)<5e-8)
         )
-    c[np.logical_not(positive_x_condition)] = np.nan
-    c[positive_x_condition] = np.expand_dims(
+#    positive_x_condition = np.logical_not(
+#        np.logical_and(abs(theta-np.pi/2)<5e-8, abs(phi)<5e-8)
+#        )
+    c[np.logical_not(negative_x_condition)] = np.nan
+    c[negative_x_condition] = np.expand_dims(
             np.array(
                 1 / (
                     2 * a * (
-                        1-np.sin(theta[positive_x_condition])
-                        * np.cos(phi[positive_x_condition])
+                        1 
+                        + np.sin(theta[negative_x_condition])
+                        * np.cos(phi[negative_x_condition])
                         )
                     )
                 ), -1
@@ -234,21 +239,21 @@ def parabola_position(direction):
     return parabola
 
 
-def parabola_normals(parabola_positions):
+def parabola_normals(parabola_positions, mirror=AMOLF_MIRROR):
     '''
     parabola_positions: positions on the parabola, N by 3 numpy array
     R = (a*r**2, r*cos(theta), r*sin(theta))
     '''
     # parameterize x in terms of y and z: x = (a*(y**2 + z**2)-2.5, y, z)
     normalizing_factor = np.expand_dims(1/np.sqrt(
-        1 + 4 * a**2 * (
+        1 + 4 * mirror.a**2 * (
             parabola_positions[:, 1]**2 + parabola_positions[:, 2]**2
             )
         ), axis=-1)
     normal_x = np.ones(np.shape(parabola_positions)[0])
-    normal_y = -2 * a * parabola_positions[:, 1]
-    normal_z = -2 * a * parabola_positions[:, 2]
-    normals = normalizing_factor * np.transpose(
+    normal_y = 2 * mirror.a * parabola_positions[:, 1]
+    normal_z = 2 * mirror.a * parabola_positions[:, 2]
+    normals = normalizing_factor * -np.transpose(
         np.vstack((normal_x, normal_y, normal_z))
         )
     return normals
@@ -332,6 +337,7 @@ def get_mirror_reflected_field(incident_direction, incident_e, wavelength, n_env
     incident_direction: in Cartesian coordinates, Nx3 numpy array
     incident_e: incident electric field vector, numpy array, same shape as incident_direction
     n_environment: refractive index of the environment, usually 1
+    wavelength: the wavelength at which to calculate the mirror's refractive index in meters
     mirror: the mirror parameters to use, includes, eg, dielectric function of the mirror
     Returns
         - electric field vector after reflection, should be the same shape as the incident electric field

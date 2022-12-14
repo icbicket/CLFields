@@ -13,10 +13,10 @@ parabola positions of a given phi quadrant should have the same x and y sign
 parabola positions with theta<pi/2 should have positive z
 '''
 
-def x_axis_cone(direction):
+def negative_x_axis_cone(direction):
     r, theta, phi = ct.cartesian_to_spherical_coords(direction)
     cone_condition = np.logical_not(
-        np.logical_and(abs(theta-np.pi/2)<5e-8, abs(phi)<5e-8)
+        np.logical_and(abs(theta-np.pi/2)<5e-8, abs(phi-np.pi)<5e-8)
         )
     return cone_condition
 
@@ -25,11 +25,11 @@ angle_floats = st.floats(min_value=-1e3, max_value=1e3)
 angle_ints = st.integers(min_value=-10, max_value=10)
 one_by_three_vector = npstrat.arrays(dtype=np.float64, shape=(1,3), elements=sane_floats)
 nonzero_3_vector = one_by_three_vector.filter(lambda vec: np.count_nonzero(vec)>0)
-not_positive_x_axis = nonzero_3_vector.filter(x_axis_cone)
+not_negative_x_axis = nonzero_3_vector.filter(negative_x_axis_cone)
 positive_sane_float = st.floats(min_value=1e-16, max_value=1e16)
 
 @given(
-    direction=not_positive_x_axis,
+    direction=not_negative_x_axis,
     )
 def test_parabola_theta_less_than_90(direction):
     '''
@@ -39,28 +39,31 @@ def test_parabola_theta_less_than_90(direction):
     position = miop.parabola_position(direction)
     assert np.all(np.sign(position)==np.sign(direction))
 
-@given(
-    direction=not_positive_x_axis,
-    )
-def test_parabola_normals_same_direction(direction):
-    '''
-    All the normals of the parabola should point towards +x
-    '''
-    position = miop.parabola_position(direction)
-    normals = miop.parabola_normals(position)
-    assert normals[:, 0] > 0
 
-@given(
-    direction=not_positive_x_axis,
-    )
-def test_parabola_normals_magnitude(direction):
-    '''
-    All the normals of the parabola should be unit vectors
-    '''
-    position = miop.parabola_position(direction)
-    normals = miop.parabola_normals(position)
-    normal_magnitude = np.sqrt(np.sum(np.square(normals), axis=-1))
-    np.testing.assert_almost_equal(normal_magnitude, 1)
+class ParabolaNormalsTest(unittest.TestCase):
+    @given(
+        direction=not_negative_x_axis,
+        )
+    def test_parabola_normals_same_x_direction(self, direction):
+        '''
+        All the normals of the parabola should point towards +x
+        '''
+        position = miop.parabola_position(direction)
+        normals = miop.parabola_normals(position)
+        print(direction, normals)
+        assert normals[:, 0] < 0
+
+    @given(
+        direction=not_negative_x_axis,
+        )
+    def test_parabola_normals_magnitude(self, direction):
+        '''
+        All the normals of the parabola should be unit vectors
+        '''
+        position = miop.parabola_position(direction)
+        normals = miop.parabola_normals(position)
+        normal_magnitude = np.sqrt(np.sum(np.square(normals), axis=-1))
+        np.testing.assert_almost_equal(normal_magnitude, 1)
 
 @given(
     theta=angle_floats,
