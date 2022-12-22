@@ -208,7 +208,7 @@ def mirror_outline(phi=np.linspace(0, 2*np.pi, 1000), holein=True, slit=None, sl
     return mirror_theta_phi, hole_theta_phi
 
 
-def parabola_position(direction):
+def parabola_position(direction, mirror=AMOLF_MIRROR):
     '''
     direction: emission direction vector in Cartesian coordinates, a numpy 
     array of shape (N by 3)
@@ -227,7 +227,7 @@ def parabola_position(direction):
     c[negative_x_condition] = np.expand_dims(
             np.array(
                 1 / (
-                    2 * a * (
+                    2 * mirror.a * (
                         1 
                         + np.sin(theta[negative_x_condition])
                         * np.cos(phi[negative_x_condition])
@@ -258,11 +258,12 @@ def parabola_normals(parabola_positions, mirror=AMOLF_MIRROR):
         )
     return normals
 
+
 def surface_polarization_directions(theta, phi):
     '''
     calculate direction vectors for p- and s- polarized light on the mirror surface
-    p-polarized: polarized along theta (is this true for the paraboloid??)
-    s-polarized: polarized along phi (is this true for the paraboloid??)
+    p-polarized: direction of the theta gradient of spherical coordinates
+    s-polarized: direction of the phi gradient of spherical coordinates
     '''
     p_direction = np.transpose(np.vstack(ct.spherical_to_cartesian_vector_field(
         theta,

@@ -20,7 +20,7 @@ def negative_x_axis_cone(direction):
         )
     return cone_condition
 
-sane_floats = st.floats(min_value=-1e16, max_value=1e16)
+sane_floats = st.floats(min_value=-1e16, max_value=1e16).filter(lambda x: np.abs(x)>1e-10)
 angle_floats = st.floats(min_value=-1e3, max_value=1e3)
 angle_ints = st.integers(min_value=-10, max_value=10)
 one_by_three_vector = npstrat.arrays(dtype=np.float64, shape=(1,3), elements=sane_floats)
@@ -28,16 +28,18 @@ nonzero_3_vector = one_by_three_vector.filter(lambda vec: np.count_nonzero(vec)>
 not_negative_x_axis = nonzero_3_vector.filter(negative_x_axis_cone)
 positive_sane_float = st.floats(min_value=1e-16, max_value=1e16)
 
-@given(
-    direction=not_negative_x_axis,
-    )
-def test_parabola_theta_less_than_90(direction):
-    '''
-    Parabola positions (x,y,z) components should have the same sign as the 
-    input direction (x,y,z) components
-    '''
-    position = miop.parabola_position(direction)
-    assert np.all(np.sign(position)==np.sign(direction))
+class ParabolaPositionTest(unittest.TestCase):
+    @given(
+        direction=not_negative_x_axis,
+        )
+    def test_parabola_theta_less_than_90(self, direction):
+        '''
+        Parabola positions (x,y,z) components should have the same sign as the 
+        input direction (x,y,z) components
+        '''
+        position = miop.parabola_position(direction)
+        print(direction, position)
+        assert np.all(np.sign(position)==np.sign(direction))
 
 
 class ParabolaNormalsTest(unittest.TestCase):
@@ -50,7 +52,6 @@ class ParabolaNormalsTest(unittest.TestCase):
         '''
         position = miop.parabola_position(direction)
         normals = miop.parabola_normals(position)
-        print(direction, normals)
         assert normals[:, 0] < 0
 
     @given(

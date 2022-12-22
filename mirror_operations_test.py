@@ -396,7 +396,7 @@ class MirrorOutlineTest(unittest.TestCase):
             phi=expected_mirror_edge[:, 1], holein=True, slit=3, slit_center=0, orientation=0
             )
         np.testing.assert_array_almost_equal(expected_mirror_edge, calculated_mirror_edge)
-    
+
     def test_0p8mm_slit(self):
         '''
         A mirror with a 0.8 mm slit inserted. Check the corners and some points on each edge.
@@ -605,8 +605,15 @@ class MirrorOutlineTest(unittest.TestCase):
 
 class ARMaskCalcTest(parameterized.TestCase):
     '''
-    Test angle-resolved mirror masking function
-    
+    Test angle-resolved mirror masking function:
+        centre of slit-done
+        edges of 3 mm slit-done
+        edges of different size slit-done
+        edges of different size, rotated slit-done
+        edges of off-centre slit -done
+        edges of rotated slit-done
+        edges of rotate, off-centre slit
+        with and without hole
     '''
     @parameterized.named_parameters(
         dict(testcase_name='noslit_nohole', 
@@ -719,16 +726,6 @@ class ARMaskCalcTest(parameterized.TestCase):
             )
         np.testing.assert_array_equal(mask, mask_calc)
 
-    '''
-            centre of slit-done
-            edges of 3 mm slit-done
-            edges of different size slit-done
-            edges of different size, rotated slit-done
-            edges of off-centre slit -done
-            edges of rotated slit-done
-            edges of rotate, off-centre slit
-            with and without hole
-    '''
 
     def test_edges_of_centred_3mm_slit(self):
         '''
