@@ -259,27 +259,29 @@ def parabola_normals(parabola_positions, mirror=AMOLF_MIRROR):
     return normals
 
 
-def surface_polarization_directions(theta, phi):
+def parabola_surface_polarization_directions(theta, phi):
     '''
     calculate direction vectors for p- and s- polarized light on the mirror surface
-    p-polarized: direction of the theta gradient of spherical coordinates
-    s-polarized: direction of the phi gradient of spherical coordinates
+    theta: spherical theta (polar) coordinate for the incident light, numpy array of size N
+    phi: spherical phi (azimuthal) coordinate for the incident light, numpy array of size N
+    p-polarized: light polarization in the plane of incidence on the mirror
+    s-polarized: light polarization perpendicular to the plane of incidence on the mirror
+    Output
+     p_direction: direction of p-polarization, Nx3 numpy array in Cartesian coordinates
+     s_direction: direction of s-polarization, Nx3 numpy array in Cartesian coordinates
     '''
-    p_direction = np.transpose(np.vstack(ct.spherical_to_cartesian_vector_field(
-        theta,
-        phi,
+    p_direction = np.moveaxis(np.array([
+        np.sin(theta)**2 * np.sin(phi)**2 + np.cos(theta)**2,
+        -np.sin(theta)**2 * np.sin(phi) * np.cos(phi),
+        -np.sin(theta) * np.cos(theta) * np.cos(phi)
+        ]), 0, -1)
+    p_direction /= ct.field_magnitude(p_direction, keepdims=True)
+    s_direction = np.moveaxis(np.array([
         np.zeros(np.shape(theta)),
-        np.ones(np.shape(theta)),
-        np.zeros(np.shape(theta)),
-        )))
-
-    s_direction = np.transpose(np.vstack(ct.spherical_to_cartesian_vector_field(
-        theta,
-        phi,
-        np.zeros(np.shape(theta)),
-        np.zeros(np.shape(theta)),
-        np.ones(np.shape(theta)),
-        )))
+        -np.cos(theta),
+        np.sin(theta) * np.sin(phi)
+        ]), 0, -1)
+    s_direction /= ct.field_magnitude(s_direction, keepdims=True)
     return p_direction, s_direction
 
 

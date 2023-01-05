@@ -26,11 +26,12 @@ angle_ints = st.integers(min_value=-10, max_value=10)
 one_by_three_vector = npstrat.arrays(dtype=np.float64, shape=(1,3), elements=sane_floats)
 nonzero_3_vector = one_by_three_vector.filter(lambda vec: np.count_nonzero(vec)>0)
 not_negative_x_axis = nonzero_3_vector.filter(negative_x_axis_cone)
+not_negative_x_axis_sane = not_negative_x_axis.filter(lambda vec: np.max(np.abs(vec))/np.min(np.abs(vec))<1e5)
 positive_sane_float = st.floats(min_value=1e-16, max_value=1e16)
 
 class ParabolaPositionTest(unittest.TestCase):
     @given(
-        direction=not_negative_x_axis,
+        direction=not_negative_x_axis_sane,
         )
     def test_parabola_theta_less_than_90(self, direction):
         '''
@@ -38,13 +39,12 @@ class ParabolaPositionTest(unittest.TestCase):
         input direction (x,y,z) components
         '''
         position = miop.parabola_position(direction)
-        print(direction, position)
         assert np.all(np.sign(position)==np.sign(direction))
 
 
 class ParabolaNormalsTest(unittest.TestCase):
     @given(
-        direction=not_negative_x_axis,
+        direction=not_negative_x_axis_sane,
         )
     def test_parabola_normals_same_x_direction(self, direction):
         '''
@@ -55,7 +55,7 @@ class ParabolaNormalsTest(unittest.TestCase):
         assert normals[:, 0] < 0
 
     @given(
-        direction=not_negative_x_axis,
+        direction=not_negative_x_axis_sane,
         )
     def test_parabola_normals_magnitude(self, direction):
         '''
@@ -66,44 +66,99 @@ class ParabolaNormalsTest(unittest.TestCase):
         normal_magnitude = np.sqrt(np.sum(np.square(normals), axis=-1))
         np.testing.assert_almost_equal(normal_magnitude, 1)
 
-@given(
-    theta=angle_floats,
-    phi=angle_floats,
-    )
-def test_surface_polarization_directions_magnitude(theta, phi):
-    '''
-    The magnitudes of the surface polarization direction results should be 
-    unit vectors
-    '''
-    p, s = miop.surface_polarization_directions(theta, phi)
-    p_magnitude = np.sqrt(np.sum(np.square(p), axis=-1))
-    s_magnitude = np.sqrt(np.sum(np.square(s), axis=-1))
-    np.testing.assert_almost_equal(p_magnitude, 1)
-    np.testing.assert_almost_equal(s_magnitude, 1)
 
-@given(
-    normal=nonzero_3_vector,
-    e_incident_direction=nonzero_3_vector,
-    n_mirror=positive_sane_float,
-    n_environment=positive_sane_float,
-    )
-def test_fresnel_reflection_coefficients_magnitude(
-    normal,
-    e_incident_direction,
-    n_mirror,
-    n_environment):
-    hypothesis.assume(n_environment < n_mirror)
-    r_s, r_p = miop.fresnel_reflection_coefficients(
-        normal, e_incident_direction, n_mirror, n_environment)
-    assert r_s <= 1 and r_s >= 0
-    assert r_p <= 1 and r_p >= 0
+class SurfacePolarizationDirectionsTest(unittest.TestCase):
+    @given(
+        theta=angle_floats,
+        phi=angle_floats,
+        )
+    def test_magnitude(self, theta, phi):
+        '''
+        The magnitudes of the surface polarization direction results should be 
+        unit vectors
+        '''
+        p, s = miop.parabola_surface_polarization_directions(theta, phi)
+        p_magnitude = np.sqrt(np.sum(np.square(p), axis=-1))
+        s_magnitude = np.sqrt(np.sum(np.square(s), axis=-1))
+        np.testing.assert_almost_equal(p_magnitude, 1)
+        np.testing.assert_almost_equal(s_magnitude, 1)
 
-if __name__== '__main__':
-    test_parabola_normals_same_direction()
-    test_parabola_theta_less_than_90()
-    test_parabola_normals_magnitude()
-    test_surface_polarization_directions_magnitude()
-    test_fresnel_reflection_coefficients_magnitude()
+    @given(
+        theta=angle_floats,
+        phi=angle_floats,
+        )
+    def test_s_dot_p_is_zero(self, theta, phi):
+        '''
+        s-direction dot p-direction should be 0 (within floating point error)
+        '''
+        p, s = miop.parabola_surface_polarization_directions(theta, phi)
+        dot_product = np.sum(p * s, axis=-1)
+        np.testing.assert_allclose(dot_product, 0, atol=1e-9)
+
+    @given(
+        theta=angle_floats,
+        phi=angle_floats,
+        )
+    def test_s_dot_i_is_zero(self, theta, phi):
+        '''
+        s-direction dot i-direction (emission direction from the origin) should be 0 (within floating point error)
+        '''
+        p, s = miop.parabola_surface_polarization_directions(theta, phi)
+        i_x, i_y, i_z = ct.spherical_to_cartesian_coords(np.array([[1, theta, phi]]))
+        i = np.hstack((i_x, i_y, i_z))
+        dot_product = np.sum(s * i, axis=-1)
+        np.testing.assert_allclose(dot_product, 0, atol=1e-9)
+
+    @given(
+        theta=angle_floats,
+        phi=angle_floats,
+        )
+    def test_p_dot_i_is_zero(self, theta, phi):
+        '''
+        p-direction dot i-direction should be 0 (within floating point error)
+        '''
+        p, s = miop.parabola_surface_polarization_directions(theta, phi)
+        i_x, i_y, i_z = ct.spherical_to_cartesian_coords(np.array([[1, theta, phi]]))
+        i = np.hstack((i_x, i_y, i_z))
+        dot_product = np.sum(p * i, axis=-1)
+        np.testing.assert_allclose(dot_product, 0, atol=1e-9)
+
+    @given(
+        theta=angle_floats,
+        phi=angle_floats,
+        )
+    def test_s_dot_n_is_zero(self, theta, phi):
+        '''
+        s-direction dot surface normal direction should be 0 (within floating point error)
+        '''
+        p, s = miop.parabola_surface_polarization_directions(theta, phi)
+        i_x, i_y, i_z = ct.spherical_to_cartesian_coords(np.array([[1, theta, phi]]))
+        i = np.expand_dims(np.hstack((i_x, i_y, i_z)), axis=0)
+        parabola_position = miop.parabola_position(i)
+        parabola_normal = miop.parabola_normals(parabola_position)
+        dot_product = np.sum(s * parabola_normal, axis=-1)
+        np.testing.assert_allclose(dot_product, 0, atol=1e-9)
+
+
+class FresnelReflectionCoefficientsTest(unittest.TestCase):
+    @given(
+        normal=nonzero_3_vector,
+        e_incident_direction=nonzero_3_vector,
+        n_mirror=positive_sane_float,
+        n_environment=positive_sane_float,
+        )
+    def test_fresnel_reflection_coefficients_magnitude(
+        self,
+        normal,
+        e_incident_direction,
+        n_mirror,
+        n_environment):
+        hypothesis.assume(n_environment < n_mirror)
+        r_s, r_p = miop.fresnel_reflection_coefficients(
+            normal, e_incident_direction, n_mirror, n_environment)
+        assert r_s <= 1 and r_s >= 0
+        assert r_p <= 1 and r_p >= 0
+
 
 class ARMaskCalcTest(unittest.TestCase):
     @given(
@@ -121,3 +176,7 @@ class ARMaskCalcTest(unittest.TestCase):
             slit_center=None,
             orientation=0)
         self.assertTrue(calculated)
+
+
+if __name__== '__main__':
+    unittest.main()

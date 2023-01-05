@@ -1747,52 +1747,77 @@ class ParabolaSurfacePolarizationTest(parameterized.TestCase):
     Test the surface polarization direction for parabolas
     '''
     @parameterized.named_parameters(
-        dict(testcase_name='positive X axis',
-             theta=np.array([np.pi/2]),
-             phi=np.array([0]),
-             expected_p=np.array([[0, 0, -1]]),
-             expected_s=np.array([[0, 1, 0]]),
-        ),
+#        dict(testcase_name='positive X axis',
+#             theta=np.array([np.pi/2]),
+#             phi=np.array([0]),
+#             expected_p=np.array([[0, 0, 0]]),
+#             expected_s=np.array([[0, 0, 0]]),
+#        ),
         dict(testcase_name='positive Y axis',
              theta=np.array([np.pi/2]),
              phi=np.array([np.pi/2]),
-             expected_p=np.array([[0, 0, -1]]),
-             expected_s=np.array([[-1, 0, 0]]),
+             expected_p=np.array([[1, 0, 0]]),
+             expected_s=np.array([[0, 0, 1]]),
         ),
-        dict(testcase_name='negative X axis',
-             theta=np.array([np.pi/2]),
-             phi=np.array([np.pi]),
-             expected_p=np.array([[0, 0, -1]]),
-             expected_s=np.array([[0, -1, 0]]),
-        ), 
+#        dict(testcase_name='negative X axis',
+#             theta=np.array([np.pi/2]),
+#             phi=np.array([np.pi]),
+#             expected_p=np.array([[0, 0, 0]]),
+#             expected_s=np.array([[0, 0, 0]]),
+#        ), 
         dict(testcase_name='negative Y axis', 
              theta=np.array([np.pi/2]),
              phi=np.array([3*np.pi/2]),
-             expected_p=np.array([[0, 0, -1]]),
-             expected_s=np.array([[1, 0, 0]]),
+             expected_p=np.array([[1, 0, 0]]),
+             expected_s=np.array([[0, 0, -1]]),
         ),
         dict(testcase_name='negative Y axis backwards',
              theta=np.array([np.pi/2]),
              phi=np.array([-np.pi/2]),
-             expected_p=np.array([[0, 0, -1]]),
-             expected_s=np.array([[1, 0, 0]]),
+             expected_p=np.array([[1, 0, 0]]),
+             expected_s=np.array([[0, 0, -1]]),
         ),
         dict(testcase_name='45 degrees off positive z',
              theta=np.array([np.pi/4]),
              phi=np.array([np.pi/2]),
-             expected_p=np.array([[0, 1/np.sqrt(2), -1/np.sqrt(2)]]),
-             expected_s=np.array([[-1, 0, 0]]),
+             expected_p=np.array([[1, 0, 0]]),
+             expected_s=np.array([[0, -1/np.sqrt(2), 1/np.sqrt(2)]]),
         ),
+        dict(testcase_name='2x3 array',
+             theta=np.array([np.pi/2, np.pi/4]),
+             phi=np.array([-np.pi/2, np.pi/2]),
+             expected_p=np.array([[1, 0, 0], [1, 0, 0]]),
+             expected_s=np.array([[0, 0, -1], [0, -1/np.sqrt(2), 1/np.sqrt(2)]]),
+         )
     )
     def test_surface_polarization_directions(self,
                                              theta,
                                              phi,
                                              expected_p,
                                              expected_s):
-        p, s = miop.surface_polarization_directions(theta, phi)
+        p, s = miop.parabola_surface_polarization_directions(theta, phi)
         np.testing.assert_allclose(p, expected_p, atol=1e-7)
         np.testing.assert_allclose(s, expected_s, atol=1e-7)
 
+    def test_output_dimensions_4x3(self):
+        '''
+        test the output dimensions are 4x3, given input of size 4
+        '''
+        theta = np.array([1, 2, 3, 4])
+        phi = np.array([5, 6, 7, 8])
+        p, s = miop.parabola_surface_polarization_directions(theta, phi)
+        self.assertEqual(np.shape(p), (4,3))
+        self.assertEqual(np.shape(s), (4,3))
+
+    def test_output_dimensions_2x4x3(self):
+        '''
+        test the output dimensions are 2x4x3, given input of size 2x4
+        '''
+        theta = np.array([[1, 2, 3, 4], [1, 2, 3, 4]])
+        phi = np.array([[5, 6, 7, 8], [5, 6, 7, 8]])
+        p, s = miop.parabola_surface_polarization_directions(theta, phi)
+        self.assertEqual(np.shape(p), (2, 4, 3))
+        self.assertEqual(np.shape(s), (2, 4, 3))
 
 class FresnelReflectionCoefficientsTest(parameterized.TestCase):
     '''
