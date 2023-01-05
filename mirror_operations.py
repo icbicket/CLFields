@@ -285,41 +285,15 @@ def parabola_surface_polarization_directions(theta, phi):
     return p_direction, s_direction
 
 
-def fresnel_reflection_coefficients(normal,
-                                    e_incident_direction,
-                                    n_mirror,
-                                    n_environment=1):
+def get_mirror_reflection_coefficients(wavelength, normal, e_incident_direction, mirror=AMOLF_MIRROR, n_environment=1):
     '''
-    calculate s and p fresnel reflection coefficients for the parabolic mirror surface
-    normals: surface normals of the mirror
-    e_incident_direction: incident EM wave in Cartesian coordinates
-    n_environment: refractive index of the environment at the desired wavelength
-    n_mirror: refractive index of the mirror at the desired wavelength
+    Retrieve the s and p fresnel reflection coefficients for a mirror surface
     '''
-    e_incident_direction = e_incident_direction/ct.field_magnitude(e_incident_direction, keepdims=True)
-    normal = normal/ct.field_magnitude(normal, keepdims=True)
-    incidence_angle = clc.angle_of_incidence(e_incident_direction, -normal)
+    n_mirror = get_mirror_refractive_index(wavelength, mirror=mirror)
     if n_mirror == 0:
         raise ValueError("Mirror refractive index cannot be 0")
-    n_factor = np.sqrt(1-np.square(n_environment/n_mirror * np.sin(incidence_angle)))
-    r_s = np.square(
-        (
-            n_environment * np.cos(incidence_angle) -
-            n_mirror * n_factor
-        ) / (
-            n_environment * np.cos(incidence_angle) +
-            n_mirror * n_factor
-            )
-        )
-    r_p = np.square(
-        (
-            n_environment * n_factor - 
-            n_mirror * np.cos(incidence_angle)
-        ) / (
-            n_environment * n_factor + 
-            n_mirror * np.cos(incidence_angle)
-            )
-        )
+    incidence_angle = clc.angle_of_incidence(e_incident_direction, -normal)
+    r_s, r_p = clc.reflection_coefficients(incidence_angle, n_mirror, n_environment)
     return r_s, r_p
 
 

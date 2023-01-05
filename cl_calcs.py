@@ -87,10 +87,13 @@ def reflection_coefficients(incidence_angle, n_surface, n_environment=1):
     n_environment: refractive index of the medium through which light travels
         before it impinges on the surface
     r_s: reflection coefficient for s-polarized light (perpendicular to the 
-        plane of incidence)
+        plane of incidence), the ratio of the reflected s-polarized electric 
+        field over the incident electric field
     r_p: reflection coefficient for p-polarized light (parallel to the plane of
-        incidence)
+        incidence), the ratio of the reflected p-polarized electric field 
+        over the incident electric field
     Note: r_s**2 and r_p**2 produce the Fresnel reflection coefficients R_s, R_p
+    Equations from Jackson, Classical Electrodynamics, 1962, Ch 7
     '''
     if not isinstance(incidence_angle, np.ndarray):
         incidence_angle = np.array([incidence_angle])
@@ -115,8 +118,15 @@ def reflection_coefficients(incidence_angle, n_surface, n_environment=1):
                 np.sin(2*incidence_angle[incidence_angle!=0])
                 + np.sin(2*refraction_angle[incidence_angle!=0])
             )
-
     return r_s, r_p
+
+def fresnel_reflection_coefficients(r_s, r_p):
+    '''
+    Calculate the Fresnel reflection coefficients from the r_s, r_p coefficients
+    '''
+    R_s = r_s*np.conj(r_s)
+    R_p = r_p*np.conj(r_p)
+    return R_s, R_p
 
 def reflected_e(incident_direction, incident_e, surface_normal, n_surface, n_environment=1):
     '''

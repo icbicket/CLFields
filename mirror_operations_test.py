@@ -1819,55 +1819,57 @@ class ParabolaSurfacePolarizationTest(parameterized.TestCase):
         self.assertEqual(np.shape(p), (2, 4, 3))
         self.assertEqual(np.shape(s), (2, 4, 3))
 
-class FresnelReflectionCoefficientsTest(parameterized.TestCase):
+class GetMirrorReflectionCoefficientsTest(parameterized.TestCase):
     '''
-    Test the calculation of Fresnel reflection coefficients
+    Test the calculation of reflection coefficients for an electric field
+     impinging on the mirror
     '''
     @parameterized.named_parameters(
         dict(testcase_name='+x, -y',
              k_vector=np.array([1, -1, 0])/np.sqrt(2),
              normal=np.array([1, 0, 0]),
-             expected_r_s=0.203776612,
-             expected_r_p=0.041524907,
+             expected_r_s=np.array([-0.45141623]),
+             expected_r_p=np.array([-0.20377661]),
         ),
         dict(testcase_name='-x, -y',
              k_vector=np.array([-1, -1, 0])/np.sqrt(2),
              normal=np.array([1, 0, 0]),
-             expected_r_s=0.203776612,
-             expected_r_p=0.041524907,
+             expected_r_s=np.array([-0.45141623]),
+             expected_r_p=np.array([-0.20377661]),
         ),
         dict(testcase_name='+x, +y',
              k_vector=np.array([1, 1, 0])/np.sqrt(2),
              normal=np.array([1, 0, 0]),
-             expected_r_s=0.203776612,
-             expected_r_p=0.041524907,
+             expected_r_s=np.array([-0.45141623]),
+             expected_r_p=np.array([-0.20377661]),
         ),
         dict(testcase_name='-x, +y',
              k_vector=np.array([-1, 1, 0])/np.sqrt(2),
              normal=np.array([1, 0, 0]),
-             expected_r_s=0.203776612,
-             expected_r_p=0.041524907,
+             expected_r_s=np.array([-0.45141623]),
+             expected_r_p=np.array([-0.20377661]),
         ),
         dict(testcase_name='Brewster angle',
              k_vector=np.array([2, -1, 0]),
              normal=np.array([0, 1, 0]),
-             expected_r_s=0.36,
-             expected_r_p=0,
+             expected_r_s=np.array([-0.6]),
+             expected_r_p=np.array([0]),
         ),
         dict(testcase_name='not nice axis',
              k_vector=np.array([1, 1, 3]),
              normal=np.array([1, 2.5, 1]),
-             expected_r_s=0.21489423472,
-             expected_r_p=0.03572184881,
+             expected_r_s=np.array([-0.46356686111079304]),
+             expected_r_p=np.array([-0.18900224550388287]),
         ),
     )
     def test_incoming_vector_angles(self, k_vector, normal, expected_r_s, expected_r_p):
         '''
         Incoming vector impinges from different quadrants
         '''
-        n_mirror = 2
+        mirror = miop.ParabolicMirror(a=0.1, dfoc=0.5, xcut=-10.75, thetacutoffhole=4., dielectric=np.array([[0.5, 4, 0], [1.5, 4, 0], [2.5, 4, 0], [3.5, 4, 0], [4.5, 4, 0]]))
+        wavelength = 800e-9
         n_environment = 1
-        r_s, r_p = miop.fresnel_reflection_coefficients(normal, k_vector, n_mirror, n_environment)
+        r_s, r_p = miop.get_mirror_reflection_coefficients(wavelength, normal, k_vector, mirror=mirror, n_environment=n_environment)
         np.testing.assert_allclose(r_s, expected_r_s, atol=1e-7)
         np.testing.assert_allclose(r_p, expected_r_p, atol=1e-7)
 
@@ -1875,17 +1877,19 @@ class FresnelReflectionCoefficientsTest(parameterized.TestCase):
         '''
         the refractive index of the mirror is 0
         '''
-        n_mirror = 0
+        mirror = miop.ParabolicMirror(a=0.1, dfoc=0.5, xcut=-10.75, thetacutoffhole=4., dielectric=np.array([[0.5, 0, 0], [1.5, 0, 0], [2.5, 0, 0], [3.5, 0, 0], [4.5, 0, 0]]))
+        wavelength=800e-9
         n_environment = 1
         k_vector=np.array([1, -1, 0])/np.sqrt(2)
         normal=np.array([1, 0, 0])
         self.assertRaisesRegex(
             ValueError,
             "Mirror refractive index cannot be 0",
-            miop.fresnel_reflection_coefficients,
+            miop.get_mirror_reflection_coefficients,
+            wavelength,
             normal,
             k_vector,
-            n_mirror,
+            mirror,
             n_environment)
 
 

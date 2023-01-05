@@ -662,18 +662,52 @@ class ReflectionCoefficientsTest(parameterized.TestCase):
         incidence_angle = 0
         r_s, r_p = cl_calcs.reflection_coefficients(incidence_angle, n_surface, n_environment)
         np.testing.assert_allclose(r_p, r_s, atol=1e-7)
-    
-    def test_single_value(self):
+
+    @parameterized.named_parameters(
+        dict(testcase_name='+x, -y',
+             incidence_angle=np.pi/4,
+             expected_r_s=np.array([-0.45141623]),
+             expected_r_p=np.array([-0.20377661]),
+             ),
+         dict(testcase_name='ones',
+              incidence_angle=1,
+              expected_r_s=np.array([-0.54108004]),
+              expected_r_p=np.array([-0.087243335]),
+             ),
+        dict(testcase_name='-x, -y',
+             incidence_angle=np.pi/4,
+             expected_r_s=np.array([-0.45141623]),
+             expected_r_p=np.array([-0.20377661]),
+             ),
+        dict(testcase_name='+x, +y',
+             incidence_angle=np.pi/4,
+             expected_r_s=np.array([-0.45141623]),
+             expected_r_p=np.array([-0.20377661]),
+            ),
+        dict(testcase_name='-x, +y',
+             incidence_angle=np.pi/4,
+             expected_r_s=np.array([-0.45141623]),
+             expected_r_p=np.array([-0.20377661]),
+            ),
+        dict(testcase_name='Brewster angle',
+             incidence_angle=1.107148718,
+             expected_r_s=np.array([-0.6]),
+             expected_r_p=np.array([0]),
+             ),
+        dict(testcase_name='not nice axis',
+            incidence_angle=1.0502663767496385,
+             expected_r_s=np.array([-0.5674137875163545]),
+             expected_r_p=np.array([-0.049406606222754904]),
+             ),
+        )
+    def test_single_value(self, incidence_angle, expected_r_s, expected_r_p):
         '''
         test the reflection coefficient calculation with a single input angle
         '''
         n_surface = 2
         n_environment = 1
-        incidence_angle = 1.
-        r = cl_calcs.reflection_coefficients(incidence_angle, n_surface, n_environment)
-        expected_r_s = np.array([-0.54108004])
-        expected_r_p = np.array([-0.087243335])
-        np.testing.assert_allclose(r, (expected_r_s, expected_r_p), atol=1e-7)
+        r_s, r_p = cl_calcs.reflection_coefficients(incidence_angle, n_surface, n_environment)
+        np.testing.assert_allclose((r_s, r_p), (expected_r_s, expected_r_p), atol=1e-7)
     
     def test_array_of_values(self):
         '''
