@@ -1689,6 +1689,15 @@ class RotateNdVectorTest(unittest.TestCase):
         rotated_vector_negative = coord_transforms.rotate_vector_Nd(xyz, angle, -rotation_vector)
         np.testing.assert_array_almost_equal(rotated_vector_negative, -rotated_vector)
 
+    def testOutputShape4x3(self):
+        '''
+        Check the shape of the output vector is correct, given 4x3 input shape
+        '''
+        xyz = np.array([[0, 0, 1], [0, 0, 1], [1/np.sqrt(2), 1/np.sqrt(2), 0],[1.1, 1.1, 1.1]])
+        angle = np.ones(np.shape(xyz)) * np.pi/2
+        rotation_vector = np.array([[1, 1, 0], [1, 1, 0], [0, 0, 3], [0, 0, 3]])
+        rotated_vector = coord_transforms.rotate_vector_Nd(xyz, angle, rotation_vector)
+        np.testing.assert_equal(xyz.shape, rotated_vector.shape)
 
 if __name__ == '__main__':
     unittest.main()

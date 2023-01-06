@@ -322,14 +322,32 @@ def get_mirror_reflected_field(incident_direction, incident_e, wavelength, n_env
     parabola_positions = parabola_position(incident_direction)
     surface_normal = parabola_normals(parabola_positions)
     n_surface = get_mirror_refractive_index(wavelength, mirror=mirror, **kwargs)
-    reflected_e_s, reflected_e_p = clc.reflected_e(
-        incident_direction,
-        incident_e,
-        surface_normal,
-        n_surface,
+    r_s, r_p = get_mirror_reflection_coefficients(
+        wavelength=wavelength, 
+        normal=surface_normal, 
+        e_incident_direction=incident_direction, 
+        mirror=mirror, 
         n_environment=n_environment
         )
-    return reflected_e_s, reflected_e_p
+    incident_r, incident_theta, incident_phi = ct.cartesian_to_spherical_coords(incident_direction)
+    p_direction, s_direction = parabola_surface_polarization_directions(
+        incident_theta, 
+        incident_phi)
+    incident_e_s = np.sum(s_direction * incident_e, axis=-1, keepdims=True) * incident_e
+    incident_e_p = np.sum(p_direction * incident_e, axis=-1, keepdims=True) * incident_e
+    reflected_e_s = incident_e_s * r_s
+    reflected_e_p = incident_e_p * r_p
+    print(np.shape(incident_direction), np.shape(surface_normal))
+    reflected_direction = ct.rotate_vector_Nd(incident_direction, np.ones(np.shape(incident_direction)) * np.pi, surface_normal)
+    print(reflected_direction)
+#    reflected_e_s, reflected_e_p = clc.reflected_e(
+#        incident_direction,
+#        incident_e,
+#        surface_normal,
+#        n_surface,
+#        n_environment=n_environment
+#        )
+    return reflected_e_s, reflected_e_p, reflected_direction
 
 
 def mueller_matrix_ellipsoidal(e_h_h, e_h_v, e_v_h, e_v_v):

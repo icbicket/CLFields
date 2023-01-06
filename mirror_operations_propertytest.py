@@ -153,11 +153,19 @@ class FresnelReflectionCoefficientsTest(unittest.TestCase):
         e_incident_direction,
         n_mirror,
         n_environment):
+        '''
+        magnitudes of r_s and r_p should be between 0 and 1, inclusive
+        '''
         hypothesis.assume(n_environment < n_mirror)
-        r_s, r_p = miop.fresnel_reflection_coefficients(
-            normal, e_incident_direction, n_mirror, n_environment)
-        assert r_s <= 1 and r_s >= 0
-        assert r_p <= 1 and r_p >= 0
+        wavelength=800e-9
+        mirror = miop.ParabolicMirror(a=0.1, dfoc=0.5, xcut=-10.75,
+            thetacutoffhole=4.,
+            dielectric=np.array([[1, n_mirror**2, 0],[2, n_mirror**2, 0],[3, n_mirror**2, 0],[4, n_mirror**2, 0]])
+            )
+        r_s, r_p = miop.get_mirror_reflection_coefficients(
+            wavelength, normal, e_incident_direction, mirror=mirror, n_environment=n_environment)
+        assert np.abs(r_s) <= 1
+        assert np.abs(r_p) <= 1
 
 
 class ARMaskCalcTest(unittest.TestCase):
@@ -176,6 +184,17 @@ class ARMaskCalcTest(unittest.TestCase):
             slit_center=None,
             orientation=0)
         self.assertTrue(calculated)
+
+
+class MultiFunctionTest(unittest.TestCase):
+    '''
+    - incident e_s + incident e_p should equal incident_e
+    - magnitude of incident_e should be the greater than or equal to magnitude of reflected_e_s + reflected_e_p
+    - magnitude of incident_e should be equal to magnitude of reflected_e_s + reflected_e_p, given a real dielectric function
+    - x-component of reflected_e should be 0
+    - reflected e direction should be along -x, with y and z near 0
+    '''
+    pass
 
 
 if __name__== '__main__':

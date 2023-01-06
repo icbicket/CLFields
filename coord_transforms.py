@@ -109,7 +109,7 @@ def rotate_vector_Nd(xyz, angle, rotation_axis):
     '''
     xyz: an array of vectors to be rotated, with N dimensions, of which the last has 3 elements
     angle: the angle by which to rotate xyz, in radians
-    rotation_axis: the axis around which to rotate xyz, of length 3
+    rotation_axis: the axis around which to rotate xyz, a numpy array of shape 3, 1x3, or Nx3
     '''
     # Normalize rotation axis
     rotation_axis = rotation_axis/np.sqrt(np.sum(np.square(rotation_axis)))
