@@ -108,17 +108,22 @@ def rotate_vector(xyz, angle, rotation_axis):
 def rotate_vector_Nd(xyz, angle, rotation_axis):
     '''
     xyz: an array of vectors to be rotated, with N dimensions, of which the last has 3 elements
-    angle: the angle by which to rotate xyz, in radians
-    rotation_axis: the axis around which to rotate xyz, a numpy array of shape 3, 1x3, or Nx3
+    angle: the angle by which to rotate xyz, in radians (a float)
+    rotation_axis: the axis around which to rotate xyz, a numpy array of shape 3, or the same shape as xyz (or a broadcastable shape, eg 1x3 for an Mx3 xyz vector)
     '''
     # Normalize rotation axis
-    rotation_axis = rotation_axis/np.sqrt(np.sum(np.square(rotation_axis)))
-    # Expand dimensions of rotation axis for broadcasting
-    rotation_axis = np.reshape(rotation_axis, (xyz.ndim-1)*[1]+[3])
+    rotation_axis = rotation_axis/field_magnitude(rotation_axis, keepdims=True)
+    # Expand dimensions of rotation axis for broadcasting if it is a single 3-vector
+    if rotation_axis.ndim == 1 and xyz.ndim > 1:
+        rotation_axis = np.reshape(rotation_axis, (xyz.ndim-1)*[1]+[3])
     # Calculate rotation vector (Rodrigues formula)
     term1_rot = xyz*np.cos(angle)
     term2_rot = np.cross(rotation_axis, xyz, axis=-1) * np.sin(angle)
-    term3_rot = rotation_axis * np.expand_dims(np.dot(xyz, np.squeeze(rotation_axis)), axis=-1)*(1-np.cos(angle))
+    term3_rot = (
+        rotation_axis * 
+        np.sum(xyz * rotation_axis, axis=-1, keepdims=True) * 
+        (1-np.cos(angle))
+        )
     xyz_rot = term1_rot + term2_rot + term3_rot
     return xyz_rot
 
