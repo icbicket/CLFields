@@ -1616,6 +1616,7 @@ class ParabolaPositionTest(parameterized.TestCase):
         ('off axis in-out not equal', np.array([[-1, 5, 3]]), np.array([[-1.017070556338178, 5.085352781690894, 3.051211669014535]])),
         ('2x3 input', np.array([[0, 1, 0], [0, 0, 1]]), np.array([[0, 5, 0], [0, 0, 5]])),
         ('from Matlab (1)', np.array([[2.480183375807916, -0.052301218492773, 0.442075586823127]]), np.array([[2.480183375807916, -0.052301218492773, 0.442075586823127]])),
+        ('ones', np.array([[1, 1, 1]]), np.array([[1.830127018922193, 1.830127018922193, 1.830127018922193]])),
 #        ('three-vector input', np.array([-1, 0, 0]), np.array([-2.5, 0, 0]))
 #        ('2x2x3 input',
 #         np.array([[[0, 1, 0], [0, 0, 1]], [[0, -1, 0], [0, 0, -1]]]),
@@ -1680,7 +1681,11 @@ class ParabolaNormalsTest(parameterized.TestCase):
         dict(testcase_name='from Matlab',
             direction=np.array([[2.480183375807916, -0.052301218492773, 0.442075586823127]]),
             expected_normal=np.array([[-0.996060082509876, 0.010419031201456, -0.088066769097329]])
-            )
+        ),
+        dict(testcase_name='incident ones',
+            direction=np.array([[1, 1, 1]]),
+            expected_normal=np.array([[-0.8880738338665906, -0.3250575838228477, -0.3250575838228477]])
+        )
     )
     def test_parabola_normals_directions(self, direction, expected_normal):
         '''
@@ -1985,16 +1990,15 @@ class MirrorReflectedFieldTest(parameterized.TestCase):
     - output is the same shape as the input
     - output is correct given a normal input
     '''
-    
-    def testOutputShape(self):
+    def testOutputShape4x3(self):
         '''
-        Check the shape of the output field is the same as the shape of the input field
+        Check the shape of the output field is the same as the shape of the input field, 4x3 input
         '''
         incident_direction = np.array([[1, 0, 0], [2, -3, 0], [-1, -1, -1], [2, 1, 0]])
         incident_e = np.array([[0, 1, 0], [1, 5, 2], [1, -1, 0.5], [5, -2, 1]])
         wavelength = 799.89802*1e-9
         n_environment = 1
-        calculated_reflected_e_s, calculated_reflected_e_p = miop.get_mirror_reflected_field(
+        calculated_reflected_e_s, calculated_reflected_e_p, _ = miop.get_mirror_reflected_field(
             incident_direction,
             incident_e,
             wavelength,
@@ -2004,6 +2008,42 @@ class MirrorReflectedFieldTest(parameterized.TestCase):
         np.testing.assert_equal(np.shape(calculated_reflected_e_s), expected_reflected_e_shape)
         np.testing.assert_equal(np.shape(calculated_reflected_e_p), expected_reflected_e_shape)
 
+    def tes
+    tOutputShape1x3(self):
+        '''
+        Check the shape of the output field is the same as the shape of the input field, 1x3 input
+        '''
+        incident_direction = np.array([[1, 0, 0]])
+        incident_e = np.array([[0, 1, 0]])
+        wavelength = 799.89802*1e-9
+        n_environment = 1
+        calculated_reflected_e_s, calculated_reflected_e_p, _ = miop.get_mirror_reflected_field(
+            incident_direction,
+            incident_e,
+            wavelength,
+            n_environment
+            )
+        expected_reflected_e_shape = np.shape(incident_direction)
+        np.testing.assert_equal(np.shape(calculated_reflected_e_s), expected_reflected_e_shape)
+        np.testing.assert_equal(np.shape(calculated_reflected_e_p), expected_reflected_e_shape)
+
+    def testSingleRealVector(self):
+        '''
+        Check the output is as expected given a real incident electric field 
+        with values determined by a failed property test
+        '''
+        incident_direction = np.array([[1, 1, 1]])
+        incident_e = np.array([[1, -1, 0]])
+        wavelength = 800e-9
+        mirror = miop.AMOLF_MIRROR
+        n_environment = 1
+        reflected_e_s, reflected_e_p, reflected_direction = miop.get_mirror_reflected_field(
+            incident_direction, incident_e, wavelength, n_environment, mirror)
+        expected_e_s = (-0.461575 - 0.0882315j) * np.array([[0, -1, 1]])
+        expected_e_p = np.array([[5.28768253e-10+1.29162216e-10j, -7.77563951e-01-1.89935539e-01j, -7.77563951e-01-1.89935539e-01j]])
+#        expected_e_p = (-0.897854 - 0.219319j) * np.array([[1, -0.5, -0.5]])
+        np.testing.assert_allclose(reflected_e_s, expected_e_s, atol=1e-5)
+        np.testing.assert_allclose(reflected_e_p, expected_e_p, atol=1e-5)
 #    @parameterized.named_parameters(
 #        dict(testcase_name='Positive x-axis',
 #             incident_direction=np.array([[1, 0, 0]]),

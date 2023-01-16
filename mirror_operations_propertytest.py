@@ -29,6 +29,9 @@ not_negative_x_axis = nonzero_3_vector.filter(negative_x_axis_cone)
 not_negative_x_axis_sane = not_negative_x_axis.filter(lambda vec: np.max(np.abs(vec))/np.min(np.abs(vec))<1e5)
 positive_sane_float = st.floats(min_value=1e-16, max_value=1e16)
 
+#electric_vector = npstrat.arrays(dtype=np.float64, shape=(2,3), elements=sane_floats).filter(lambda vec: np.isclose(np.sum(vec[0, :] * vec[1, :], axis=-1), 0, atol=1e-9))
+k_vector = npstrat.arrays(dtype=np.float64, shape=(2,3), elements=sane_floats).filter(lambda vec: np.logical_not(np.allclose(vec[0, :], vec[1, :])))
+
 class ParabolaPositionTest(unittest.TestCase):
     @given(
         direction=not_negative_x_axis_sane,
@@ -186,16 +189,99 @@ class ARMaskCalcTest(unittest.TestCase):
         self.assertTrue(calculated)
 
 
+class GetMirrorReflectedFieldTest(unittest.TestCase):
+    '''
+    - x-component of reflected_e should be 0
+    - reflected e direction should be along -x, with y and z near 0
+    '''
+#    @given(
+#        incident_vector=k_vector,
+#        complex_e=nonzero_3_vector,
+#        )
+#    def test_reflected_e_x_is_0_complex_incident(self, incident_vector, complex_e):
+#        '''
+#        Check that the x-component of the reflected field is 0, within tolerance
+#        '''
+#        wavelength = 800e-9
+#        mirror = miop.AMOLF_MIRROR
+#        n_environment = 1
+#        incident_direction = np.expand_dims(incident_vector[0, :], axis=0)
+#        incident_e = np.cross(incident_vector[0, :], incident_vector[1, :]) + 1j*complex_e
+#        reflected_e_s, reflected_e_p, reflected_direction = miop.get_mirror_reflected_field(incident_direction, incident_e, wavelength, n_environment, mirror)
+#        print(incident_direction, incident_e, reflected_e_s, reflected_e_p)
+#        np.testing.assert_allclose(reflected_e_s[:, 0], 0, atol=1e-8)
+#        np.testing.assert_allclose(reflected_e_p[:, 0], 0, atol=1e-8)
+
+    @given(
+        incident_vector=k_vector,
+        )
+    def test_reflected_e_x_is_0_real_incident(self, incident_vector):
+        '''
+        Check that the x-component of the reflected field is 0, within tolerance
+        '''
+        wavelength = 800e-9
+        mirror = miop.AMOLF_MIRROR
+        n_environment = 1
+        incident_direction = np.expand_dims(incident_vector[0, :], axis=0)
+        incident_e = np.cross(incident_vector[0, :], incident_vector[1, :])
+        reflected_e_s, reflected_e_p, reflected_direction = miop.get_mirror_reflected_field(incident_direction, incident_e, wavelength, n_environment, mirror)
+        print(incident_direction, incident_e, reflected_e_s, reflected_e_p)
+        np.testing.assert_allclose(reflected_e_s[:, 0], 0, atol=1e-8)
+        np.testing.assert_allclose(reflected_e_p[:, 0], 0, atol=1e-8)
+
+#    @given(
+#        incident_vector=k_vector,
+#        complex_e=nonzero_3_vector,
+#        )
+#    def test_reflected_vector_on_x(self, incident_vector, complex_e):
+#        '''
+#        Check that the reflected field propagates along -x
+#        '''
+#        wavelength = 800e-9
+#        mirror = miop.AMOLF_MIRROR
+#        n_environment = 1
+#        incident_direction = np.expand_dims(incident_vector[0, :], axis=0)
+#        incident_e = np.cross(incident_vector[0, :], incident_vector[1, :]) + 1j*complex_e
+#        reflected_e_s, reflected_e_p, reflected_direction = miop.get_mirror_reflected_field(incident_direction, incident_e, wavelength, n_environment, mirror)
+
 class MultiFunctionTest(unittest.TestCase):
     '''
     - incident e_s + incident e_p should equal incident_e
     - magnitude of incident_e should be the greater than or equal to magnitude of reflected_e_s + reflected_e_p
     - magnitude of incident_e should be equal to magnitude of reflected_e_s + reflected_e_p, given a real dielectric function
-    - x-component of reflected_e should be 0
-    - reflected e direction should be along -x, with y and z near 0
     '''
-    pass
-
+    @given(
+        incident_vector=k_vector,
+        complex_e=nonzero_3_vector,
+        )
+    def test_incident_e_magnitudes(self, incident_vector, complex_e):
+        wavelength = 800e-9
+        mirror = miop.AMOLF_MIRROR
+        incident_direction = np.expand_dims(incident_vector[0, :], axis=0)
+        incident_e = np.cross(incident_vector[0, :], incident_vector[1, :]) #+ 1j*complex_e
+        print(incident_vector, incident_e, complex_e)
+        parabola_positions = miop.parabola_position(incident_direction)
+        surface_normal = miop.parabola_normals(parabola_positions)
+        n_surface = miop.get_mirror_refractive_index(wavelength, mirror=mirror)
+        r_s, r_p = miop.get_mirror_reflection_coefficients(
+            wavelength=wavelength, 
+            normal=surface_normal, 
+            e_incident_direction=incident_direction, 
+            mirror=mirror, 
+            n_environment=1
+            )
+        print(r_s, r_p)
+        incident_r, incident_theta, incident_phi = ct.cartesian_to_spherical_coords(incident_direction)
+        p_direction, s_direction = miop.parabola_surface_polarization_directions(
+            incident_theta, 
+            incident_phi)
+        incident_e_s = np.sum(s_direction * incident_e, axis=-1, keepdims=True) * incident_e
+        incident_e_p = np.sum(p_direction * incident_e, axis=-1, keepdims=True) * incident_e
+        incident_e_sum = incident_e_s + incident_e_p
+        print(incident_e_s, incident_e_p)
+        incident_e_magnitude = ct.field_magnitude(incident_e)
+        incident_e_sum_magnitude = ct.field_magnitude(incident_e_sum)
+        np.testing.assert_allclose(incident_e_sum_magnitude, incident_e_magnitude, atol=1e-7)
 
 if __name__== '__main__':
     unittest.main()
