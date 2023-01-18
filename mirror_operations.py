@@ -214,7 +214,7 @@ def parabola_position(direction, mirror=AMOLF_MIRROR):
     array of shape (N by 3)
     returns an xyz coordinate where the direction vector intersects the mirror surface
     '''
-    direction = direction/ct.field_magnitude(direction, keepdims=True)
+#    direction = direction/ct.field_magnitude(direction, keepdims=True)
     r, theta, phi = ct.cartesian_to_spherical_coords(direction)
     c = np.empty(np.shape(direction))
     negative_x_condition = np.logical_not(
@@ -235,7 +235,7 @@ def parabola_position(direction, mirror=AMOLF_MIRROR):
                     )
                 ), -1
         )
-    parabola = direction * c
+    parabola = direction * c / ct.field_magnitude(direction, keepdims=True)
     return parabola
 
 
@@ -319,8 +319,10 @@ def get_mirror_reflected_field(incident_direction, incident_e, wavelength, n_env
     Returns
         - electric field vector after reflection, should be the same shape as the incident electric field
     '''
+
     parabola_positions = parabola_position(incident_direction)
     surface_normal = parabola_normals(parabola_positions)
+
     n_surface = get_mirror_refractive_index(wavelength, mirror=mirror, **kwargs)
     r_s, r_p = get_mirror_reflection_coefficients(
         wavelength=wavelength, 
@@ -329,21 +331,37 @@ def get_mirror_reflected_field(incident_direction, incident_e, wavelength, n_env
         mirror=mirror, 
         n_environment=n_environment
         )
+
     incident_r, incident_theta, incident_phi = ct.cartesian_to_spherical_coords(incident_direction)
+
     p_direction, s_direction = parabola_surface_polarization_directions(
         incident_theta, 
         incident_phi)
+
     incident_e_s = np.sum(s_direction * incident_e, axis=-1, keepdims=True) * s_direction
     incident_e_p = np.sum(p_direction * incident_e, axis=-1, keepdims=True) * p_direction
+
     reflected_e_s = incident_e_s * r_s
     incident_e_p_magnitude = ct.field_magnitude(incident_e_p, keepdims=True)
-    e_p_0_condition = np.isclose(incident_e_p_magnitude, 0, atol=1e-15)
+
+    e_p_mag_0_condition = np.isclose(incident_e_p_magnitude, 0, atol=1e-15)
+    e_p_0_condition = np.broadcast_to(e_p_mag_0_condition, np.shape(incident_e_p))
+
+#    reflected_e_p = np.zeros(np.shape(incident_e_p))
+    incident_e_p_norm = np.zeros(np.shape(incident_e_p))
+
+    incident_e_p_norm = np.ma.masked_array(incident_e_p, mask=e_p_0_condition)/np.ma.masked_array(incident_e_p_magnitude, mask=e_p_mag_0_condition)
+
+    incident_e_p_norm = incident_e_p_norm.data * np.logical_not(incident_e_p_norm.mask)
 #    reflected_e_p = np.ma.masked_array(np.zeros(np.shape(incident_e_p)), mask=np.broadcast_to(e_p_0_condition, np.shape(incident_e_p)))
 #    reflected_e_p = ct.rotate_vector_Nd(incident_e_p, np.ones(np.shape(incident_e_p)) * np.pi, surface_normal) * r_p
-    reflected_e_p = (2 * np.sum(surface_normal * incident_e_p/incident_e_p_magnitude, axis=-1, keepdims=True) * surface_normal - incident_e_p/incident_e_p_magnitude) * incident_e_p_magnitude * r_p
+
+    reflected_e_p = (2 * np.sum(surface_normal * incident_e_p_norm, axis=-1, keepdims=True) * surface_normal - incident_e_p_norm) * incident_e_p_magnitude * r_p
+
 #       reflected_e_p = ct.rotate_vector_Nd(incident_e_p, np.pi, surface_normal) * r_p
 #    reflected_e_p = (2 * np.sum(surface_normal * incident_e_p/incident_e_p_magnitude, axis=-1, keepdims=True) * surface_normal - incident_e_p/incident_e_p_magnitude) * ct.field_magnitude(incident_e_p) * r_p
-    reflected_direction = ct.rotate_vector_Nd(incident_direction, np.ones(np.shape(incident_direction)) * np.pi, surface_normal)
+    reflected_direction = -ct.rotate_vector_Nd(incident_direction, np.ones(np.shape(incident_direction)) * np.pi, surface_normal)
+
 #    print('reflected k', reflected_direction)
 #    reflected_e_s, reflected_e_p = clc.reflected_e(
 #        incident_direction,

@@ -2008,8 +2008,7 @@ class MirrorReflectedFieldTest(parameterized.TestCase):
         np.testing.assert_equal(np.shape(calculated_reflected_e_s), expected_reflected_e_shape)
         np.testing.assert_equal(np.shape(calculated_reflected_e_p), expected_reflected_e_shape)
 
-    def tes
-    tOutputShape1x3(self):
+    def testOutputShape1x3(self):
         '''
         Check the shape of the output field is the same as the shape of the input field, 1x3 input
         '''
@@ -2027,23 +2026,79 @@ class MirrorReflectedFieldTest(parameterized.TestCase):
         np.testing.assert_equal(np.shape(calculated_reflected_e_s), expected_reflected_e_shape)
         np.testing.assert_equal(np.shape(calculated_reflected_e_p), expected_reflected_e_shape)
 
-    def testSingleRealVector(self):
+    @parameterized.named_parameters(
+        dict(testcase_name='ones',
+            incident_direction = np.array([[1, 1, 1]]),
+            incident_e = np.array([[1, -1, 0]]),
+            expected_e_s = (-0.461575 - 0.0882315j) * np.array([[0, -1, 1]]),
+            expected_e_p = np.array([[
+                5.28768253e-10+1.29162216e-10j, 
+                -7.77563951e-01-1.89935539e-01j, 
+                -7.77563951e-01-1.89935539e-01j]]),
+            expected_k_r = np.array([[
+                -1.732051, 
+                0., 
+                0.
+                ]])
+            ),
+        dict(testcase_name='e_p 0',
+            incident_direction = np.array([[3, 1, 1]]),
+            incident_e = np.array([[0, -2, 2]]),
+            expected_e_s = np.array([[
+                0. -0.j,
+                1.82802303+0.38501604j,
+               -1.82802303-0.38501604j
+               ]]),
+            expected_e_p = np.array([[
+                0,
+                0,
+                0
+                ]]),
+            expected_k_r = np.array([[
+                -3.31662479, 
+                0,
+                0,
+                ]])
+            ),
+        dict(testcase_name='big_values',
+             incident_direction=np.array([[5.96046448e-08, 1.00000000e+00, 1.19300000e+03]]),
+             incident_e=np.array([[-1.1920000e+03, 1.1930000e+03, -9.9999994e-01]]),
+             expected_e_p=np.array([[
+                0,
+                8.64725648e-01+2.68119782e-01j,
+                1.03161770e+03+3.19866900e+02j
+                ]]),
+             expected_e_s=np.array([[
+                0,
+                -1.12279941e+03-1.70075561e+02j,
+                9.41156257e-01+1.42561241e-01j,
+                ]]),
+            expected_k_r=np.array([[
+                -1.19300042e+03,
+                0,
+                0
+                ]])
+            )
+        )
+    def testSingleRealVector(self, incident_direction, incident_e, expected_e_s, expected_e_p, expected_k_r):
         '''
         Check the output is as expected given a real incident electric field 
-        with values determined by a failed property test
         '''
-        incident_direction = np.array([[1, 1, 1]])
-        incident_e = np.array([[1, -1, 0]])
+#        incident_direction = np.array([[1, 1, 1]])
+#        incident_e = np.array([[1, -1, 0]])
         wavelength = 800e-9
         mirror = miop.AMOLF_MIRROR
         n_environment = 1
         reflected_e_s, reflected_e_p, reflected_direction = miop.get_mirror_reflected_field(
             incident_direction, incident_e, wavelength, n_environment, mirror)
-        expected_e_s = (-0.461575 - 0.0882315j) * np.array([[0, -1, 1]])
-        expected_e_p = np.array([[5.28768253e-10+1.29162216e-10j, -7.77563951e-01-1.89935539e-01j, -7.77563951e-01-1.89935539e-01j]])
+#        expected_e_s = (-0.461575 - 0.0882315j) * np.array([[0, -1, 1]])
+#        expected_e_p = np.array([[5.28768253e-10+1.29162216e-10j, -7.77563951e-01-1.89935539e-01j, -7.77563951e-01-1.89935539e-01j]])
 #        expected_e_p = (-0.897854 - 0.219319j) * np.array([[1, -0.5, -0.5]])
         np.testing.assert_allclose(reflected_e_s, expected_e_s, atol=1e-5)
         np.testing.assert_allclose(reflected_e_p, expected_e_p, atol=1e-5)
+        np.testing.assert_allclose(reflected_direction, expected_k_r, atol=1e-6)
+
+
 #    @parameterized.named_parameters(
 #        dict(testcase_name='Positive x-axis',
 #             incident_direction=np.array([[1, 0, 0]]),
@@ -2059,6 +2114,7 @@ class MirrorReflectedFieldTest(parameterized.TestCase):
 #                mirror=miop.AMOLF_MIRROR
 #                )
 #            np.testing.assert_allclose(calculated_e, expected_e)
+
 
 class MuellerMatrixEllipsoidalTest(parameterized.TestCase):
     '''
