@@ -102,6 +102,7 @@ def mirror_outline(phi=np.linspace(0, 2*np.pi, 1000), holein=True, slit=None, sl
     Won't work if the slit is too far off the centre of the mirror (such that 
     it doesn't cover the x-axis): one side of the slit must be on positive y,
     the other on negative y
+    Returns mirror theta/phi in radians and hole theta/phi in degrees/radians
     '''
     # hole
     if holein:

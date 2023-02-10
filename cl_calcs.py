@@ -118,6 +118,8 @@ def reflection_coefficients(incidence_angle, n_surface, n_environment=1):
                 np.sin(2*incidence_angle[incidence_angle!=0])
                 + np.sin(2*refraction_angle[incidence_angle!=0])
             )
+    #r_p = -r_p
+#    r_s = -r_s
     return r_s, r_p
 
 def fresnel_reflection_coefficients(r_s, r_p):
@@ -156,11 +158,16 @@ def reflected_e(incident_direction, incident_e, surface_normal, n_surface, n_env
     e_p_reflected = r_p * e_p
     return e_s_reflected, e_p_reflected
 
-def stokes_parameters(E_theta, E_phi):
-    S0 = np.real(E_theta * np.conj(E_theta) + E_phi * np.conj(E_phi))
-    S1 = np.real(E_theta * np.conj(E_theta) - E_phi * np.conj(E_phi))
-    S2 = np.real((E_theta * np.conj(E_phi)) + (E_phi * np.conj(E_theta)))
-    S3 = np.real(-1j * (E_theta * np.conj(E_phi) - E_phi * np.conj(E_theta)))
+def stokes_parameters(E_h, E_v):
+    '''
+    Calculate the stokes parameters given an input of two orthogonal electric fields
+    E_h: horizontal electric field
+    E_v: vertical electric field
+    '''
+    S0 = np.real(E_h * np.conj(E_h) + E_v * np.conj(E_v))
+    S1 = np.real(E_h * np.conj(E_h) - E_v * np.conj(E_v))
+    S2 = np.real((E_h * np.conj(E_v)) + (E_v * np.conj(E_h)))
+    S3 = np.real(-1j * (E_h * np.conj(E_v) - E_v * np.conj(E_h)))
     return S0, S1, S2, S3
 
 def normalize_stokes_parameters(S0, S1, S2, S3):

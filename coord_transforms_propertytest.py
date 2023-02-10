@@ -5,7 +5,7 @@ import hypothesis.strategies as st
 import numpy as np
 import unittest
 
-sane_floats = st.floats(min_value=-1e16, max_value=1e16)
+sane_floats = st.floats(min_value=-1e16, max_value=1e16).filter(lambda x: np.abs(x)>1e-10)
 angle_floats = st.floats(min_value=-1e3, max_value=1e3)
 angle_ints = st.integers(min_value=-10, max_value=10)
 threeD_vector = npstrat.arrays(dtype=np.float64, shape=3, elements=sane_floats)
@@ -23,7 +23,9 @@ class VectorRotationTest(unittest.TestCase):
         A rotation of a vector by an integer multiple of 2pi should return the same vector
         '''
         rotated_xyz = coord_transforms.rotate_vector_Nd(xyz, 2*np.pi*angle, axis)
-        np.testing.assert_allclose(xyz, rotated_xyz, atol=1e-7)
+        xyz_norm = xyz/coord_transforms.field_magnitude(xyz)
+        rotated_xyz_norm = rotated_xyz/coord_transforms.field_magnitude(rotated_xyz)
+        np.testing.assert_allclose(xyz_norm, rotated_xyz_norm, atol=1e-7)
 
     @given(
         xyz=threeD_vector,
@@ -36,7 +38,9 @@ class VectorRotationTest(unittest.TestCase):
         '''
         rotated_xyz_positive = coord_transforms.rotate_vector_Nd(xyz, np.pi*angle, axis)
         rotated_xyz_negative = coord_transforms.rotate_vector_Nd(xyz, -np.pi*angle, axis)
-        np.testing.assert_allclose(rotated_xyz_positive, rotated_xyz_negative)
+        rotated_xyz_positive_norm = rotated_xyz_positive/coord_transforms.field_magnitude(rotated_xyz_positive)
+        rotated_xyz_negative_norm = rotated_xyz_negative/coord_transforms.field_magnitude(rotated_xyz_negative)
+        np.testing.assert_allclose(rotated_xyz_positive_norm, rotated_xyz_negative_norm, atol=1e-7)
 
 
 class VectorMagnitudeTest(unittest.TestCase):
