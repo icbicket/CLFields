@@ -1609,6 +1609,7 @@ class ParabolaPositionTest(parameterized.TestCase):
     @parameterized.named_parameters(
         ('positive X axis', np.array([[1, 0, 0]]), np.array([[2.5, 0, 0]])),
         ('positive Y axis', np.array([[0, 1, 0]]), np.array([[0, 5, 0]])),
+        ('float problem at positive Y', np.array([[6.123234e-17, 1.000000e+00, 6.123234e-17]]), np.array([[0,5,0]])),
         ('negative Y axis', np.array([[0, -1, 0]]), np.array([[0, -5, 0]])),
         ('positive Z axis', np.array([[0, 0, 1]]), np.array([[0, 0, 5]])),
         ('negative Z axis', np.array([[0, 0, -1]]), np.array([[0, 0, -5]])),

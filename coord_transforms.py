@@ -33,20 +33,22 @@ def cartesian_to_spherical_coords(vectors):
             + np.square(vectors[:, 1][z_not_zero_condition]))
         /vectors[:, 2][z_not_zero_condition])
     theta[np.logical_not(z_not_zero_condition)] = np.pi/2
-    theta[(vectors[:, 1] == 0) * (vectors[:, 0] == 0) * (vectors[:, 2] < 0)] = np.pi
+    # dealing with small floating points off the 0-axes
+    vectors_rounded = np.around(vectors, decimals=10)
+    theta[(vectors[:, 1] == 0) * (vectors_rounded[:, 0] == 0) * (vectors_rounded[:, 2] < 0)] = np.pi
     #  phi equation is undefined when x = 0
     x_not_zero_condition = np.around(vectors[:, 0], decimals=10) != 0
     phi = np.zeros(np.size(vectors[:, 0]))
     phi[x_not_zero_condition] = np.arctan(
-        vectors[:, 1][x_not_zero_condition]
-        /vectors[:, 0][x_not_zero_condition])
-    phi[(vectors[:, 1] > 0) * (vectors[:, 0] < 0)] += np.pi # +y, -x
-    phi[(vectors[:, 1] < 0) * (vectors[:, 0] >= 0)] += 2*np.pi # -y, +x
-    phi[(vectors[:, 1] < 0) * (vectors[:, 0] < 0)] += np.pi # -y, -x
-    phi[(vectors[:, 1] > 0) * (vectors[:, 0] == 0)] = np.pi/2
-    phi[(vectors[:, 1] < 0) * (vectors[:, 0] == 0)] = 3*np.pi/2
-    phi[(vectors[:, 1] == 0) * (vectors[:, 0] < 0)] = np.pi
-    phi[(vectors[:, 1] == 0) * (vectors[:, 0] == 0)] = 0
+        vectors_rounded[:, 1][x_not_zero_condition]
+        /vectors_rounded[:, 0][x_not_zero_condition])
+    phi[(vectors_rounded[:, 1] > 0) * (vectors_rounded[:, 0] < 0)] += np.pi # +y, -x
+    phi[(vectors_rounded[:, 1] < 0) * (vectors_rounded[:, 0] >= 0)] += 2*np.pi # -y, +x
+    phi[(vectors_rounded[:, 1] < 0) * (vectors_rounded[:, 0] < 0)] += np.pi # -y, -x
+    phi[(vectors_rounded[:, 1] > 0) * (vectors_rounded[:, 0] == 0)] = np.pi/2 # +y, x=0
+    phi[(vectors_rounded[:, 1] < 0) * (vectors_rounded[:, 0] == 0)] = 3*np.pi/2 # -y, x = 0
+    phi[(vectors_rounded[:, 1] == 0) * (vectors_rounded[:, 0] < 0)] = np.pi # y=0, -x
+    phi[(vectors_rounded[:, 1] == 0) * (vectors_rounded[:, 0] == 0)] = 0 # y=0, x = 0
     theta[theta<0] += np.pi
     return r, theta, phi
 
