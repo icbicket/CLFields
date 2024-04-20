@@ -1936,7 +1936,7 @@ class MirrorRefractiveIndexTest(parameterized.TestCase):
              expected_n = 0.101999952506306 + 1j * 2.07000096384308
             ),
         dict(testcase_name='0p5 eV',
-             wavelength=2.4796839686640052e-06,
+             wavelength=2.4796838686640052e-06,
              expected_n = 3.07 + 1j * 25.6
             ),
         )
