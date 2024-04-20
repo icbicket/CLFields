@@ -421,3 +421,49 @@ def mueller_matrix_ellipsoidal(e_h_h, e_h_v, e_v_h, e_v_v):
     m32 = -np.imag(e_h_h * np.conj(e_v_v)) - np.imag(e_v_h * np.conj(e_h_v))
     m33 = np.real(e_h_h * np.conj(e_v_v)) - np.real(e_v_h * np.conj(e_h_v))
     return m00, m01, m02, m03, m10, m11, m12, m13, m20, m21, m22, m23, m30, m31, m32, m33
+
+def get_mirror_mueller_matrix(incident_direction, E_S1_positive, E_S1_negative, wavelength, output_stokes_indices=(1,2), n_environment=-1, mirror=miop.AMOLF_MIRROR):
+    '''
+    This function calculates the Mueller matrix given the input direction and the electric fields of two input polarizations, and the wavelength at which to calculate the Stokes parameters.
+    incident_direction: numpy array with last dimension of 3 (eg, Nx3, NxMx3)
+    E_S1_positive: the electric fields of an input with positive S1 Stokes parameter, numpy array of the same shape as incident_direction, Cartesian coordinates expected
+    E_S1_negative: the electric fields of an input with negative S1 Stokes parameter, numpy array of the same shape as incident_direction, Cartesian coordinates expected
+    wavelength: the free-space wavelength at which to calculate the Mueller matrix
+    output_stokes_indices: which indices of the coordinate system, to use on the output vector to calculate the final Stokes parameters
+    n_environment: the refractive index of the environment
+    mirror: the mirror to use
+    '''
+    # calculate the s- and p-polarized fields given the positive S1 input
+    e_s_out_S1positive_in, e_p_out_S1positive_in = get_mirror_reflected_field(
+        incident_direction=incident_direction,
+        incident_e = E_S1_positive,
+        wavelength=wavelength,
+        n_environment=n_environment,
+        mirror=mirror
+    )
+    # calculate the s- and p-polarized fields given the negative S1 input
+    e_s_out_S1negative_in, e_p_out_S1negative_in = get_mirror_reflected_field(
+        incident_direction=incident_direction,
+        incident_e = E_S1_negative,
+        wavelength=wavelength,
+        n_environment=n_environment,
+        mirror=mirror
+    )
+    # add together the two outputs for each input
+    e_out_S1positive_in = e_s_out_S1positive_in + e_p_out_S1positive_in
+    e_out_S1negative_in = e_s_out_S1negative_in + e_p_out_S1negative_in
+    # split the out fields into vectors for S1 positive and negative
+    S1_positive_out_S1_positive_in = e_out_S1positive_in[:, output_stokes_indices[0]]  # i.e. Ehh
+    S1_negative_out_S1_positive_in = e_out_S1positive_in[:, output_stokes_indices[1]]  # i.e. Evh
+    S1_positive_out_S1_negative_in = e_out_S1negative_in[:, output_stokes_indices[0]]  # i.e. Ehv
+    S1_negative_out_S1_negative_in = e_out_S1negative_in[:, output_stokes_indices[1]]  # i.e. Evv
+    # calculate the Mueller matrix
+    mueller_matrix = mueller_matrix_ellipsoidal(
+        S1_positive_out_S1_positive_in,
+        S1_negative_out_S1_positive_in,
+        S1_positive_out_S1_negative_in,
+        S1_negative_out_S1_negative_in,
+    )
+    return mueller_matrix
+
+

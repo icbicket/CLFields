@@ -2214,5 +2214,6 @@ class MuellerMatrixEllipsoidalTest(parameterized.TestCase):
         calculated_m = miop.mueller_matrix_ellipsoidal(e_h_h, e_h_v, e_v_h, e_v_v)
         np.testing.assert_allclose(calculated_m, expected_m, atol=1e-7)
 
+
 if __name__ == '__main__':
     unittest.main()
