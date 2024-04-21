@@ -2215,5 +2215,137 @@ class MuellerMatrixEllipsoidalTest(parameterized.TestCase):
         np.testing.assert_allclose(calculated_m, expected_m, atol=1e-7)
 
 
+class GetMuellerMatrixTest(parameterized.TestCase):
+    '''
+    Testing get_mirror_mueller_matrix function
+    - all zeros
+    - incident angle = 90, along +x axis (theta, phi) = (90, 0)
+    - (theta, phi) = (45, 0) # TODO
+    - along -x axis: should be NaNs (?) - TODO
+    - input theta polarized, calculate Mueller, back-calculate input from Mueller - is it the same? - TODO
+    - input theta polarized and check the values match Osorio's TR calculation in the SI (don't even need Mueller matrix, just calculate Fresnel reflected fields), can check the value at specific points on the mirror (eg, 45,45 should be negative) - TODO
+    '''
+    def positive_and_negative_stokes_vectors(self, theta, phi):
+        '''
+        Set up the vectors for a positive and negative S1 parameter, taking in theta and phi angles
+        '''
+        S1_positive_r, S1_positive_theta, S1_positive_phi = coord_transforms.spherical_to_cartesian_vector_field(
+            theta,
+            phi,
+            0,
+            1,
+            0,
+            )
+        E_S1_positive = np.stack((S1_positive_r, S1_positive_theta, S1_positive_phi), axis=-1)
+        S1_negative_r, S1_negative_theta, S1_negative_phi = coord_transforms.spherical_to_cartesian_vector_field(
+            theta,
+            phi,
+            0,
+            0,
+            1,
+            )
+        E_S1_negative = np.stack((S1_negative_r, S1_negative_theta, S1_negative_phi), axis=-1)
+        return E_S1_positive, E_S1_negative
+    
+    @parameterized.named_parameters(
+        dict(testcase_name='All zeros',
+             incident_vector = np.array([[1/np.sqrt(2), 1/np.sqrt(2), 0]]),
+             E_S1_positive = np.array([[0,0,0]]),
+             E_S1_negative = np.array([[0,0,0]]),
+             expected_m = np.array([[
+                0, 0, 0, 0,
+                0, 0, 0, 0,
+                0, 0, 0, 0,
+                0, 0, 0, 0]]).transpose()
+            ),
+        dict(testcase_name='All zeros, 2x3',
+             incident_vector = np.array([[1/np.sqrt(2), 1/np.sqrt(2), 0],[1/np.sqrt(2), 1/np.sqrt(2), 0]]),
+             E_S1_positive = np.array([[0,0,0]]),
+             E_S1_negative = np.array([[0,0,0]]),
+             expected_m = np.array([[
+                 0, 0, 0, 0,
+                 0, 0, 0, 0,
+                 0, 0, 0, 0,
+                 0, 0, 0, 0],
+                [0, 0, 0, 0,
+                 0, 0, 0, 0,
+                 0, 0, 0, 0,
+                 0, 0, 0, 0]
+                ]).transpose()
+            ),
+        dict(testcase_name='incident angle 90 (+x axis)',
+             incident_vector = np.array([[1, 0, 0]]),
+             E_S1_positive = np.array([[0,1,0]]),
+             E_S1_negative = np.array([[0,0,1]]),
+             expected_m = np.array([[
+                1,0,0,0,
+                0,1,0,0,
+                0,0,-1,0,
+                0,0,0,-1
+             ]]).transpose()
+        )
+        )
+    def test_simple_input_values(self, incident_vector, E_S1_positive, E_S1_negative, expected_m):
+        '''
+        Testing single value inputs
+        '''
+        r, theta, phi = coord_transforms.cartesian_to_spherical_coords(incident_vector)
+        calculated_m = miop.get_mirror_mueller_matrix(
+            incident_vector,
+            E_S1_positive,
+            E_S1_negative,
+            wavelength=1800e-9,
+            output_stokes_indices=(1,2),
+            n_environment=1,
+            mirror=miop.AMOLF_MIRROR
+            )
+        np.testing.assert_allclose(calculated_m, expected_m, atol=1e-7, err_msg=f'calculated: \n{calculated_m} \n expected:\n{expected_m}', verbose=False)
+
+    def test_111_input(self):
+        '''
+        Testing an input direction vector of x,y,z=(1,1,1)
+        '''
+        incident_vector=np.array([[1,1,1]])
+        r, theta, phi = coord_transforms.cartesian_to_spherical_coords(incident_vector)
+        E_S1_positive, E_S1_negative = self.positive_and_negative_stokes_vectors(theta, phi)
+        mueller_matrix = np.real(miop.get_mirror_mueller_matrix(
+            incident_vector,
+            E_S1_positive,
+            E_S1_negative,
+            wavelength=1800e-9,
+        ))
+        assert np.logical_and(mueller_matrix[0, :]>=0, mueller_matrix[0, :]<=1)
+        
+    def test_11negative1_input(self):
+        '''
+        Testing an input direction vector of x,y,z=(1,1,-1)
+        '''
+        incident_vector=np.array([[1,1,-1]])
+        r, theta, phi = coord_transforms.cartesian_to_spherical_coords(incident_vector)
+        E_S1_positive, E_S1_negative = self.positive_and_negative_stokes_vectors(theta, phi)
+        mueller_matrix = np.real(miop.get_mirror_mueller_matrix(
+            incident_vector,
+            E_S1_positive,
+            E_S1_negative,
+            wavelength=1800e-9,
+        ))
+        assert np.logical_and(mueller_matrix[0, :]>=0, mueller_matrix[0, :]<=1)
+        
+    def test_2x3_input_vector(self):
+        '''
+        Testing an input vector that is a 2x3 numpy array of real values
+        '''
+        incident_vector=np.array([[1,1,1], [1,1,-1]])
+        r, theta, phi = coord_transforms.cartesian_to_spherical_coords(incident_vector)
+        E_S1_positive, E_S1_negative = self.positive_and_negative_stokes_vectors(theta, phi)
+        mueller_matrix = np.real(miop.get_mirror_mueller_matrix(
+            incident_vector,
+            E_S1_positive,
+            E_S1_negative,
+            wavelength=1800e-9,
+        ))
+        assert np.all(np.logical_and(mueller_matrix[0, :]>=0, mueller_matrix[0, :]<=1))
+
+
 if __name__ == '__main__':
     unittest.main()

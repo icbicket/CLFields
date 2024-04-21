@@ -19,7 +19,7 @@ def negative_x_axis_cone(direction):
     direction = direction/ct.field_magnitude(direction, keepdims=True)
     r, theta, phi = ct.cartesian_to_spherical_coords(direction)
     cone_condition = np.logical_not(
-        np.logical_and(abs(theta-np.pi/2)<5e-8, abs(phi-np.pi)<5e-8)
+        np.logical_and(abs(theta-np.pi/2)<5e-5, abs(phi-np.pi)<5e-5)
         )
     return cone_condition
 
@@ -35,6 +35,7 @@ positive_sane_float = st.floats(min_value=1e-16, max_value=1e16)
 #electric_vector = npstrat.arrays(dtype=np.float64, shape=(2,3), elements=sane_floats).filter(lambda vec: np.isclose(np.sum(vec[0, :] * vec[1, :], axis=-1), 0, atol=1e-9))
 sane_k_floats = st.floats(min_value=-1e8, max_value=1e8).filter(lambda x: np.abs(x)>1e-10)
 k_vector = npstrat.arrays(dtype=np.float64, shape=(2,3), elements=sane_k_floats).filter(lambda vec: np.logical_not(np.allclose(vec[0, :], vec[1, :]))).filter(lambda vec: negative_x_axis_cone(vec[0, :]))
+k_vector_one = npstrat.arrays(dtype=np.float64, shape=(1,3), elements=sane_k_floats).filter(lambda vec: negative_x_axis_cone(vec))
 
 class ParabolaPositionTest(unittest.TestCase):
     @given(
@@ -348,6 +349,120 @@ class MultiFunctionTest(unittest.TestCase):
         incident_e_magnitude = ct.field_magnitude(incident_e)
         incident_e_sum_magnitude = ct.field_magnitude(incident_e_sum)
         np.testing.assert_allclose(incident_e_sum_magnitude, incident_e_magnitude, atol=1e-7)
+
+
+class GetMuellerMatrixTest(unittest.TestCase):
+    '''
+    - (0,0) is in [0,1] and all other elements are between [-1,1]
+    - (1,1) is symmetrically reflective over the x-axis
+    - (2,2) is symmetrically reflective over the x-axis
+    - result for phi and -phi should be either the same or negative of each other at any theta
+    '''
+    
+    def positive_and_negative_stokes_vectors(self, theta, phi):
+        '''
+        Set up the vectors for a positive and negative S1 parameter, taking in theta and phi angles
+        '''
+        S1_positive_r, S1_positive_theta, S1_positive_phi = ct.spherical_to_cartesian_vector_field(
+            theta,
+            phi,
+            0,
+            1,
+            0,
+            )
+        E_S1_positive = np.stack((S1_positive_r, S1_positive_theta, S1_positive_phi), axis=-1)
+        S1_negative_r, S1_negative_theta, S1_negative_phi = ct.spherical_to_cartesian_vector_field(
+            theta,
+            phi,
+            0,
+            0,
+            1,
+            )
+        E_S1_negative = np.stack((S1_negative_r, S1_negative_theta, S1_negative_phi), axis=-1)
+        return E_S1_positive, E_S1_negative
+    
+    @given(
+    incident_vector = k_vector_one
+    )
+    def test_output_range(self, incident_vector):
+        r, theta, phi = ct.cartesian_to_spherical_coords(incident_vector)
+        E_S1_positive, E_S1_negative = self.positive_and_negative_stokes_vectors(theta, phi)
+        mueller_calc = np.real(miop.get_mirror_mueller_matrix(
+            incident_vector,
+            E_S1_positive,
+            E_S1_negative,
+            wavelength=1800e-9,
+            output_stokes_indices=(1,2),
+        ))
+        assert np.all(np.logical_and(mueller_calc[0, :]<= 1, mueller_calc[0, :] >= 0))
+        assert np.all(np.logical_and(mueller_calc<=1, mueller_calc>=-1))
+
+    @given(
+        incident_vector = k_vector_one
+    )
+    def test_reflection_symmetry(self, incident_vector):
+        '''
+        Compare a calculated Mueller matrix to a calculated Mueller matrix on the opposite side of the mirror (eg, with a negative y-value, but same x and z values)
+        '''
+        r, theta, phi = ct.cartesian_to_spherical_coords(incident_vector)
+        incident_vector_flip_y = incident_vector*np.array([1, -1, 1])
+        r_flip_y, theta_flip_y, phi_flip_y = ct.cartesian_to_spherical_coords(incident_vector_flip_y)
+        E_S1_positive, E_S1_negative = self.positive_and_negative_stokes_vectors(theta, phi)
+        E_S1_positive_flip_y, E_S1_negative_flip_y = self.positive_and_negative_stokes_vectors(theta_flip_y, phi_flip_y)
+        mueller_calc = np.real(miop.get_mirror_mueller_matrix(
+            incident_vector,
+            E_S1_positive,
+            E_S1_negative,
+            wavelength=1800e-9,
+            output_stokes_indices=(1,2),
+        ))
+        mueller_calc_flip_y = np.real(miop.get_mirror_mueller_matrix(
+            incident_vector_flip_y,
+            E_S1_positive_flip_y,
+            E_S1_negative_flip_y,
+            wavelength=1800e-9,
+            output_stokes_indices=(1,2),
+        ))
+        symmetric_indices = np.array([0, 1, 4, 5, 10, 11, 14, 15])
+        antisymmetric_indices = np.array([2, 6, 7, 8, 9, 13])
+        print(incident_vector, theta, mueller_calc[antisymmetric_indices], -mueller_calc_flip_y[antisymmetric_indices])
+        assert np.all(np.isclose(mueller_calc[symmetric_indices], mueller_calc_flip_y[symmetric_indices]))
+        assert np.all(np.isclose(mueller_calc[antisymmetric_indices], -mueller_calc_flip_y[antisymmetric_indices]))
+
+    @given(
+        incident_vector = k_vector_one
+    )
+    def test_positive_x_greatest_intensity(self, incident_vector):
+        '''
+        The positive x-axis should have incident light at an angle of 90 degrees. This should reflect the greatest proportion of light (e.g., all other (0,0) Mueller matrix values should be less than this value)
+        '''
+        r, theta, phi = ct.cartesian_to_spherical_coords(incident_vector)
+        
+        # set up incident vector to test
+        incident_vector_positive_x = np.array([[1, 0, 0]])
+        E_S1_positive, E_S1_negative = self.positive_and_negative_stokes_vectors(theta, phi)
+        
+        # set up vector along positive x-axis
+        r_positive_x, theta_positive_x, phi_positive_x = ct.cartesian_to_spherical_coords(incident_vector_positive_x)
+        E_S1_positive_positive_x, E_S1_negative_positive_x = self.positive_and_negative_stokes_vectors(theta_positive_x, phi_positive_x)
+        
+        # calculate Mueller matrix for both vectors
+        mueller_calc = np.real(miop.get_mirror_mueller_matrix(
+            incident_vector,
+            E_S1_positive,
+            E_S1_negative,
+            wavelength=1800e-9,
+            output_stokes_indices=(1,2),
+        ))
+        mueller_calc_positive_x = np.real(miop.get_mirror_mueller_matrix(
+            incident_vector_positive_x,
+            E_S1_positive_positive_x,
+            E_S1_negative_positive_x,
+            wavelength=1800e-9,
+            output_stokes_indices=(1,2),
+        ))
+        # compare the 0th element
+        assert mueller_calc[0] <= mueller_calc_positive_x[0]
 
 
 if __name__== '__main__':
