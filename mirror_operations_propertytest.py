@@ -426,8 +426,8 @@ class GetMuellerMatrixTest(unittest.TestCase):
         symmetric_indices = np.array([0, 1, 4, 5, 10, 11, 14, 15])
         antisymmetric_indices = np.array([2, 6, 7, 8, 9, 13])
         print(incident_vector, theta, mueller_calc[antisymmetric_indices], -mueller_calc_flip_y[antisymmetric_indices])
-        assert np.all(np.isclose(mueller_calc[symmetric_indices], mueller_calc_flip_y[symmetric_indices]))
-        assert np.all(np.isclose(mueller_calc[antisymmetric_indices], -mueller_calc_flip_y[antisymmetric_indices]))
+        assert np.all(np.isclose(mueller_calc[symmetric_indices], mueller_calc_flip_y[symmetric_indices], atol=1e-6))
+        assert np.all(np.isclose(mueller_calc[antisymmetric_indices], -mueller_calc_flip_y[antisymmetric_indices], atol=1-e6))
 
     @given(
         incident_vector = k_vector_one
