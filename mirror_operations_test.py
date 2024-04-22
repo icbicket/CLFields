@@ -3,6 +3,7 @@ import numpy as np
 import  mirror_operations as miop
 import unittest
 import coord_transforms
+import cl_calcs
 
 '''
 parabola position:
@@ -1618,6 +1619,7 @@ class ParabolaPositionTest(parameterized.TestCase):
         ('2x3 input', np.array([[0, 1, 0], [0, 0, 1]]), np.array([[0, 5, 0], [0, 0, 5]])),
         ('from Matlab (1)', np.array([[2.480183375807916, -0.052301218492773, 0.442075586823127]]), np.array([[2.480183375807916, -0.052301218492773, 0.442075586823127]])),
         ('ones', np.array([[1, 1, 1]]), np.array([[1.830127018922193, 1.830127018922193, 1.830127018922193]])),
+        ('theta,phi at 45', np.array([[0.5, 0.5, 1/np.sqrt(2)]]), np.array([[5/3, 5/3, 10/(3*np.sqrt(2))]]))
 #        ('three-vector input', np.array([-1, 0, 0]), np.array([-2.5, 0, 0]))
 #        ('2x2x3 input',
 #         np.array([[[0, 1, 0], [0, 0, 1]], [[0, -1, 0], [0, 0, -1]]]),
@@ -1686,7 +1688,11 @@ class ParabolaNormalsTest(parameterized.TestCase):
         dict(testcase_name='incident ones',
             direction=np.array([[1, 1, 1]]),
             expected_normal=np.array([[-0.8880738338665906, -0.3250575838228477, -0.3250575838228477]])
-        )
+        ),
+        dict(testcase_name='theta,phi 45',
+            direction=np.array([[0.5, 0.5, 1/np.sqrt(2)]]),
+            expected_normal=np.array([[-np.sqrt(3)/2, -np.sqrt(3)/6, -1/np.sqrt(6)]])
+        ),
     )
     def test_parabola_normals_directions(self, direction, expected_normal):
         '''
@@ -1794,7 +1800,13 @@ class ParabolaSurfacePolarizationTest(parameterized.TestCase):
              phi=np.array([-np.pi/2, np.pi/2]),
              expected_p=np.array([[1, 0, 0], [1, 0, 0]]),
              expected_s=np.array([[0, 0, -1], [0, -1/np.sqrt(2), 1/np.sqrt(2)]]),
-         )
+         ),
+       dict(testcase_name='theta,phi 45 degrees',
+            theta = np.array([np.pi/4]),
+            phi = np.array([np.pi/4]),
+            expected_p = np.array([[np.sqrt(3)/2, -1/np.sqrt(12), -np.sqrt(1/6)]]),
+            expected_s = np.array([[0, -np.sqrt(2/3), 1/np.sqrt(3)]])
+       ),
     )
     def test_surface_polarization_directions(self,
                                              theta,
@@ -2314,8 +2326,8 @@ class GetMuellerMatrixTest(parameterized.TestCase):
             E_S1_negative,
             wavelength=1800e-9,
         ))
-        assert np.logical_and(mueller_matrix[0, :]>=0, mueller_matrix[0, :]<=1)
-        
+        self.assertTrue(np.logical_and(mueller_matrix[0, :]>=0, mueller_matrix[0, :]<=1))
+
     def test_11negative1_input(self):
         '''
         Testing an input direction vector of x,y,z=(1,1,-1)
@@ -2329,8 +2341,8 @@ class GetMuellerMatrixTest(parameterized.TestCase):
             E_S1_negative,
             wavelength=1800e-9,
         ))
-        assert np.logical_and(mueller_matrix[0, :]>=0, mueller_matrix[0, :]<=1)
-        
+        self.assertTrue(np.logical_and(mueller_matrix[0, :]>=0, mueller_matrix[0, :]<=1))
+
     def test_2x3_input_vector(self):
         '''
         Testing an input vector that is a 2x3 numpy array of real values
@@ -2344,7 +2356,37 @@ class GetMuellerMatrixTest(parameterized.TestCase):
             E_S1_negative,
             wavelength=1800e-9,
         ))
-        assert np.all(np.logical_and(mueller_matrix[0, :]>=0, mueller_matrix[0, :]<=1))
+        self.assertTrue(np.all(np.logical_and(mueller_matrix[0, :]>=0, mueller_matrix[0, :]<=1)))
+    
+    def test_theta45_phi45_M11_positive(self):
+        '''
+        Given an input of polarization along the theta direction:
+        - the value of the (1,1) Mueller matrix coefficient at (theta, phi) = 45 degrees should be negative
+        '''
+        incident_Evector_spherical = np.array([[0, 1, 0]])
+        incident_vector_spherical = np.array([[1, np.pi/4, np.pi/4]])
+        incident_Evector_x, incident_Evector_y, incident_Evector_z = coord_transforms.spherical_to_cartesian_vector_field(
+            incident_vector_spherical[:,1],
+            incident_vector_spherical[:,2],
+            incident_Evector_spherical[:,0],
+            incident_Evector_spherical[:,1],
+            incident_Evector_spherical[:,2],
+        )
+        incident_Evector_cartesian = np.stack((incident_Evector_x, incident_Evector_y, incident_Evector_z), axis=-1)
+        incident_vector_x, incident_vector_y, incident_vector_z = coord_transforms.spherical_to_cartesian_coords(
+            incident_vector_spherical
+        )
+        incident_vector_cartesian = np.stack((incident_vector_x, incident_vector_y, incident_vector_z), axis=1)
+        e_s_out, e_p_out, direction_out = miop.get_mirror_reflected_field(
+            incident_vector_cartesian,
+            incident_Evector_cartesian,
+            wavelength=600e-9,
+            n_environment=1,
+            mirror=miop.AMOLF_MIRROR
+        )
+        e_out = e_s_out + e_p_out
+        S0, S1, S2, S3 = cl_calcs.stokes_parameters(e_out[:, 1], e_out[:, 2])
+        self.assertLess(S1, 0)
 
 
 if __name__ == '__main__':

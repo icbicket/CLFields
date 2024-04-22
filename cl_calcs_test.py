@@ -410,6 +410,11 @@ class AngleOfIncidenceTest(parameterized.TestCase):
             np.array([-1, -2, -0.49]),
             4.263210237e-3,
         ),
+        ('theta,phi 45 to parabolic mirror',
+         np.array([0.5, 0.5, 1/np.sqrt(2)]),
+         np.array([np.sqrt(3)/2, 1/np.sqrt(12), 1/np.sqrt(6)]),
+         np.deg2rad(30),
+        ),
     )
     def test_angle_of_incidence_single_values(self, incident, normal, expected_angle):
         '''
@@ -570,6 +575,17 @@ class SnellsLawTest(parameterized.TestCase):
         expected_refraction_angles = 0.15321514223203334-0.07736669861166084j
         refraction_angles = cl_calcs.snells_law(incidence_angles, n_surface, n_environment)
         np.testing.assert_allclose(refraction_angles, expected_refraction_angles, atol=1e-7)
+
+    def test_30degincidence_Al_600nm_refractive_index_surface(self):
+        '''
+        The surface has a complex refractive index
+        '''
+        incidence_angles = np.pi/6
+        n_surface = 1.1965703 + 7.256124j
+        n_environment = 1
+        expected_refraction_angles = 0.01103774145876004 - 0.06703694527957038j
+        refraction_angles = cl_calcs.snells_law(incidence_angles, n_surface, n_environment)
+        np.testing.assert_allclose(refraction_angles, expected_refraction_angles, atol=1e-5)
 
     def test_complex_refractive_index_environment(self):
         '''
@@ -802,6 +818,25 @@ class ReflectionCoefficientsTest(parameterized.TestCase):
             -0.966749 - 0.147392j,
             -0.979601 - 0.101696j,
             -0.990928 - 0.0520749j
+            ])
+        calculated_r_s, calculated_r_p = cl_calcs.reflection_coefficients(
+            incidence_angle, n_surface, n_environment)
+        np.testing.assert_allclose(expected_r_s, calculated_r_s, atol=1e-6)
+        np.testing.assert_allclose(expected_r_p, calculated_r_p, atol=1e-6)
+
+    def test_Al_surface_30deg_incidence(self):
+        '''
+        test the fresnel reflection coefficients for aluminium as the surface,
+        at 30 degree incidence angle
+        '''
+        n_environment = 1
+        n_surface = 1.1965703 + 7.256124j
+        incidence_angle = np.deg2rad(30)
+        expected_r_p = np.array([
+            -0.9061895022792433 - 0.28850027298458086j,
+            ])
+        expected_r_s = np.array([
+            -0.9375587862880652 - 0.22046733844683338j,
             ])
         calculated_r_s, calculated_r_p = cl_calcs.reflection_coefficients(
             incidence_angle, n_surface, n_environment)

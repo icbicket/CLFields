@@ -324,7 +324,7 @@ def get_mirror_reflected_field(incident_direction, incident_e, wavelength, n_env
     parabola_positions = parabola_position(incident_direction)
     surface_normal = parabola_normals(parabola_positions)
 
-    n_surface = get_mirror_refractive_index(wavelength, mirror=mirror, **kwargs)
+#    n_surface = get_mirror_refractive_index(wavelength, mirror=mirror, **kwargs)
     r_s, r_p = get_mirror_reflection_coefficients(
         wavelength=wavelength, 
         normal=surface_normal, 

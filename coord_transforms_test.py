@@ -574,7 +574,11 @@ class SphericalCartesianCoordinateTransformTest(parameterized.TestCase):
             r_theta_phi = np.array([[0, 0, 0]]),
             expected_xyz = np.array([0, 0, 0]),
             ),
-            )
+        dict(testcase_name='theta,phi 45 degrees',
+            r_theta_phi = np.array([[1, np.pi/4, np.pi/4]]),
+            expected_xyz = np.array([0.5, 0.5, 1/np.sqrt(2)])
+            ),
+        )
     def test_axes(self, r_theta_phi, expected_xyz):
         calculated_x, calculated_y, calculated_z = coord_transforms.spherical_to_cartesian_coords(r_theta_phi)
         np.testing.assert_array_almost_equal(
@@ -1471,7 +1475,15 @@ class SphericalCartesianVectorFieldTest(parameterized.TestCase):
             f_phi = 0,
             expected_f = np.array([0, 0, 0])
             ),
+        dict(testcase_name='theta,phi=45, theta polarized',
+            theta = np.pi/4,
+            phi = np.pi/4,
+            f_r = 0,
+            f_theta=1,
+            f_phi=0,
+            expected_f = np.array([0.5, 0.5, -1/np.sqrt(2)])
             )
+        )
     def test_axes(self, theta, phi, f_r, f_theta, f_phi, expected_f):
         calculated_fx, calculated_fy, calculated_fz = coord_transforms.spherical_to_cartesian_vector_field(
             theta, phi, f_r, f_theta, f_phi)
