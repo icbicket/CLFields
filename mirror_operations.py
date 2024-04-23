@@ -371,7 +371,7 @@ def get_mirror_reflected_field(incident_direction, incident_e, wavelength, n_env
 #        n_surface,
 #        n_environment=n_environment
 #        )
-    return reflected_e_s, reflected_e_p, reflected_direction
+    return -reflected_e_s, reflected_e_p, reflected_direction
 
 
 def mueller_matrix_ellipsoidal(e_h_h, e_h_v, e_v_h, e_v_v):

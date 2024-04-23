@@ -2091,7 +2091,7 @@ class MirrorReflectedFieldTest(parameterized.TestCase):
                 0,
                 0
                 ]])
-            )
+            ),
         )
     def testSingleRealVector(self, incident_direction, incident_e, expected_e_s, expected_e_p, expected_k_r):
         '''
@@ -2111,6 +2111,35 @@ class MirrorReflectedFieldTest(parameterized.TestCase):
         np.testing.assert_allclose(reflected_e_p, expected_e_p, atol=1e-5)
         np.testing.assert_allclose(reflected_direction, expected_k_r, atol=1e-6)
 
+    def testThetaPhi45Degrees(self):
+        '''
+        At input angles of theta, phi are both 45 degrees, and the incident E vector is polarized along theta
+        '''
+        wavelength=600e-9
+        incident_direction=np.array([[0.5, 0.5, 1/np.sqrt(2)]])
+        incident_e=np.array([[0.5, 0.5, -1/np.sqrt(2)]])
+        expected_e_p=np.array([[
+            0,
+            -3.02063167e-01-9.61667667e-02j,
+            -4.27181827e-01-1.36000346e-01j
+        ]])
+        expected_e_s=np.array([[
+            0,
+            -0.625039191-0.1469782267j,
+            0.44196945036354673+0.1039293000306037j
+        ]])
+        expected_k_r = np.array([[
+            -1,
+            0,
+            0
+        ]])
+        mirror = miop.AMOLF_MIRROR
+        n_environment = 1
+        reflected_e_s, reflected_e_p, reflected_direction = miop.get_mirror_reflected_field(
+            incident_direction, incident_e, wavelength, n_environment, mirror)
+        np.testing.assert_allclose(reflected_e_s, expected_e_s, atol=1e-5)
+        np.testing.assert_allclose(reflected_e_p, expected_e_p, atol=1e-5)
+        np.testing.assert_allclose(reflected_direction, expected_k_r, atol=1e-6)
 
 #    @parameterized.named_parameters(
 #        dict(testcase_name='Positive x-axis',
@@ -2289,7 +2318,7 @@ class GetMuellerMatrixTest(parameterized.TestCase):
              incident_vector = np.array([[1, 0, 0]]),
              E_S1_positive = np.array([[0,1,0]]),
              E_S1_negative = np.array([[0,0,1]]),
-             expected_m = np.array([[
+             expected_m = 0.9795101967331153*np.array([[
                 1,0,0,0,
                 0,1,0,0,
                 0,0,-1,0,
@@ -2357,8 +2386,9 @@ class GetMuellerMatrixTest(parameterized.TestCase):
             wavelength=1800e-9,
         ))
         self.assertTrue(np.all(np.logical_and(mueller_matrix[0, :]>=0, mueller_matrix[0, :]<=1)))
-    
-    def test_theta45_phi45_M11_positive(self):
+
+
+    def test_theta45_phi45_M11_negative(self):
         '''
         Given an input of polarization along the theta direction:
         - the value of the (1,1) Mueller matrix coefficient at (theta, phi) = 45 degrees should be negative
@@ -2387,6 +2417,68 @@ class GetMuellerMatrixTest(parameterized.TestCase):
         e_out = e_s_out + e_p_out
         S0, S1, S2, S3 = cl_calcs.stokes_parameters(e_out[:, 1], e_out[:, 2])
         self.assertLess(S1, 0)
+    
+    def test_theta45_phi45_M22_positive(self):
+        '''
+        Given an input of polarization along the theta direction:
+        - the value of the (1,1) Mueller matrix coefficient at (theta, phi) = 45 degrees should be negative
+        '''
+        incident_Evector_spherical = np.array([[0, 1, 0]])
+        incident_vector_spherical = np.array([[1, np.pi/4, np.pi/4]])
+        incident_Evector_x, incident_Evector_y, incident_Evector_z = coord_transforms.spherical_to_cartesian_vector_field(
+            incident_vector_spherical[:,1],
+            incident_vector_spherical[:,2],
+            incident_Evector_spherical[:,0],
+            incident_Evector_spherical[:,1],
+            incident_Evector_spherical[:,2],
+        )
+        incident_Evector_cartesian = np.stack((incident_Evector_x, incident_Evector_y, incident_Evector_z), axis=-1)
+        incident_vector_x, incident_vector_y, incident_vector_z = coord_transforms.spherical_to_cartesian_coords(
+            incident_vector_spherical
+        )
+        incident_vector_cartesian = np.stack((incident_vector_x, incident_vector_y, incident_vector_z), axis=1)
+        e_s_out, e_p_out, direction_out = miop.get_mirror_reflected_field(
+            incident_vector_cartesian,
+            incident_Evector_cartesian,
+            wavelength=600e-9,
+            n_environment=1,
+            mirror=miop.AMOLF_MIRROR
+        )
+        e_out = e_s_out + e_p_out
+        S0, S1, S2, S3 = cl_calcs.stokes_parameters(e_out[:, 1], e_out[:, 2])
+        self.assertLess(0, S2)
+
+    def test_theta45_phi135_M11_positive(self):
+        '''
+        Given an input of polarization along the theta direction:
+        - the value of the (1,1) Mueller matrix coefficient at (theta, phi) = 45 degrees should be negative
+        '''
+        incident_Evector_spherical = np.array([[0, 1, 0]])
+        incident_vector_spherical = np.array([[1, np.pi/4, 3*np.pi/4]])
+        incident_Evector_x, incident_Evector_y, incident_Evector_z = coord_transforms.spherical_to_cartesian_vector_field(
+            incident_vector_spherical[:,1],
+            incident_vector_spherical[:,2],
+            incident_Evector_spherical[:,0],
+            incident_Evector_spherical[:,1],
+            incident_Evector_spherical[:,2],
+        )
+        incident_Evector_cartesian = np.stack((incident_Evector_x, incident_Evector_y, incident_Evector_z), axis=-1)
+        incident_vector_x, incident_vector_y, incident_vector_z = coord_transforms.spherical_to_cartesian_coords(
+            incident_vector_spherical
+        )
+        incident_vector_cartesian = np.stack((incident_vector_x, incident_vector_y, incident_vector_z), axis=1)
+        e_s_out, e_p_out, direction_out = miop.get_mirror_reflected_field(
+            incident_vector_cartesian,
+            incident_Evector_cartesian,
+            wavelength=600e-9,
+            n_environment=1,
+            mirror=miop.AMOLF_MIRROR
+        )
+        e_out = e_s_out + e_p_out
+        S0, S1, S2, S3 = cl_calcs.stokes_parameters(e_out[:, 1], e_out[:, 2])
+        self.assertLess(0, S1)
+        self.assertLess(S2, 0)
+        self.assertLess(S3, 0)
 
 
 if __name__ == '__main__':

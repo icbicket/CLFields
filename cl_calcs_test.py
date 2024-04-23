@@ -781,7 +781,7 @@ class ReflectionCoefficientsTest(parameterized.TestCase):
         np.testing.assert_allclose(expected_r_p, calculated_r_p, atol=1e-6)
 
 
-    def test_numpy_array_refractive_index(self):
+    def test_incidence_angle_array(self):
         '''
         test the fresnel reflection coefficients for aluminium as the surface,
         at different angles of incidence

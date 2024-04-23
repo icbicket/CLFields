@@ -106,7 +106,7 @@ def rotate_vector(xyz, angle, rotation_axis):
     term3_rot = rotation_axis * np.transpose(np.tensordot(rotation_axis, xyz, axes=(0,0)))*(1-np.cos(angle))
     xyz_rot = term1_rot + term2_rot + term3_rot
     return xyz_rot
-    
+
 def rotate_vector_Nd(xyz, angle, rotation_axis):
     '''
     xyz: an array of vectors to be rotated, with N dimensions, of which the last has 3 elements
