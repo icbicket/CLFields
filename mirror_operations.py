@@ -254,35 +254,33 @@ def parabola_normals(parabola_positions, mirror=AMOLF_MIRROR):
     normal_x = np.ones(np.shape(parabola_positions)[0])
     normal_y = 2 * mirror.a * parabola_positions[:, 1]
     normal_z = 2 * mirror.a * parabola_positions[:, 2]
-    normals = normalizing_factor * -np.transpose(
+    normals = normalizing_factor * np.transpose(
         np.vstack((normal_x, normal_y, normal_z))
         )
     return normals
 
 
-def parabola_surface_polarization_directions(theta, phi):
+def surface_polarization_directions(normal, incident_direction):
     '''
     calculate direction vectors for p- and s- polarized light on the mirror surface
-    theta: spherical theta (polar) coordinate for the incident light, numpy array of size N
-    phi: spherical phi (azimuthal) coordinate for the incident light, numpy array of size N
     p-polarized: light polarization in the plane of incidence on the mirror
     s-polarized: light polarization perpendicular to the plane of incidence on the mirror
+    
+    Input
+    normal: surface normals for the mirror surface, eg, as calculated by parabola_normals, a numpy array of size Nx3
+    incident_direction: the incident direction in Cartesian coordinates, a numpy array of size Nx3
+    
     Output
      p_direction: direction of p-polarization, Nx3 numpy array in Cartesian coordinates
      s_direction: direction of s-polarization, Nx3 numpy array in Cartesian coordinates
     '''
-    p_direction = np.moveaxis(np.array([
-        np.sin(theta)**2 * np.sin(phi)**2 + np.cos(theta)**2,
-        -np.sin(theta)**2 * np.sin(phi) * np.cos(phi),
-        -np.sin(theta) * np.cos(theta) * np.cos(phi)
-        ]), 0, -1)
-    p_direction /= ct.field_magnitude(p_direction, keepdims=True)
-    s_direction = np.moveaxis(np.array([
-        np.zeros(np.shape(theta)),
-        -np.cos(theta),
-        np.sin(theta) * np.sin(phi)
-        ]), 0, -1)
+    print(np.shape(normal), np.shape(incident_direction))
+    s_direction = np.cross(normal, incident_direction, axis=-1)
     s_direction /= ct.field_magnitude(s_direction, keepdims=True)
+    
+    p_direction = np.cross(incident_direction, s_direction)
+    p_direction /= ct.field_magnitude(p_direction, keepdims=True)
+    
     return p_direction, s_direction
 
 
@@ -323,8 +321,7 @@ def get_mirror_reflected_field(incident_direction, incident_e, wavelength, n_env
 
     parabola_positions = parabola_position(incident_direction)
     surface_normal = parabola_normals(parabola_positions)
-
-#    n_surface = get_mirror_refractive_index(wavelength, mirror=mirror, **kwargs)
+    
     r_s, r_p = get_mirror_reflection_coefficients(
         wavelength=wavelength, 
         normal=surface_normal, 
@@ -335,54 +332,34 @@ def get_mirror_reflected_field(incident_direction, incident_e, wavelength, n_env
 
     incident_r, incident_theta, incident_phi = ct.cartesian_to_spherical_coords(incident_direction)
 
-    p_direction, s_direction = parabola_surface_polarization_directions(
-        incident_theta, 
-        incident_phi)
+    p_direction, s_direction = surface_polarization_directions(
+        normal=surface_normal,
+        incident_direction=incident_direction)
 
     incident_e_s = np.sum(s_direction * incident_e, axis=-1, keepdims=True) * s_direction
     incident_e_p = np.sum(p_direction * incident_e, axis=-1, keepdims=True) * p_direction
 
-    reflected_e_s = incident_e_s * r_s
-    incident_e_p_magnitude = ct.field_magnitude(incident_e_p, keepdims=True)
+    # negative of the ct.reflect_vector because the outgoing e_s should be in the same direction as the incoming, and this vector reflection formula doesn't quite do that properly when the two vectors are perpendicular (the s-direction vector is not in the reflection plane)
+    reflected_e_s = r_s * -ct.reflect_vector(incident_e_s, surface_normal)
+    reflected_e_p = r_p * ct.reflect_vector(incident_e_p, surface_normal)
+    # negative of the reflected vector because the outgoing vector needs to 
+    # propagate away from the surface and the reflect_vector function will
+    # put out an output vector propagating into the surface
+    reflected_direction = -ct.reflect_vector(incident_direction, surface_normal)
 
-    e_p_mag_0_condition = np.isclose(incident_e_p_magnitude, 0, atol=1e-15)
-    e_p_0_condition = np.broadcast_to(e_p_mag_0_condition, np.shape(incident_e_p))
-
-#    reflected_e_p = np.zeros(np.shape(incident_e_p))
-    incident_e_p_norm = np.zeros(np.shape(incident_e_p))
-
-    incident_e_p_norm = np.ma.masked_array(incident_e_p, mask=e_p_0_condition)/np.ma.masked_array(incident_e_p_magnitude, mask=e_p_mag_0_condition)
-
-    incident_e_p_norm = incident_e_p_norm.data * np.logical_not(incident_e_p_norm.mask)
-#    reflected_e_p = np.ma.masked_array(np.zeros(np.shape(incident_e_p)), mask=np.broadcast_to(e_p_0_condition, np.shape(incident_e_p)))
-#    reflected_e_p = ct.rotate_vector_Nd(incident_e_p, np.ones(np.shape(incident_e_p)) * np.pi, surface_normal) * r_p
-
-    reflected_e_p = (2 * np.sum(surface_normal * incident_e_p_norm, axis=-1, keepdims=True) * surface_normal - incident_e_p_norm) * incident_e_p_magnitude * r_p
-
-#       reflected_e_p = ct.rotate_vector_Nd(incident_e_p, np.pi, surface_normal) * r_p
-#    reflected_e_p = (2 * np.sum(surface_normal * incident_e_p/incident_e_p_magnitude, axis=-1, keepdims=True) * surface_normal - incident_e_p/incident_e_p_magnitude) * ct.field_magnitude(incident_e_p) * r_p
-    reflected_direction = -ct.rotate_vector_Nd(incident_direction, np.ones(np.shape(incident_direction)) * np.pi, surface_normal)
-
-#    print('reflected k', reflected_direction)
-#    reflected_e_s, reflected_e_p = clc.reflected_e(
-#        incident_direction,
-#        incident_e,
-#        surface_normal,
-#        n_surface,
-#        n_environment=n_environment
-#        )
     return reflected_e_s, reflected_e_p, reflected_direction
 
 
-def mueller_matrix_ellipsoidal(e_h_h, e_h_v, e_v_h, e_v_v):
+def calculate_mueller_matrix(e_h_h, e_h_v, e_v_h, e_v_v):
     '''
-    Calculate the mueller matrix for an ellipsoidal mirror
-    Rodriguez-Herrera and Bruce 2006
+    Calculate the mueller matrix using formulas from Rodriguez-Herrera and 
+     Bruce 2006
     Input: 
     - e_h_h, electric field with horizontal input polarization and horizontal output polarization
     - e_h_v, input horizontal, output vertical polarized light
     - e_v_h, input vertical, output horizontal
     - e_v_v, input vertical, output vertical
+    Each input is an Nx3 numpy array.
     '''
     m00 = 0.5 * (
           e_h_h * np.conj(e_h_h) 
@@ -463,7 +440,7 @@ def get_mirror_mueller_matrix(incident_direction, E_S1_positive, E_S1_negative, 
     S1_negative_out_S1_negative_in = e_out_S1negative_in[:, output_stokes_indices[1]]  # i.e. Evv
     
     # calculate the Mueller matrix
-    mueller_matrix = np.array(mueller_matrix_ellipsoidal(
+    mueller_matrix = np.array(calculate_mueller_matrix(
         S1_positive_out_S1_positive_in,
         S1_negative_out_S1_positive_in,
         S1_positive_out_S1_negative_in,
@@ -492,13 +469,13 @@ def get_S1_positive(theta, phi):
 
 def get_S1_negative(theta, phi):
     '''
-    This function returns the electric field required for a positive S1 vector,
-    under the assumption that for a spherically polarized vector the theta 
-    direction is S1 positive
-    - desired shape should be (NxM)x3
+    This function returns the electric field required for a negative S1 vector,
+    under the assumption that for a spherically polarized vector the negative 
+    phi direction is S1 positive
+    - desired shape is (NxM)x3
     '''
     phi_pol = np.zeros(np.append(theta.shape, 3))
-    phi_pol[..., 2] = 1
+    phi_pol[..., 2] = -1
     E_cart_phi_pol_x, E_cart_phi_pol_y, E_cart_phi_pol_z = ct.spherical_to_cartesian_vector_field(
         theta,
         phi,
@@ -506,6 +483,10 @@ def get_S1_negative(theta, phi):
         phi_pol[..., 1],
         phi_pol[..., 2],
     )
-    E_S1_negative = np.stack((E_cart_phi_pol_x, E_cart_phi_pol_y, E_cart_phi_pol_z), axis=-1)
+    E_S1_negative = np.stack((
+        E_cart_phi_pol_x,
+        E_cart_phi_pol_y,
+        E_cart_phi_pol_z
+    ), axis=-1)
     return E_S1_negative
 

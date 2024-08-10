@@ -1659,39 +1659,39 @@ class ParabolaNormalsTest(parameterized.TestCase):
     @parameterized.named_parameters(
         dict(testcase_name='positive X axis',
              direction=np.array([[1, 0, 0]]),
-             expected_normal=np.array([[-1, 0, 0]])
+             expected_normal=np.array([[1, 0, 0]])
         ),
         dict(testcase_name='positive Y axis',
              direction=np.array([[0, 1 , 0]]),
-             expected_normal=1/np.sqrt(1+1/25*5**2)*np.array([[-1, -1/5*5, 0]])
+             expected_normal=1/np.sqrt(1+1/25*5**2)*np.array([[1, 1/5*5, 0]])
         ),
         dict(testcase_name='negative Y axis',
              direction=np.array([[0, -1, 0]]),
-             expected_normal=1/np.sqrt(1+1/25*5**2)*np.array([[-1, 1/5*5, 0]])
+             expected_normal=1/np.sqrt(1+1/25*5**2)*np.array([[1, -1/5*5, 0]])
         ), 
         dict(testcase_name='positive Z axis',
              direction=np.array([[0, 0, 1]]),
-             expected_normal=1/np.sqrt(1+1/25*5**2)*np.array([[-1, 0, -1/5*5]])
+             expected_normal=1/np.sqrt(1+1/25*5**2)*np.array([[1, 0, 1/5*5]])
         ),
         dict(testcase_name='negative Z axis',
              direction=np.array([[0, 0, -1]]),
-             expected_normal=1/np.sqrt(1+1/25*5**2)*np.array([[-1, 0, 1/5*5]])
+             expected_normal=1/np.sqrt(1+1/25*5**2)*np.array([[1, 0, -1/5*5]])
         ),
         dict(testcase_name='2 by 3 array input',
              direction=np.array([[0, 0, -1], [0, 0, 1]]),
-             expected_normal=1/np.sqrt(1+1/25*5**2)*np.array([[-1, 0, 1/5*5], [-1, 0, -1/5*5]])
+             expected_normal=1/np.sqrt(1+1/25*5**2)*np.array([[1, 0, -1/5*5], [1, 0, 1/5*5]])
         ),
         dict(testcase_name='from Matlab',
             direction=np.array([[2.480183375807916, -0.052301218492773, 0.442075586823127]]),
-            expected_normal=np.array([[-0.996060082509876, 0.010419031201456, -0.088066769097329]])
+            expected_normal=np.array([[0.996060082509876, -0.010419031201456, 0.088066769097329]])
         ),
         dict(testcase_name='incident ones',
             direction=np.array([[1, 1, 1]]),
-            expected_normal=np.array([[-0.8880738338665906, -0.3250575838228477, -0.3250575838228477]])
+            expected_normal=np.array([[0.8880738338665906, 0.3250575838228477, 0.3250575838228477]])
         ),
         dict(testcase_name='theta,phi 45',
             direction=np.array([[0.5, 0.5, 1/np.sqrt(2)]]),
-            expected_normal=np.array([[-np.sqrt(3)/2, -np.sqrt(3)/6, -1/np.sqrt(6)]])
+            expected_normal=np.array([[np.sqrt(3)/2, np.sqrt(3)/6, 1/np.sqrt(6)]])
         ),
     )
     def test_parabola_normals_directions(self, direction, expected_normal):
@@ -1706,43 +1706,43 @@ class ParabolaNormalsTest(parameterized.TestCase):
     @parameterized.named_parameters(
         dict(testcase_name='positive X axis',
              position=np.array([[1, 0, 0]]),
-             expected_normal=np.array([[-1, 0, 0]])
+             expected_normal=np.array([[1, 0, 0]])
         ),
         dict(testcase_name='positive Y axis',
              position=np.array([[0, 1, 0]]),
-             expected_normal=1/np.sqrt(1+1/25)*np.array([[-1, -1/5, 0]])
+             expected_normal=1/np.sqrt(1+1/25)*np.array([[1, 1/5, 0]])
         ),
         dict(testcase_name='negative Y axis',
              position=np.array([[0, -1, 0]]),
-             expected_normal=1/np.sqrt(1+1/25)*np.array([[-1, 1/5, 0]])
+             expected_normal=1/np.sqrt(1+1/25)*np.array([[1, -1/5, 0]])
         ),
         dict(testcase_name='positive Z axis',
              position=np.array([[0, 0, 1]]),
-             expected_normal=1/np.sqrt(1+1/25)*np.array([[-1, 0, -1/5]])
+             expected_normal=1/np.sqrt(1+1/25)*np.array([[1, 0, 1/5]])
         ),
         dict(testcase_name='negative Z axis',
              position=np.array([[0, 0, -1]]),
-             expected_normal=1/np.sqrt(1+1/25)*np.array([[-1, 0, 1/5]])
+             expected_normal=1/np.sqrt(1+1/25)*np.array([[1, 0, -1/5]])
         ),
         dict(testcase_name='positive Y, positive Z',
              position=np.array([[0, 1, 3]]),
-             expected_normal=1/np.sqrt(1+10/25)*np.array([[-1, -1/5, -3/5]])
+             expected_normal=1/np.sqrt(1+10/25)*np.array([[1, 1/5, 3/5]])
         ),
         dict(testcase_name='positive Y, negative Z',
              position=np.array([[0, 1, -3]]),
-             expected_normal=1/np.sqrt(1+10/25)*np.array([[-1, -1/5, 3/5]])
+             expected_normal=1/np.sqrt(1+10/25)*np.array([[1, 1/5, -3/5]])
         ),
         dict(testcase_name='negative Y, positive Z',
              position=np.array([[0, -5, 3]]),
-             expected_normal=1/np.sqrt(1+34/25)*np.array([[-1, 1, -3/5]])
+             expected_normal=1/np.sqrt(1+34/25)*np.array([[1, -1, 3/5]])
         ),
         dict(testcase_name='negative Y, negative Z',
              position=np.array([[0, -5, -3]]),
-             expected_normal=1/np.sqrt(1+34/25)*np.array([[-1, 1, 3/5]])
+             expected_normal=1/np.sqrt(1+34/25)*np.array([[1, -1, -3/5]])
         ),
         dict(testcase_name='from Matlab',
             position=np.array([[2.480183375807916, -0.052301218492773, 0.442075586823127]]),
-            expected_normal=np.array([[-0.996060082509876, 0.010419031201456, -0.088066769097329]])
+            expected_normal=np.array([[0.996060082509876, -0.010419031201456, 0.088066769097329]])
             )
     )
     def test_parabola_normals_positions(self, position, expected_normal):
@@ -2045,9 +2045,9 @@ class MirrorReflectedFieldTest(parameterized.TestCase):
             incident_e = np.array([[1, -1, 0]]),
             expected_e_s = (-0.461575 - 0.0882315j) * np.array([[0, -1, 1]]),
             expected_e_p = np.array([[
-                5.28768253e-10+1.29162216e-10j, 
-                -7.77563951e-01-1.89935539e-01j, 
-                -7.77563951e-01-1.89935539e-01j]]),
+                -5.28768253e-10-1.29162216e-10j, 
+                +7.77563951e-01+1.89935539e-01j, 
+                +7.77563951e-01+1.89935539e-01j]]),
             expected_k_r = np.array([[
                 -1.732051, 
                 0., 
@@ -2078,8 +2078,8 @@ class MirrorReflectedFieldTest(parameterized.TestCase):
              incident_e=np.array([[-1.1920000e+03, 1.1930000e+03, -9.9999994e-01]]),
              expected_e_p=np.array([[
                 0,
-                8.64725648e-01+2.68119782e-01j,
-                1.03161770e+03+3.19866900e+02j
+                -8.64725648e-01-2.68119782e-01j,
+                -1.03161770e+03-3.19866900e+02j
                 ]]),
              expected_e_s=np.array([[
                 0,
@@ -2120,8 +2120,8 @@ class MirrorReflectedFieldTest(parameterized.TestCase):
         incident_e=np.array([[0.5, 0.5, -1/np.sqrt(2)]])
         expected_e_p=np.array([[
             0,
-            -3.02063167e-01-9.61667667e-02j,
-            -4.27181827e-01-1.36000346e-01j
+            3.02063167e-01+9.61667667e-02j,
+            4.27181827e-01+1.36000346e-01j
         ]])
         expected_e_s=np.array([[
             0,
@@ -2158,9 +2158,9 @@ class MirrorReflectedFieldTest(parameterized.TestCase):
 #            np.testing.assert_allclose(calculated_e, expected_e)
 
 
-class MuellerMatrixEllipsoidalTest(parameterized.TestCase):
+class CalculateMuellerMatrixTest(parameterized.TestCase):
     '''
-    Testing the Mueller matrix calculation for an ellipsoidal mirror
+    Testing the Mueller matrix calculation for the mirror
     - all zeros
     - all real ones
     - all imaginary ones
@@ -2283,7 +2283,7 @@ class GetMuellerMatrixTest(parameterized.TestCase):
             phi,
             0,
             0,
-            1,
+            -1,
             )
         E_S1_negative = np.stack((S1_negative_r, S1_negative_theta, S1_negative_phi), axis=-1)
         return E_S1_positive, E_S1_negative

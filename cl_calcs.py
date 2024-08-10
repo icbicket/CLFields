@@ -115,7 +115,7 @@ def reflection_coefficients(incidence_angle, n_surface, n_environment=1):
                 np.sin(refraction_angle[incidence_angle!=0]
                 + incidence_angle[incidence_angle!=0])
             )
-    r_p[incidence_angle!=0] = -(
+    r_p[incidence_angle!=0] = (
                 np.sin(2*incidence_angle[incidence_angle!=0])
                 - np.sin(2*refraction_angle[incidence_angle!=0])
             ) / (

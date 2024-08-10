@@ -129,6 +129,25 @@ def rotate_vector_Nd(xyz, angle, rotation_axis):
     xyz_rot = term1_rot + term2_rot + term3_rot
     return xyz_rot
 
+def reflect_vector(vector, reflection_axis):
+    '''
+    Reflect a vector across the given axis
+    Input
+    vector: an Nx3 numpy array, the vector to be reflected
+    reflection_axis: an Nx3 numpy array, the axis across which the vector
+     should be mirrored
+    
+    Output
+    reflected_vector: an Nx3 numpy array, the input vector reflected across
+     the reflection axis
+    '''
+    reflected_vector = (
+        2*
+        (np.sum(vector * reflection_axis, axis=-1, keepdims=True))*
+        reflection_axis -
+        vector)
+    return reflected_vector
+
 def expand_quadrant_symmetry(mag, quadrant_num):
     '''
     Uses symmetry to turn an array representing values in one quadrant of an
