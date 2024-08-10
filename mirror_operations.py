@@ -38,7 +38,7 @@ def ar_mask_calc(theta, phi, holein=True, slit=None, slit_center=0, orientation=
     Define a mask representing the mirror used in SEM-CL system at AMOLF
     x and y axes are exchanged relative to the normal spherical coordinate convention (is it normal?)
     mirror opening points along -x direction
-    input: 
+    input:
         theta and phi are angles of emission
         holein: True or False boolean, whether or not to take out the electron beam hole from the mirror mask
         slit: None or a positive integer or float value, if None, there is no slit, if there is a value, this is the width of the slit in mm
@@ -371,7 +371,7 @@ def get_mirror_reflected_field(incident_direction, incident_e, wavelength, n_env
 #        n_surface,
 #        n_environment=n_environment
 #        )
-    return -reflected_e_s, reflected_e_p, reflected_direction
+    return reflected_e_s, reflected_e_p, reflected_direction
 
 
 def mueller_matrix_ellipsoidal(e_h_h, e_h_v, e_v_h, e_v_v):
@@ -426,7 +426,7 @@ def mueller_matrix_ellipsoidal(e_h_h, e_h_v, e_v_h, e_v_v):
 def get_mirror_mueller_matrix(incident_direction, E_S1_positive, E_S1_negative, wavelength, output_stokes_indices=(1,2), n_environment=1, mirror=AMOLF_MIRROR):
     '''
     This function calculates the Mueller matrix given the input direction and the electric fields of two input polarizations, and the wavelength at which to calculate the Stokes parameters.
-    incident_direction: numpy array with last dimension of 3 (eg, Nx3, NxMx3)
+    incident_direction: numpy array with last dimension of 3 (eg, Nx3, NxMx3), in Cartesian coordinates
     E_S1_positive: the electric fields of an input with positive S1 Stokes parameter, numpy array of the same shape as incident_direction, Cartesian coordinates expected
     E_S1_negative: the electric fields of an input with negative S1 Stokes parameter, numpy array of the same shape as incident_direction, Cartesian coordinates expected. These fields should be orthogonal to E_S1_positive
     wavelength: the free-space wavelength at which to calculate the Mueller matrix
@@ -458,8 +458,8 @@ def get_mirror_mueller_matrix(incident_direction, E_S1_positive, E_S1_negative, 
     
     # split the out fields into vectors for S1 positive and negative
     S1_positive_out_S1_positive_in = e_out_S1positive_in[:, output_stokes_indices[0]]  # i.e. Ehh
-    S1_negative_out_S1_positive_in = e_out_S1positive_in[:, output_stokes_indices[1]]  # i.e. Evh
-    S1_positive_out_S1_negative_in = e_out_S1negative_in[:, output_stokes_indices[0]]  # i.e. Ehv
+    S1_negative_out_S1_positive_in = e_out_S1positive_in[:, output_stokes_indices[1]]  # i.e. Ehv
+    S1_positive_out_S1_negative_in = e_out_S1negative_in[:, output_stokes_indices[0]]  # i.e. Evh
     S1_negative_out_S1_negative_in = e_out_S1negative_in[:, output_stokes_indices[1]]  # i.e. Evv
     
     # calculate the Mueller matrix
@@ -471,4 +471,41 @@ def get_mirror_mueller_matrix(incident_direction, E_S1_positive, E_S1_negative, 
     ))
     return mueller_matrix
 
+def get_S1_positive(theta, phi):
+    '''
+    This function returns the electric field required for a positive S1 vector,
+    under the assumption that for a spherically polarized vector the theta 
+    direction is S1 positive
+    - desired shape should be (NxM)x3
+    '''
+    theta_pol = np.zeros(np.append(theta.shape, 3))
+    theta_pol[..., 1] = 1
+    E_cart_theta_pol_x, E_cart_theta_pol_y, E_cart_theta_pol_z = ct.spherical_to_cartesian_vector_field(
+        theta,
+        phi,
+        theta_pol[..., 0],
+        theta_pol[..., 1],
+        theta_pol[..., 2],
+    )
+    E_S1_positive = np.stack((E_cart_theta_pol_x, E_cart_theta_pol_y, E_cart_theta_pol_z), axis=-1)
+    return E_S1_positive
+
+def get_S1_negative(theta, phi):
+    '''
+    This function returns the electric field required for a positive S1 vector,
+    under the assumption that for a spherically polarized vector the theta 
+    direction is S1 positive
+    - desired shape should be (NxM)x3
+    '''
+    phi_pol = np.zeros(np.append(theta.shape, 3))
+    phi_pol[..., 2] = 1
+    E_cart_phi_pol_x, E_cart_phi_pol_y, E_cart_phi_pol_z = ct.spherical_to_cartesian_vector_field(
+        theta,
+        phi,
+        phi_pol[..., 0],
+        phi_pol[..., 1],
+        phi_pol[..., 2],
+    )
+    E_S1_negative = np.stack((E_cart_phi_pol_x, E_cart_phi_pol_y, E_cart_phi_pol_z), axis=-1)
+    return E_S1_negative
 

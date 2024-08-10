@@ -89,7 +89,7 @@ def ar_plot(theta, phi, magnitude, ax=None, **kwargs):
     plt.colorbar(colourplot, ax=ax)
     return fig
 
-def format_AR_plot(fig, savename):
+def format_AR_plot(fig):
     ax = plt.gca()
     ax.set_position([0.1, 0, 0.8, 1])
     ax.set_facecolor('k')
@@ -112,4 +112,4 @@ def format_AR_plot(fig, savename):
     ax.get_yaxis().set_ticks([0, 15, 30, 45, 60, 75, 90])
     fig.axes[-1].remove()
     fig.set_size_inches(1.2, 1.2)
-    plt.savefig(savename + '.png', dpi=300, transparent=True, bbox_inches='tight', pad_inches=0)
+#    plt.savefig(savename + '.png', dpi=300, transparent=True, bbox_inches='tight', pad_inches=0)

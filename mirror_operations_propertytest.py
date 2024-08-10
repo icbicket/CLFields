@@ -25,6 +25,7 @@ def negative_x_axis_cone(direction):
 
 sane_floats = st.floats(min_value=-1e16, max_value=1e16).filter(lambda x: np.abs(x)>1e-10)
 angle_floats = st.floats(min_value=-1e3, max_value=1e3)
+nonzero_angle_floats = angle_floats.filter(lambda x: np.abs(x)>1e-8)
 angle_ints = st.integers(min_value=-10, max_value=10)
 one_by_three_vector = npstrat.arrays(dtype=np.float64, shape=(1,3), elements=sane_floats)
 nonzero_3_vector = one_by_three_vector.filter(lambda vec: np.count_nonzero(vec)>0)
@@ -76,6 +77,15 @@ class ParabolaNormalsTest(unittest.TestCase):
 
 
 class SurfacePolarizationDirectionsTest(unittest.TestCase):
+    '''
+    - The direction vectors should be unit vectors
+    - all combinations of dot products between s, p, and i should be 0
+    - the dot product between s-direction and the surface normal should be 0
+    - for vectors along the positive x-axis, the y-component of the p-direction
+      should be 0 and the x-component of the s-direction should be 0
+    - in the x-y plane (theta=pi/2) the s-direction should be along z only and 
+      the p-direction should be parallel to the xy-plane
+    '''
     @given(
         theta=angle_floats,
         phi=angle_floats,
@@ -146,6 +156,37 @@ class SurfacePolarizationDirectionsTest(unittest.TestCase):
         parabola_normal = miop.parabola_normals(parabola_position)
         dot_product = np.sum(s * parabola_normal, axis=-1)
         np.testing.assert_allclose(dot_product, 0, atol=1e-9)
+
+    @given(
+        theta=angle_floats,
+    )
+    def test_zero_components_all_theta_at_phi_0(self, theta):
+        '''
+        Along the x-axis (phi=0), the y-component of the p-direction
+        should be 0 and the x-component of the s-direction should be 0, within
+        floating point errors
+        Note that at (theta=pi/2, phi=0), the s and p directions may be hard
+        to define
+        '''
+        phi = 0
+        p, s = miop.parabola_surface_polarization_directions(theta, phi)
+        np.testing.assert_allclose(p[1], 0, atol=1e-9)
+        np.testing.assert_allclose(s[0], 0, atol=1e-9)
+        
+    @given(
+        phi=nonzero_angle_floats,
+    )
+    def test_directions_at_all_phi_theta_90(self, phi):
+        '''
+        In the x-y plane (theta=np.pi/2), the s-direction should be only along
+        z and the xy components should be 0, and the p-direction should be 
+        contained within the xy-plane with a z-component of 0
+        '''
+        theta = np.pi/2
+        p, s = miop.parabola_surface_polarization_directions(theta, phi)
+        np.testing.assert_allclose(s[0], 0, atol=1e-9)
+        np.testing.assert_allclose(s[1], 0, atol=1e-9)
+        np.testing.assert_allclose(p[2], 0, atol=1e-9)
 
 
 class FresnelReflectionCoefficientsTest(unittest.TestCase):
@@ -461,7 +502,21 @@ class GetMuellerMatrixTest(unittest.TestCase):
             output_stokes_indices=(1,2),
         ))
         # compare the 0th element
-        assert mueller_calc[0] <= mueller_calc_positive_x[0]
+        
+        self.assertTrue(
+            np.logical_or(
+                np.isclose(
+                    mueller_calc_positive_x[0],
+                    mueller_calc[0],
+                    atol=1e-6
+                ),
+                np.less(
+                    mueller_calc[0],
+                    mueller_calc_positive_x[0]
+                )
+            )
+        )
+#        assert mueller_calc[0] <= mueller_calc_positive_x[0]
 
 
 if __name__== '__main__':

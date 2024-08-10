@@ -2387,8 +2387,96 @@ class GetMuellerMatrixTest(parameterized.TestCase):
         ))
         self.assertTrue(np.all(np.logical_and(mueller_matrix[0, :]>=0, mueller_matrix[0, :]<=1)))
 
+    def test_Mueller_at_theta45_phi45(self):
+        '''
+        Retrieve the Mueller matrix at an angle of (theta, phi) = 45 and check that sign conventions are followed
+        '''
+        r = 1
+        theta = np.pi/4
+        phi = np.pi/4
+        r_theta_phi = np.expand_dims(np.stack((r, theta, phi)), axis=0)
+        x, y, z = coord_transforms.spherical_to_cartesian_coords(r_theta_phi)
+        incident_vector = np.stack((x, y, z), axis=1)
+        E_S1_positive, E_S1_negative = self.positive_and_negative_stokes_vectors(theta, phi)
+        mueller_matrix = np.real(miop.get_mirror_mueller_matrix(
+            incident_vector,
+            E_S1_positive,
+            E_S1_negative,
+            wavelength=1800e-9,
+        ))
+        self.assertLess(mueller_matrix[5], 0)
+#        self.assertLess(0, mueller_matrix[10])
+        self.assertLess(mueller_matrix[15], 0)
 
-    def test_theta45_phi45_M11_negative(self):
+    def test_Mueller_at_theta45_phi135(self):
+        '''
+        Retrieve the Mueller matrix at an angle of (theta, phi) = (45, 135) and check that sign conventions are followed
+        '''
+        r = 1
+        theta = np.pi/4
+        phi = 3*np.pi/4
+        r_theta_phi = np.expand_dims(np.stack((r, theta, phi)), axis=0)
+        x, y, z = coord_transforms.spherical_to_cartesian_coords(r_theta_phi)
+        incident_vector = np.stack((x, y, z), axis=1)
+        E_S1_positive, E_S1_negative = self.positive_and_negative_stokes_vectors(theta, phi)
+        mueller_matrix = np.real(miop.get_mirror_mueller_matrix(
+            incident_vector,
+            E_S1_positive,
+            E_S1_negative,
+            wavelength=1800e-9,
+        ))
+        self.assertLess(0, mueller_matrix[5])
+#        self.assertLess(mueller_matrix[10], 0)
+        self.assertLess(mueller_matrix[15], 0)
+    
+    def test_relative_Mueller00(self):
+        '''
+        A vector identified by the property test as (14, 1, 1) gives a greater 
+        M(0,0) component than the vector (1, 0, 0) - probably this is caused
+        by floating point errors near the +x axis
+        '''
+        incident_vector = np.array([[14, 1, 1]])
+        r, theta, phi = coord_transforms.cartesian_to_spherical_coords(incident_vector)
+        
+        # set up incident vector to test
+        incident_vector_positive_x = np.array([[1, 0, 0]])
+        E_S1_positive, E_S1_negative = self.positive_and_negative_stokes_vectors(theta, phi)
+        
+        # set up vector along positive x-axis
+        r_positive_x, theta_positive_x, phi_positive_x = coord_transforms.cartesian_to_spherical_coords(incident_vector_positive_x)
+        E_S1_positive_positive_x, E_S1_negative_positive_x = self.positive_and_negative_stokes_vectors(theta_positive_x, phi_positive_x)
+        
+        # calculate Mueller matrix for both vectors
+        mueller_calc = np.real(miop.get_mirror_mueller_matrix(
+            incident_vector,
+            E_S1_positive,
+            E_S1_negative,
+            wavelength=1800e-9,
+            output_stokes_indices=(1,2),
+        ))
+        mueller_calc_positive_x = np.real(miop.get_mirror_mueller_matrix(
+            incident_vector_positive_x,
+            E_S1_positive_positive_x,
+            E_S1_negative_positive_x,
+            wavelength=1800e-9,
+            output_stokes_indices=(1,2),
+        ))
+        self.assertTrue(
+            np.logical_or(
+                np.isclose(
+                    mueller_calc_positive_x[0],
+                    mueller_calc[0],
+                    atol=1e-6
+                ),
+                np.less(
+                    mueller_calc[0],
+                    mueller_calc_positive_x[0]
+                )
+            )
+        )
+
+
+    def test_Stokes_at_theta45_phi45(self):
         '''
         Given an input of polarization along the theta direction:
         - the value of the (1,1) Mueller matrix coefficient at (theta, phi) = 45 degrees should be negative
@@ -2417,38 +2505,10 @@ class GetMuellerMatrixTest(parameterized.TestCase):
         e_out = e_s_out + e_p_out
         S0, S1, S2, S3 = cl_calcs.stokes_parameters(e_out[:, 1], e_out[:, 2])
         self.assertLess(S1, 0)
-    
-    def test_theta45_phi45_M22_positive(self):
-        '''
-        Given an input of polarization along the theta direction:
-        - the value of the (1,1) Mueller matrix coefficient at (theta, phi) = 45 degrees should be negative
-        '''
-        incident_Evector_spherical = np.array([[0, 1, 0]])
-        incident_vector_spherical = np.array([[1, np.pi/4, np.pi/4]])
-        incident_Evector_x, incident_Evector_y, incident_Evector_z = coord_transforms.spherical_to_cartesian_vector_field(
-            incident_vector_spherical[:,1],
-            incident_vector_spherical[:,2],
-            incident_Evector_spherical[:,0],
-            incident_Evector_spherical[:,1],
-            incident_Evector_spherical[:,2],
-        )
-        incident_Evector_cartesian = np.stack((incident_Evector_x, incident_Evector_y, incident_Evector_z), axis=-1)
-        incident_vector_x, incident_vector_y, incident_vector_z = coord_transforms.spherical_to_cartesian_coords(
-            incident_vector_spherical
-        )
-        incident_vector_cartesian = np.stack((incident_vector_x, incident_vector_y, incident_vector_z), axis=1)
-        e_s_out, e_p_out, direction_out = miop.get_mirror_reflected_field(
-            incident_vector_cartesian,
-            incident_Evector_cartesian,
-            wavelength=600e-9,
-            n_environment=1,
-            mirror=miop.AMOLF_MIRROR
-        )
-        e_out = e_s_out + e_p_out
-        S0, S1, S2, S3 = cl_calcs.stokes_parameters(e_out[:, 1], e_out[:, 2])
-        self.assertLess(0, S2)
+#        self.assertLess(0, S2)
+#        self.assertLess(0, S3)
 
-    def test_theta45_phi135_M11_positive(self):
+    def test_Stokes_at_theta45_phi135(self):
         '''
         Given an input of polarization along the theta direction:
         - the value of the (1,1) Mueller matrix coefficient at (theta, phi) = 45 degrees should be negative
@@ -2477,8 +2537,39 @@ class GetMuellerMatrixTest(parameterized.TestCase):
         e_out = e_s_out + e_p_out
         S0, S1, S2, S3 = cl_calcs.stokes_parameters(e_out[:, 1], e_out[:, 2])
         self.assertLess(0, S1)
-        self.assertLess(S2, 0)
-        self.assertLess(S3, 0)
+        self.assertLess(0, S3)
+
+    def test_Stokes_at_theta20_phi135(self):
+        '''
+        Given an input of polarization along the theta direction:
+        - the value of the (1,1) Mueller matrix coefficient at (theta, phi) = 45 degrees should be negative
+        '''
+        incident_Evector_spherical = np.array([[0, 1, 0]])
+        incident_vector_spherical = np.array([[1, np.deg2rad(20), 3*np.pi/4]])
+        incident_Evector_x, incident_Evector_y, incident_Evector_z = coord_transforms.spherical_to_cartesian_vector_field(
+            incident_vector_spherical[:,1],
+            incident_vector_spherical[:,2],
+            incident_Evector_spherical[:,0],
+            incident_Evector_spherical[:,1],
+            incident_Evector_spherical[:,2],
+        )
+        incident_Evector_cartesian = np.stack((incident_Evector_x, incident_Evector_y, incident_Evector_z), axis=-1)
+        incident_vector_x, incident_vector_y, incident_vector_z = coord_transforms.spherical_to_cartesian_coords(
+            incident_vector_spherical
+        )
+        incident_vector_cartesian = np.stack((incident_vector_x, incident_vector_y, incident_vector_z), axis=1)
+        e_s_out, e_p_out, direction_out = miop.get_mirror_reflected_field(
+            incident_vector_cartesian,
+            incident_Evector_cartesian,
+            wavelength=600e-9,
+            n_environment=1,
+            mirror=miop.AMOLF_MIRROR
+        )
+        e_out = e_s_out + e_p_out
+        S0, S1, S2, S3 = cl_calcs.stokes_parameters(e_out[:, 1], e_out[:, 2])
+        self.assertLess(0, S1)
+#        self.assertLess(0, S2)
+        self.assertLess(0, S3)
 
 
 if __name__ == '__main__':

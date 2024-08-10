@@ -27,7 +27,7 @@ def degree_of_polarization(S0, S1, S2, S3):
 
 def angle_of_incidence(incident_vector, normal):
     '''
-    calculate the angle of incidence of 'incident_vector' onto the surface 
+    calculate the angle of incidence of 'incident_vector' onto the surface
     with a surface normal described by 'normal'
     tested under the assumption that the incident vector and normal vector are Nx3
     '''
@@ -39,6 +39,7 @@ def angle_of_incidence(incident_vector, normal):
         raise ValueError('Magnitude of the normal vector cannot be 0')
     cosine_angle = np.array((np.sum(incident_vector * normal, axis=-1, keepdims=True))
         /(incident_vector_magnitude * normal_magnitude))
+        
     float_error_condition = np.logical_and(
         (abs(cosine_angle)-1) < 1e-5,
         (abs(cosine_angle)-1) > 0)
@@ -93,7 +94,10 @@ def reflection_coefficients(incidence_angle, n_surface, n_environment=1):
         incidence), the ratio of the reflected p-polarized electric field 
         over the incident electric field
     Note: r_s**2 and r_p**2 produce the Fresnel reflection coefficients R_s, R_p
-    Equations from Jackson, Classical Electrodynamics, 1962, Ch 7
+    Equations from Jackson, Classical Electrodynamics, 1962, Ch 7. Note the 
+    change in sign of r_p relative to those given in Jackson, to account for
+    different polarization conventions used here and in Jackson. Here we follow
+    the IEEE convention.
     '''
     if not isinstance(incidence_angle, np.ndarray):
         incidence_angle = np.array([incidence_angle])
@@ -104,22 +108,20 @@ def reflection_coefficients(incidence_angle, n_surface, n_environment=1):
         (n_environment - n_surface)/(n_surface + n_environment)
         )
     r_p[incidence_angle==0] = r_s[incidence_angle==0]
-    r_s[incidence_angle!=0] = (
-                np.sin(refraction_angle[incidence_angle!=0]
-                - incidence_angle[incidence_angle!=0])
+    r_s[incidence_angle!=0] = -(
+                np.sin(incidence_angle[incidence_angle!=0]
+                - refraction_angle[incidence_angle!=0])
             ) / (
                 np.sin(refraction_angle[incidence_angle!=0]
                 + incidence_angle[incidence_angle!=0])
             )
-    r_p[incidence_angle!=0] = (
-                np.sin(2*refraction_angle[incidence_angle!=0])
-                - np.sin(2*incidence_angle[incidence_angle!=0])
+    r_p[incidence_angle!=0] = -(
+                np.sin(2*incidence_angle[incidence_angle!=0])
+                - np.sin(2*refraction_angle[incidence_angle!=0])
             ) / (
                 np.sin(2*incidence_angle[incidence_angle!=0])
                 + np.sin(2*refraction_angle[incidence_angle!=0])
             )
-    #r_p = -r_p
-#    r_s = -r_s
     return r_s, r_p
 
 def fresnel_reflection_coefficients(r_s, r_p):
