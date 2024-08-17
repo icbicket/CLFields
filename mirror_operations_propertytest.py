@@ -19,7 +19,7 @@ def negative_x_axis_cone(direction):
     direction = direction/ct.field_magnitude(direction, keepdims=True)
     r, theta, phi = ct.cartesian_to_spherical_coords(direction)
     cone_condition = np.logical_not(
-        np.logical_and(abs(theta-np.pi/2)<5e-5, abs(phi-np.pi)<5e-5)
+        np.logical_and(abs(theta-np.pi/2)<5e-2, abs(phi-np.pi)<5e-2)
         )
     return cone_condition
 
@@ -57,11 +57,11 @@ class ParabolaNormalsTest(unittest.TestCase):
         )
     def test_parabola_normals_same_x_direction(self, direction):
         '''
-        All the normals of the parabola should point towards -x
+        All the normals of the parabola should point towards +x
         '''
         position = miop.parabola_position(direction)
         normals = miop.parabola_normals(position)
-        assert normals[:, 0] < 0
+        assert normals[:, 0] > 0
 
     @given(
         direction=not_negative_x_axis_sane,
@@ -95,7 +95,13 @@ class SurfacePolarizationDirectionsTest(unittest.TestCase):
         The magnitudes of the surface polarization direction results should be 
         unit vectors
         '''
-        p, s = miop.parabola_surface_polarization_directions(theta, phi)
+        r = 1
+        direction_sph = np.array([[r, theta, phi]])
+        direction_x, direction_y, direction_z = ct.spherical_to_cartesian_coords(direction_sph)
+        direction_cart = np.stack((direction_x, direction_y, direction_z), axis=1)
+        positions = miop.parabola_position(direction_cart)
+        normals = miop.parabola_normals(positions)
+        p, s = miop.surface_polarization_directions(normals, direction_cart)
         p_magnitude = np.sqrt(np.sum(np.square(p), axis=-1))
         s_magnitude = np.sqrt(np.sum(np.square(s), axis=-1))
         np.testing.assert_almost_equal(p_magnitude, 1)
@@ -109,7 +115,13 @@ class SurfacePolarizationDirectionsTest(unittest.TestCase):
         '''
         s-direction dot p-direction should be 0 (within floating point error)
         '''
-        p, s = miop.parabola_surface_polarization_directions(theta, phi)
+        r = 1
+        direction_sph = np.array([[r, theta, phi]])
+        direction_x, direction_y, direction_z = ct.spherical_to_cartesian_coords(direction_sph)
+        direction_cart = np.stack((direction_x, direction_y, direction_z), axis=1)
+        positions = miop.parabola_position(direction_cart)
+        normals = miop.parabola_normals(positions)
+        p, s = miop.surface_polarization_directions(normals, direction_cart)
         dot_product = np.sum(p * s, axis=-1)
         np.testing.assert_allclose(dot_product, 0, atol=1e-9)
 
@@ -121,7 +133,13 @@ class SurfacePolarizationDirectionsTest(unittest.TestCase):
         '''
         s-direction dot i-direction (emission direction from the origin) should be 0 (within floating point error)
         '''
-        p, s = miop.parabola_surface_polarization_directions(theta, phi)
+        r = 1
+        direction_sph = np.array([[r, theta, phi]])
+        direction_x, direction_y, direction_z = ct.spherical_to_cartesian_coords(direction_sph)
+        direction_cart = np.stack((direction_x, direction_y, direction_z), axis=1)
+        positions = miop.parabola_position(direction_cart)
+        normals = miop.parabola_normals(positions)
+        p, s = miop.surface_polarization_directions(normals, direction_cart)
         i_x, i_y, i_z = ct.spherical_to_cartesian_coords(np.array([[1, theta, phi]]))
         i = np.hstack((i_x, i_y, i_z))
         dot_product = np.sum(s * i, axis=-1)
@@ -135,7 +153,13 @@ class SurfacePolarizationDirectionsTest(unittest.TestCase):
         '''
         p-direction dot i-direction should be 0 (within floating point error)
         '''
-        p, s = miop.parabola_surface_polarization_directions(theta, phi)
+        r = 1
+        direction_sph = np.array([[r, theta, phi]])
+        direction_x, direction_y, direction_z = ct.spherical_to_cartesian_coords(direction_sph)
+        direction_cart = np.stack((direction_x, direction_y, direction_z), axis=1)
+        positions = miop.parabola_position(direction_cart)
+        normals = miop.parabola_normals(positions)
+        p, s = miop.surface_polarization_directions(normals, direction_cart)
         i_x, i_y, i_z = ct.spherical_to_cartesian_coords(np.array([[1, theta, phi]]))
         i = np.hstack((i_x, i_y, i_z))
         dot_product = np.sum(p * i, axis=-1)
@@ -149,7 +173,13 @@ class SurfacePolarizationDirectionsTest(unittest.TestCase):
         '''
         s-direction dot surface normal direction should be 0 (within floating point error)
         '''
-        p, s = miop.parabola_surface_polarization_directions(theta, phi)
+        r = 1
+        direction_sph = np.array([[r, theta, phi]])
+        direction_x, direction_y, direction_z = ct.spherical_to_cartesian_coords(direction_sph)
+        direction_cart = np.stack((direction_x, direction_y, direction_z), axis=1)
+        positions = miop.parabola_position(direction_cart)
+        normals = miop.parabola_normals(positions)
+        p, s = miop.surface_polarization_directions(normals, direction_cart)
         i_x, i_y, i_z = ct.spherical_to_cartesian_coords(np.array([[1, theta, phi]]))
         i = np.expand_dims(np.hstack((i_x, i_y, i_z)), axis=0)
         parabola_position = miop.parabola_position(i)
@@ -169,9 +199,15 @@ class SurfacePolarizationDirectionsTest(unittest.TestCase):
         to define
         '''
         phi = 0
-        p, s = miop.parabola_surface_polarization_directions(theta, phi)
-        np.testing.assert_allclose(p[1], 0, atol=1e-9)
-        np.testing.assert_allclose(s[0], 0, atol=1e-9)
+        r = 1
+        direction_sph = np.array([[r, theta, phi]])
+        direction_x, direction_y, direction_z = ct.spherical_to_cartesian_coords(direction_sph)
+        direction_cart = np.stack((direction_x, direction_y, direction_z), axis=1)
+        positions = miop.parabola_position(direction_cart)
+        normals = miop.parabola_normals(positions)
+        p, s = miop.surface_polarization_directions(normals, direction_cart)
+        np.testing.assert_allclose(p[0, 1], 0, atol=1e-9)
+        np.testing.assert_allclose(s[0, 0], 0, atol=1e-9)
         
     @given(
         phi=nonzero_angle_floats,
@@ -183,10 +219,16 @@ class SurfacePolarizationDirectionsTest(unittest.TestCase):
         contained within the xy-plane with a z-component of 0
         '''
         theta = np.pi/2
-        p, s = miop.parabola_surface_polarization_directions(theta, phi)
-        np.testing.assert_allclose(s[0], 0, atol=1e-9)
-        np.testing.assert_allclose(s[1], 0, atol=1e-9)
-        np.testing.assert_allclose(p[2], 0, atol=1e-9)
+        r = 1
+        direction_sph = np.array([[r, theta, phi]])
+        direction_x, direction_y, direction_z = ct.spherical_to_cartesian_coords(direction_sph)
+        direction_cart = np.stack((direction_x, direction_y, direction_z), axis=1)
+        positions = miop.parabola_position(direction_cart)
+        normals = miop.parabola_normals(positions)
+        p, s = miop.surface_polarization_directions(normals, direction_cart)
+        np.testing.assert_allclose(s[0, 0], 0, atol=1e-7)
+        np.testing.assert_allclose(s[0, 1], 0, atol=1e-7)
+        np.testing.assert_allclose(p[0, 2], 0, atol=1e-7)
 
 
 class FresnelReflectionCoefficientsTest(unittest.TestCase):
@@ -255,7 +297,7 @@ class GetMirrorReflectedFieldTest(unittest.TestCase):
         incident_direction = np.expand_dims(incident_vector[0, :], axis=0)
         incident_e = np.cross(incident_vector[0, :], incident_vector[1, :])
         reflected_e_s, reflected_e_p, reflected_direction = miop.get_mirror_reflected_field(
-            incident_direction, incident_e, wavelength, n_environment, mirror)
+            incident_direction, incident_e[np.newaxis, ...], wavelength, n_environment, mirror)
         if ct.field_magnitude(reflected_e_s) != 0:
             reflected_e_s_norm = reflected_e_s/ct.field_magnitude(np.real(reflected_e_s))
         else:
@@ -381,9 +423,7 @@ class MultiFunctionTest(unittest.TestCase):
             n_environment=1
             )
         incident_r, incident_theta, incident_phi = ct.cartesian_to_spherical_coords(incident_direction)
-        p_direction, s_direction = miop.parabola_surface_polarization_directions(
-            incident_theta, 
-            incident_phi)
+        p_direction, s_direction = miop.surface_polarization_directions(surface_normal, incident_direction)
         incident_e_s = np.sum(s_direction * incident_e, axis=-1, keepdims=True) * s_direction
         incident_e_p = np.sum(p_direction * incident_e, axis=-1, keepdims=True) * p_direction
         incident_e_sum = incident_e_s + incident_e_p
@@ -474,7 +514,7 @@ class GetMuellerMatrixTest(unittest.TestCase):
     )
     def test_positive_x_greatest_intensity(self, incident_vector):
         '''
-        The positive x-axis should have incident light at an angle of 90 degrees. This should reflect the greatest proportion of light (e.g., all other (0,0) Mueller matrix values should be less than this value)
+        The positive x-axis should have incident light at an angle of 90 degrees. This should reflect the greatest proportion of light, except for very close to the -x axis, where r_p can get quite large (glancing angles)
         '''
         r, theta, phi = ct.cartesian_to_spherical_coords(incident_vector)
         

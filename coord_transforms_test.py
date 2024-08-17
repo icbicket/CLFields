@@ -1746,6 +1746,19 @@ class RotateNdVectorTest(unittest.TestCase):
         rotation_vector = np.array([[[1, 1, 0], [1, 1, 0], [0, 0, 3], [0, 0, 3]], [[1, 1, 0], [1, 1, 0], [0, 0, 3], [0, 0, 3]]])
         rotated_vector = coord_transforms.rotate_vector_Nd(xyz, angle, rotation_vector)
         np.testing.assert_equal(xyz.shape, rotated_vector.shape)
+    
+    def testOutputDotProduct(self):
+        '''
+        A failing case identified by the property test concerning the dot 
+         onto the vector before and after rotation
+        '''
+        xyz = np.array([1, 3.88111685e10, 1])
+        angle = 1
+        axis = np.array([5.53650558e8, 1, 6.11780729e8])
+        xyz_dot = np.dot(xyz, axis)
+        rotated_xyz = coord_transforms.rotate_vector_Nd(xyz, angle, axis)
+        rotated_dot = np.dot(rotated_xyz, axis)
+        np.testing.assert_allclose(xyz_dot, rotated_dot)
 
 if __name__ == '__main__':
     unittest.main()

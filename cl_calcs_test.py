@@ -683,27 +683,27 @@ class ReflectionCoefficientsTest(parameterized.TestCase):
         dict(testcase_name='+x, -y',
              incidence_angle=np.pi/4,
              expected_r_s=np.array([-0.45141623]),
-             expected_r_p=np.array([-0.20377661]),
+             expected_r_p=np.array([0.20377661]),
              ),
          dict(testcase_name='ones',
               incidence_angle=1,
               expected_r_s=np.array([-0.54108004]),
-              expected_r_p=np.array([-0.087243335]),
+              expected_r_p=np.array([0.087243335]),
              ),
         dict(testcase_name='-x, -y',
              incidence_angle=np.pi/4,
              expected_r_s=np.array([-0.45141623]),
-             expected_r_p=np.array([-0.20377661]),
+             expected_r_p=np.array([0.20377661]),
              ),
         dict(testcase_name='+x, +y',
              incidence_angle=np.pi/4,
              expected_r_s=np.array([-0.45141623]),
-             expected_r_p=np.array([-0.20377661]),
+             expected_r_p=np.array([0.20377661]),
             ),
         dict(testcase_name='-x, +y',
              incidence_angle=np.pi/4,
              expected_r_s=np.array([-0.45141623]),
-             expected_r_p=np.array([-0.20377661]),
+             expected_r_p=np.array([0.20377661]),
             ),
         dict(testcase_name='Brewster angle',
              incidence_angle=1.107148718,
@@ -713,7 +713,7 @@ class ReflectionCoefficientsTest(parameterized.TestCase):
         dict(testcase_name='not nice axis',
             incidence_angle=1.0502663767496385,
              expected_r_s=np.array([-0.5674137875163545]),
-             expected_r_p=np.array([-0.049406606222754904]),
+             expected_r_p=np.array([0.049406606222754904]),
              ),
         )
     def test_single_value(self, incidence_angle, expected_r_s, expected_r_p):
@@ -734,15 +734,14 @@ class ReflectionCoefficientsTest(parameterized.TestCase):
         n_environment = 1
         incidence_angle = np.array([1., np.pi/4])
         r = np.array(cl_calcs.reflection_coefficients(incidence_angle, n_surface, n_environment))
-        expected_r = np.transpose(np.array([[-0.54108004, -0.087243335], [-0.451416229, -0.203776612]]))
+        expected_r = np.transpose(np.array([[-0.54108004, 0.087243335], [-0.451416229, 0.203776612]]))
         np.testing.assert_allclose(r, expected_r, atol=1e-7)
 
     def test_complex_refractive_index(self):
         '''
         test the fresnel reflection coefficients for aluminium as the surface,
         at different angles of incidence
-        Values obtained from Wolfram demo project at (noting this is using 
-        optical sign convention - switch the sign of r_p):
+        Values obtained from Wolfram demo project at:
              Tayari Colemanand Anna Petrova-Mayor 
              "Fresnel Coefficients of Metals"
              http://demonstrations.wolfram.com/FresnelCoefficientsOfMetals/
@@ -755,14 +754,14 @@ class ReflectionCoefficientsTest(parameterized.TestCase):
             [0, 10, 20, 30, 40, 50, 60, 70, 80]))
         expected_r_p = np.array([
             -0.912293 - 0.285616j,
-            -0.910291 - 0.289706j,
-            -0.903869 - 0.302525j,
-            -0.891575 - 0.325905j,
-            -0.870092 - 0.363598j,
-            -0.831861 - 0.422767j,
-            -0.757610 - 0.517044j,
-            -0.587749 - 0.669632j,
-            -0.0914527 - 0.853458j
+            0.910291 + 0.289706j,
+            0.903869 + 0.302525j,
+            0.891575 + 0.325905j,
+            0.870092 + 0.363598j,
+            0.831861 + 0.422767j,
+            0.757610 + 0.517044j,
+            0.587749 + 0.669632j,
+            0.0914527 + 0.853458j
             ])
         expected_r_s = np.array([
             -0.912293 - 0.285616j,
@@ -799,14 +798,14 @@ class ReflectionCoefficientsTest(parameterized.TestCase):
             [0, 10, 20, 30, 40, 50, 60, 70, 80]))
         expected_r_p = np.array([
             -0.912293 - 0.285616j,
-            -0.910291 - 0.289706j,
-            -0.903869 - 0.302525j,
-            -0.891575 - 0.325905j,
-            -0.870092 - 0.363598j,
-            -0.831861 - 0.422767j,
-            -0.757610 - 0.517044j,
-            -0.587749 - 0.669632j,
-            -0.0914527 - 0.853458j
+            0.910291 + 0.289706j,
+            0.903869 + 0.302525j,
+            0.891575 + 0.325905j,
+            0.870092 + 0.363598j,
+            0.831861 + 0.422767j,
+            0.757610 + 0.517044j,
+            0.587749 + 0.669632j,
+            0.0914527 + 0.853458j
             ])
         expected_r_s = np.array([
             -0.912293 - 0.285616j,
@@ -833,7 +832,7 @@ class ReflectionCoefficientsTest(parameterized.TestCase):
         n_surface = 1.1965703 + 7.256124j
         incidence_angle = np.deg2rad(30)
         expected_r_p = np.array([
-            -0.9061895022792433 - 0.28850027298458086j,
+            0.9061895022792433 + 0.28850027298458086j,
             ])
         expected_r_s = np.array([
             -0.9375587862880652 - 0.22046733844683338j,
@@ -852,12 +851,12 @@ class ReflectedETest(parameterized.TestCase):
         ('s-polarized', np.array([[0, 0, 1]]), np.array([[0, 0, -0.451416229]]), 
             np.array([[0, 0, 0]])),
         ('p-polarized', np.array([[1, -1, 0]]), np.array([[0, 0, 0]]), 
-            0.203776612*np.array([[-1, 1, 0]])),
+            0.203776612*np.array([[1, -1, 0]])),
         ('mixed-polarized', np.array([[1, -1, 1]]), 
-            np.array([[0, 0, -0.451416229]]), 0.203776612*np.array([[-1, 1, 0]])),
+            np.array([[0, 0, -0.451416229]]), 0.203776612*np.array([[1, -1, 0]])),
         ('3 by 3 array', np.array([[0, 0, 1], [1, -1, 0], [1, -1, 1]]), 
             np.array([[0, 0, -0.451416229], [0, 0, 0], [0, 0, -0.451416229]]), 
-            0.203776612 * np.array([[0, 0, 0], [-1, 1, 0], [-1, 1, 0]]))
+            0.203776612 * np.array([[0, 0, 0], [1, -1, 0], [1, -1, 0]]))
     )
     def test_e_polarization_state(self, incident_e, expected_e_s, expected_e_p):
         '''
@@ -881,9 +880,9 @@ class ReflectedETest(parameterized.TestCase):
         ('s-polarized', np.array([[0, 0, 1]]), np.array([[0, 0, -0.451416229]]), 
             np.array([[0, 0, 0]])),
         ('p-polarized', np.array([[1, -1, 0]]), np.array([[0, 0, 0]]), 
-            0.203776612*np.array([[-1, 1, 0]])),
+            0.203776612*np.array([[1, -1, 0]])),
         ('mixed-polarized', np.array([[1, -1, 1]]), 
-            np.array([[0, 0, -0.451416229]]), 0.203776612*np.array([[-1, 1, 0]])),
+            np.array([[0, 0, -0.451416229]]), 0.203776612*np.array([[1, -1, 0]])),
     )
     def test_e_polarization_state_negative_normal(self, incident_e, expected_e_s, expected_e_p):
         '''
@@ -907,21 +906,21 @@ class ReflectedETest(parameterized.TestCase):
         ('s-polarized', np.array([[0, 0, 1]]), 
             np.array([[0, 0, -0.928898-0.249618j]]), np.array([[0, 0, 0]])),
         ('p-polarized', np.array([[1, -1, 0]]), np.array([[0, 0, 0]]), 
-            np.array([[-0.891575-0.325905j, 0.891575+0.325905j, 0]])),
+            np.array([[0.891575+0.325905j, -0.891575-0.325905j, 0]])),
         ('mixed-polarized', np.array([[1, -1, 1]]), 
             np.array([[0, 0, -0.928898-0.249618j]]), 
-            np.array([[-0.891575-0.325905j, 0.891575+0.325905j, 0]])),
+            np.array([[0.891575+0.325905j, -0.891575-0.325905j, 0]])),
         ('mixed-polarized not ones', np.array([[5, -3, 2]]), 
             np.array([[0, 0, -1.857796-0.499236j]]), 
-            np.array([[-4.457875-1.629525j, 2.674725+0.977715j, 0]])),
+            np.array([[4.457875+1.629525j, -2.674725-0.977715j, 0]])),
         ('3 by 3 array', 
             np.array([[0, 0, 1], [1, -1, 0], [1, -1, 1]]), 
             np.array([[0, 0, -0.928898-0.249618j], 
                 [0, 0, 0], 
                 [0, 0, -0.928898-0.249618j]]), 
             np.array([[0, 0, 0], 
-                [-0.891575-0.325905j, 0.891575+0.325905j, 0], 
-                [-0.891575-0.325905j, 0.891575+0.325905j, 0]]))
+                [0.891575+0.325905j, -0.891575-0.325905j, 0], 
+                [0.891575+0.325905j, -0.891575-0.325905j, 0]]))
     )
     def test_e_polarization_state_complex_surface(self, incident_e, expected_e_s, expected_e_p):
         '''
@@ -952,9 +951,9 @@ class ReflectedETest(parameterized.TestCase):
                 [0, 0, -0.928898-0.249618j],
                 [0, 0, -1.857796-0.499236j]])
         expected_e_p = np.array([[0, 0, 0], 
-                [-0.891575-0.325905j, 0.891575+0.325905j, 0], 
-                [-0.891575-0.325905j, 0.891575+0.325905j, 0],
-                [-4.457875-1.629525j, 2.674725+0.977715j, 0]])
+                [0.891575+0.325905j, -0.891575-0.325905j, 0], 
+                [0.891575+0.325905j, -0.891575-0.325905j, 0],
+                [4.457875+1.629525j, -2.674725-0.977715j, 0]])
         normal = np.array([[1, 0, 0]])
         incident_direction = np.array([-0.8660254037844387, -0.5, 0])  # 30 deg
         n_surface = 0.965+6.399j  # Aluminium
@@ -982,9 +981,9 @@ class ReflectedETest(parameterized.TestCase):
                 [0, 0, -0.928898-0.249618j],
                 [0, 0, -1.857796-0.499236j]])
         expected_e_p = np.array([[0, 0, 0], 
-                [-0.891575-0.325905j, 0.891575+0.325905j, 0], 
-                [-0.891575-0.325905j, 0.891575+0.325905j, 0],
-                [-4.457875-1.629525j, 2.674725+0.977715j, 0]])
+                [0.891575+0.325905j, -0.891575-0.325905j, 0], 
+                [0.891575+0.325905j, -0.891575-0.325905j, 0],
+                [4.457875+1.629525j, -2.674725-0.977715j, 0]])
         normal = np.array([[1, 0, 0], [1, 0, 0], [1, 0, 0], [1, 0, 0]])
         incident_direction = np.array([-0.8660254037844387, -0.5, 0])  # 30 deg
         n_surface = 0.965+6.399j  # Aluminium
@@ -1024,13 +1023,13 @@ class StokesParametersTest(unittest.TestCase):
         E2 = np.array([1 - 1j, 0.5 - 1j, 1 + 1j])
         S0, S1, S2, S3 = cl_calcs.stokes_parameters(E1, E2)
         S_calc = np.array([S0, S1, S2, S3])
-        stokes = np.transpose(np.array([[4, 0, 0, 4], [2.5, 0, 0, 2.5], [4, 0, 0, -4]]))
+        stokes = np.transpose(np.array([[4, 0, 0, -4], [2.5, 0, 0, -2.5], [4, 0, 0, 4]]))
         np.testing.assert_array_equal(stokes, S_calc)
 
     def test_stokes_angle_polarized(self):
         E1 = 1 + 1j
         E2 = 1 - 0j
-        stokes = np.array([3, 1, 2, 2])
+        stokes = np.array([3, 1, 2, -2])
         S0, S1, S2, S3 = cl_calcs.stokes_parameters(E1, E2)
         S_calc = np.array([S0, S1, S2, S3])
         np.testing.assert_array_equal(stokes, S_calc)

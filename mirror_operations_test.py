@@ -1826,9 +1826,11 @@ class SurfacePolarizationTest(parameterized.TestCase):
         direction_cart = np.stack((direction_x, direction_y, direction_z), axis=1)
         positions = miop.parabola_position(direction_cart)
         normals = miop.parabola_normals(positions)
-        expected_p=np.array([[1, 0, 0], [1, 0, 0]]),
-        expected_s=np.array([[0, 0, -1], [0, -1/np.sqrt(2), 1/np.sqrt(2)]]),
-        
+        p, s = miop.surface_polarization_directions(normals, direction_cart)
+        expected_p=np.array([[1, 0, 0], [1, 0, 0]])
+        expected_s=np.array([[0, 0, -1], [0, -1/np.sqrt(2), 1/np.sqrt(2)]])
+        np.testing.assert_allclose(p, expected_p, atol=1e-7)
+        np.testing.assert_allclose(s, expected_s, atol=1e-7)
 
     def test_output_dimensions_4x3(self):
         '''
@@ -2597,12 +2599,59 @@ class GetMuellerMatrixTest(parameterized.TestCase):
             mirror=miop.AMOLF_MIRROR
         )
         e_out = e_s_out + e_p_out
-        print(e_out)
         S0, S1, S2, S3 = cl_calcs.stokes_parameters(e_out[:, 1], e_out[:, 2])
         self.assertLess(0, S1)
         self.assertLess(0, S2)
         self.assertLess(0, S3)
 
+    def test_positive_x_greatest_intensity(self):
+        '''
+        The positive x-axis should have incident light at an angle of 90 degrees. This should reflect the greatest proportion of light (e.g., all other (0,0) Mueller matrix values should be less than this value)
+        '''
+        incident_vector = np.array([[-122, 1, 1]])
+        r, theta, phi = coord_transforms.cartesian_to_spherical_coords(incident_vector)
+        
+        # set up incident vector to test
+        incident_vector_positive_x = np.array([[1, 0, 0]])
+        E_S1_positive, E_S1_negative = self.positive_and_negative_stokes_vectors(theta[..., np.newaxis], phi[..., np.newaxis])
+        
+        # set up vector along positive x-axis
+        r_positive_x, theta_positive_x, phi_positive_x = coord_transforms.cartesian_to_spherical_coords(incident_vector_positive_x)
+        E_S1_positive_positive_x, E_S1_negative_positive_x = self.positive_and_negative_stokes_vectors(theta_positive_x[..., np.newaxis], phi_positive_x[..., np.newaxis])
+        
+        # calculate Mueller matrix for both vectors
+
+        mueller_calc = np.real(miop.get_mirror_mueller_matrix(
+            incident_vector,
+            E_S1_positive,
+            E_S1_negative,
+            wavelength=1800e-9,
+            output_stokes_indices=(1,2),
+        ))
+        mueller_calc_positive_x = np.real(miop.get_mirror_mueller_matrix(
+            incident_vector_positive_x,
+            E_S1_positive_positive_x,
+            E_S1_negative_positive_x,
+            wavelength=1800e-9,
+            output_stokes_indices=(1,2),
+        ))
+        print(mueller_calc_positive_x)
+        print(mueller_calc)
+        # compare the 0th element
+        
+        self.assertTrue(
+            np.logical_or(
+                np.isclose(
+                    mueller_calc_positive_x[0],
+                    mueller_calc[0],
+                    atol=1e-6
+                ),
+                np.less(
+                    mueller_calc[0],
+                    mueller_calc_positive_x[0]
+                )
+            )
+        )
 
 if __name__ == '__main__':
     unittest.main()
