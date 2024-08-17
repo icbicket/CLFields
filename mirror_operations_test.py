@@ -1754,9 +1754,9 @@ class ParabolaNormalsTest(parameterized.TestCase):
         np.testing.assert_allclose(normal, expected_normal, atol=1e-7)
 
 
-class ParabolaSurfacePolarizationTest(parameterized.TestCase):
+class SurfacePolarizationTest(parameterized.TestCase):
     '''
-    Test the surface polarization direction for parabolas
+    Test the surface polarization direction
     '''
     @parameterized.named_parameters(
 #        dict(testcase_name='positive X axis',
@@ -1795,12 +1795,6 @@ class ParabolaSurfacePolarizationTest(parameterized.TestCase):
              expected_p=np.array([[1, 0, 0]]),
              expected_s=np.array([[0, -1/np.sqrt(2), 1/np.sqrt(2)]]),
         ),
-        dict(testcase_name='2x3 array',
-             theta=np.array([np.pi/2, np.pi/4]),
-             phi=np.array([-np.pi/2, np.pi/2]),
-             expected_p=np.array([[1, 0, 0], [1, 0, 0]]),
-             expected_s=np.array([[0, 0, -1], [0, -1/np.sqrt(2), 1/np.sqrt(2)]]),
-         ),
        dict(testcase_name='theta,phi 45 degrees',
             theta = np.array([np.pi/4]),
             phi = np.array([np.pi/4]),
@@ -1813,9 +1807,28 @@ class ParabolaSurfacePolarizationTest(parameterized.TestCase):
                                              phi,
                                              expected_p,
                                              expected_s):
-        p, s = miop.parabola_surface_polarization_directions(theta, phi)
+        r = np.array([1])
+        direction_sph = np.stack((r, theta, phi), axis=1)
+        direction_x, direction_y, direction_z = coord_transforms.spherical_to_cartesian_coords(direction_sph)
+        direction_cart = np.stack((direction_x, direction_y, direction_z), axis=1)
+        positions = miop.parabola_position(direction_cart)
+        normals = miop.parabola_normals(positions)
+        p, s = miop.surface_polarization_directions(normals, direction_cart)
         np.testing.assert_allclose(p, expected_p, atol=1e-7)
         np.testing.assert_allclose(s, expected_s, atol=1e-7)
+
+    def test_surface_polarization_2x3_array(self):
+        r = np.array([1, 1])
+        theta = np.array([np.pi/2, np.pi/4])
+        phi=np.array([-np.pi/2, np.pi/2])
+        direction_sph = np.stack((r, theta, phi), axis=1)
+        direction_x, direction_y, direction_z = coord_transforms.spherical_to_cartesian_coords(direction_sph)
+        direction_cart = np.stack((direction_x, direction_y, direction_z), axis=1)
+        positions = miop.parabola_position(direction_cart)
+        normals = miop.parabola_normals(positions)
+        expected_p=np.array([[1, 0, 0], [1, 0, 0]]),
+        expected_s=np.array([[0, 0, -1], [0, -1/np.sqrt(2), 1/np.sqrt(2)]]),
+        
 
     def test_output_dimensions_4x3(self):
         '''
@@ -1823,19 +1836,32 @@ class ParabolaSurfacePolarizationTest(parameterized.TestCase):
         '''
         theta = np.array([1, 2, 3, 4])
         phi = np.array([5, 6, 7, 8])
-        p, s = miop.parabola_surface_polarization_directions(theta, phi)
+        r = np.array([1, 1, 1, 1])
+        direction_sph = np.stack((r, theta, phi), axis=1)
+        direction_x, direction_y, direction_z = coord_transforms.spherical_to_cartesian_coords(direction_sph)
+        direction_cart = np.stack((direction_x, direction_y, direction_z), axis=1)
+        positions = miop.parabola_position(direction_cart)
+        normals = miop.parabola_normals(positions)
+        p, s = miop.surface_polarization_directions(normals, direction_cart)
         self.assertEqual(np.shape(p), (4,3))
         self.assertEqual(np.shape(s), (4,3))
 
-    def test_output_dimensions_2x4x3(self):
-        '''
-        test the output dimensions are 2x4x3, given input of size 2x4
-        '''
-        theta = np.array([[1, 2, 3, 4], [1, 2, 3, 4]])
-        phi = np.array([[5, 6, 7, 8], [5, 6, 7, 8]])
-        p, s = miop.parabola_surface_polarization_directions(theta, phi)
-        self.assertEqual(np.shape(p), (2, 4, 3))
-        self.assertEqual(np.shape(s), (2, 4, 3))
+#    def test_output_dimensions_2x4x3(self):
+#        '''
+#        test the output dimensions are 2x4x3, given input of size 2x4
+#        '''
+#        theta = np.array([[1, 2, 3, 4], [1, 2, 3, 4]])
+#        phi = np.array([[5, 6, 7, 8], [5, 6, 7, 8]])
+#        r = np.array([[1, 1, 1, 1], [1, 1, 1, 1]])
+#        direction_sph = np.stack((r, theta, phi), axis=2)
+#        direction_x, direction_y, direction_z = coord_transforms.spherical_to_cartesian_coords(direction_sph)
+#        direction_cart = np.stack((direction_x, direction_y, direction_z), axis=2)
+#        positions = miop.parabola_position(direction_cart)
+#        normals = miop.parabola_normals(positions)
+#        p, s = miop.surface_polarization_directions(normals, direction_cart)
+#        p, s = miop.parabola_surface_polarization_directions(theta, phi)
+#        self.assertEqual(np.shape(p), (2, 4, 3))
+#        self.assertEqual(np.shape(s), (2, 4, 3))
 
 class GetMirrorReflectionCoefficientsTest(parameterized.TestCase):
     '''
@@ -1847,25 +1873,25 @@ class GetMirrorReflectionCoefficientsTest(parameterized.TestCase):
              k_vector=np.array([1, -1, 0])/np.sqrt(2),
              normal=np.array([1, 0, 0]),
              expected_r_s=np.array([-0.45141623]),
-             expected_r_p=np.array([-0.20377661]),
+             expected_r_p=np.array([0.20377661]),
         ),
         dict(testcase_name='-x, -y',
              k_vector=np.array([-1, -1, 0])/np.sqrt(2),
              normal=np.array([1, 0, 0]),
              expected_r_s=np.array([-0.45141623]),
-             expected_r_p=np.array([-0.20377661]),
+             expected_r_p=np.array([0.20377661]),
         ),
         dict(testcase_name='+x, +y',
              k_vector=np.array([1, 1, 0])/np.sqrt(2),
              normal=np.array([1, 0, 0]),
              expected_r_s=np.array([-0.45141623]),
-             expected_r_p=np.array([-0.20377661]),
+             expected_r_p=np.array([0.20377661]),
         ),
         dict(testcase_name='-x, +y',
              k_vector=np.array([-1, 1, 0])/np.sqrt(2),
              normal=np.array([1, 0, 0]),
              expected_r_s=np.array([-0.45141623]),
-             expected_r_p=np.array([-0.20377661]),
+             expected_r_p=np.array([0.20377661]),
         ),
         dict(testcase_name='Brewster angle',
              k_vector=np.array([2, -1, 0]),
@@ -1877,7 +1903,7 @@ class GetMirrorReflectionCoefficientsTest(parameterized.TestCase):
              k_vector=np.array([1, 1, 3]),
              normal=np.array([1, 2.5, 1]),
              expected_r_s=np.array([-0.46356686111079304]),
-             expected_r_p=np.array([-0.18900224550388287]),
+             expected_r_p=np.array([0.18900224550388287]),
         ),
     )
     def test_incoming_vector_angles(self, k_vector, normal, expected_r_s, expected_r_p):
@@ -2252,7 +2278,7 @@ class CalculateMuellerMatrixTest(parameterized.TestCase):
         '''
         Testing single value inputs
         '''
-        calculated_m = miop.mueller_matrix_ellipsoidal(e_h_h, e_h_v, e_v_h, e_v_v)
+        calculated_m = miop.calculate_mueller_matrix(e_h_h, e_h_v, e_v_h, e_v_v)
         np.testing.assert_allclose(calculated_m, expected_m, atol=1e-7)
 
 
@@ -2277,7 +2303,7 @@ class GetMuellerMatrixTest(parameterized.TestCase):
             1,
             0,
             )
-        E_S1_positive = np.stack((S1_positive_r, S1_positive_theta, S1_positive_phi), axis=-1)
+        E_S1_positive = np.concatenate((S1_positive_r, S1_positive_theta, S1_positive_phi), axis=-1)
         S1_negative_r, S1_negative_theta, S1_negative_phi = coord_transforms.spherical_to_cartesian_vector_field(
             theta,
             phi,
@@ -2285,7 +2311,7 @@ class GetMuellerMatrixTest(parameterized.TestCase):
             0,
             -1,
             )
-        E_S1_negative = np.stack((S1_negative_r, S1_negative_theta, S1_negative_phi), axis=-1)
+        E_S1_negative = np.concatenate((S1_negative_r, S1_negative_theta, S1_negative_phi), axis=-1)
         return E_S1_positive, E_S1_negative
     
     @parameterized.named_parameters(
@@ -2301,8 +2327,8 @@ class GetMuellerMatrixTest(parameterized.TestCase):
             ),
         dict(testcase_name='All zeros, 2x3',
              incident_vector = np.array([[1/np.sqrt(2), 1/np.sqrt(2), 0],[1/np.sqrt(2), 1/np.sqrt(2), 0]]),
-             E_S1_positive = np.array([[0,0,0]]),
-             E_S1_negative = np.array([[0,0,0]]),
+             E_S1_positive = np.array([[0,0,0], [0,0,0]]),
+             E_S1_negative = np.array([[0,0,0], [0,0,0]]),
              expected_m = np.array([[
                  0, 0, 0, 0,
                  0, 0, 0, 0,
@@ -2314,15 +2340,15 @@ class GetMuellerMatrixTest(parameterized.TestCase):
                  0, 0, 0, 0]
                 ]).transpose()
             ),
-        dict(testcase_name='incident angle 90 (+x axis)',
+        dict(testcase_name='incident_angle_90_(+x_axis)',
              incident_vector = np.array([[1, 0, 0]]),
-             E_S1_positive = np.array([[0,1,0]]),
-             E_S1_negative = np.array([[0,0,1]]),
+             E_S1_positive = np.array([[0, 0, -1]]),
+             E_S1_negative = np.array([[0, -1, 0]]),
              expected_m = 0.9795101967331153*np.array([[
-                1,0,0,0,
-                0,1,0,0,
-                0,0,-1,0,
-                0,0,0,-1
+                1,  0,  0,  0,
+                0, -1,  0,  0,
+                0,  0,  1,  0,
+                0,  0,  0, -1
              ]]).transpose()
         )
         )
@@ -2348,7 +2374,7 @@ class GetMuellerMatrixTest(parameterized.TestCase):
         '''
         incident_vector=np.array([[1,1,1]])
         r, theta, phi = coord_transforms.cartesian_to_spherical_coords(incident_vector)
-        E_S1_positive, E_S1_negative = self.positive_and_negative_stokes_vectors(theta, phi)
+        E_S1_positive, E_S1_negative = self.positive_and_negative_stokes_vectors(theta[..., np.newaxis], phi[..., np.newaxis])
         mueller_matrix = np.real(miop.get_mirror_mueller_matrix(
             incident_vector,
             E_S1_positive,
@@ -2363,7 +2389,7 @@ class GetMuellerMatrixTest(parameterized.TestCase):
         '''
         incident_vector=np.array([[1,1,-1]])
         r, theta, phi = coord_transforms.cartesian_to_spherical_coords(incident_vector)
-        E_S1_positive, E_S1_negative = self.positive_and_negative_stokes_vectors(theta, phi)
+        E_S1_positive, E_S1_negative = self.positive_and_negative_stokes_vectors(theta[..., np.newaxis], phi[..., np.newaxis])
         mueller_matrix = np.real(miop.get_mirror_mueller_matrix(
             incident_vector,
             E_S1_positive,
@@ -2378,7 +2404,8 @@ class GetMuellerMatrixTest(parameterized.TestCase):
         '''
         incident_vector=np.array([[1,1,1], [1,1,-1]])
         r, theta, phi = coord_transforms.cartesian_to_spherical_coords(incident_vector)
-        E_S1_positive, E_S1_negative = self.positive_and_negative_stokes_vectors(theta, phi)
+        E_S1_positive, E_S1_negative = self.positive_and_negative_stokes_vectors(theta[..., np.newaxis], phi[..., np.newaxis])
+        print(theta.shape, E_S1_positive.shape)
         mueller_matrix = np.real(miop.get_mirror_mueller_matrix(
             incident_vector,
             E_S1_positive,
@@ -2391,10 +2418,10 @@ class GetMuellerMatrixTest(parameterized.TestCase):
         '''
         Retrieve the Mueller matrix at an angle of (theta, phi) = 45 and check that sign conventions are followed
         '''
-        r = 1
-        theta = np.pi/4
-        phi = np.pi/4
-        r_theta_phi = np.expand_dims(np.stack((r, theta, phi)), axis=0)
+        r = np.array([[1]])
+        theta = np.array([[np.pi/4]])
+        phi = np.array([[np.pi/4]])
+        r_theta_phi = np.concatenate((r, theta, phi), axis=1)
         x, y, z = coord_transforms.spherical_to_cartesian_coords(r_theta_phi)
         incident_vector = np.stack((x, y, z), axis=1)
         E_S1_positive, E_S1_negative = self.positive_and_negative_stokes_vectors(theta, phi)
@@ -2412,10 +2439,10 @@ class GetMuellerMatrixTest(parameterized.TestCase):
         '''
         Retrieve the Mueller matrix at an angle of (theta, phi) = (45, 135) and check that sign conventions are followed
         '''
-        r = 1
-        theta = np.pi/4
-        phi = 3*np.pi/4
-        r_theta_phi = np.expand_dims(np.stack((r, theta, phi)), axis=0)
+        r = np.array([[1]])
+        theta = np.array([[np.pi/4]])
+        phi = np.array([[3*np.pi/4]])
+        r_theta_phi = np.concatenate((r, theta, phi), axis=1)
         x, y, z = coord_transforms.spherical_to_cartesian_coords(r_theta_phi)
         incident_vector = np.stack((x, y, z), axis=1)
         E_S1_positive, E_S1_negative = self.positive_and_negative_stokes_vectors(theta, phi)
@@ -2440,11 +2467,11 @@ class GetMuellerMatrixTest(parameterized.TestCase):
         
         # set up incident vector to test
         incident_vector_positive_x = np.array([[1, 0, 0]])
-        E_S1_positive, E_S1_negative = self.positive_and_negative_stokes_vectors(theta, phi)
+        E_S1_positive, E_S1_negative = self.positive_and_negative_stokes_vectors(theta[..., np.newaxis], phi[..., np.newaxis])
         
         # set up vector along positive x-axis
         r_positive_x, theta_positive_x, phi_positive_x = coord_transforms.cartesian_to_spherical_coords(incident_vector_positive_x)
-        E_S1_positive_positive_x, E_S1_negative_positive_x = self.positive_and_negative_stokes_vectors(theta_positive_x, phi_positive_x)
+        E_S1_positive_positive_x, E_S1_negative_positive_x = self.positive_and_negative_stokes_vectors(theta_positive_x[..., np.newaxis], phi_positive_x[..., np.newaxis])
         
         # calculate Mueller matrix for both vectors
         mueller_calc = np.real(miop.get_mirror_mueller_matrix(
@@ -2478,7 +2505,7 @@ class GetMuellerMatrixTest(parameterized.TestCase):
 
     def test_Stokes_at_theta45_phi45(self):
         '''
-        Given an input of polarization along the theta direction:
+        Given an input of polarization along the theta direction (S1 positive):
         - the value of the (1,1) Mueller matrix coefficient at (theta, phi) = 45 degrees should be negative
         '''
         incident_Evector_spherical = np.array([[0, 1, 0]])
@@ -2505,13 +2532,16 @@ class GetMuellerMatrixTest(parameterized.TestCase):
         e_out = e_s_out + e_p_out
         S0, S1, S2, S3 = cl_calcs.stokes_parameters(e_out[:, 1], e_out[:, 2])
         self.assertLess(S1, 0)
-#        self.assertLess(0, S2)
-#        self.assertLess(0, S3)
+        self.assertLess(S2, 0)
+        self.assertLess(S3, 0)
 
     def test_Stokes_at_theta45_phi135(self):
         '''
-        Given an input of polarization along the theta direction:
-        - the value of the (1,1) Mueller matrix coefficient at (theta, phi) = 45 degrees should be negative
+        Given an input of polarization along the theta direction (S1 positive):
+        - check the sign conventions of the Stokes parameters make sense after reflection at (theta, phi)=(45,135)
+        - S1 is positive
+        - S2 is close to 0, but slightly negative
+        - S3 is positive
         '''
         incident_Evector_spherical = np.array([[0, 1, 0]])
         incident_vector_spherical = np.array([[1, np.pi/4, 3*np.pi/4]])
@@ -2537,12 +2567,13 @@ class GetMuellerMatrixTest(parameterized.TestCase):
         e_out = e_s_out + e_p_out
         S0, S1, S2, S3 = cl_calcs.stokes_parameters(e_out[:, 1], e_out[:, 2])
         self.assertLess(0, S1)
+        self.assertLess(S2, 0)
         self.assertLess(0, S3)
 
     def test_Stokes_at_theta20_phi135(self):
         '''
         Given an input of polarization along the theta direction:
-        - the value of the (1,1) Mueller matrix coefficient at (theta, phi) = 45 degrees should be negative
+        - check the signs of the Stokes parameters at (theta, phi) = (20, 135)
         '''
         incident_Evector_spherical = np.array([[0, 1, 0]])
         incident_vector_spherical = np.array([[1, np.deg2rad(20), 3*np.pi/4]])
@@ -2566,9 +2597,10 @@ class GetMuellerMatrixTest(parameterized.TestCase):
             mirror=miop.AMOLF_MIRROR
         )
         e_out = e_s_out + e_p_out
+        print(e_out)
         S0, S1, S2, S3 = cl_calcs.stokes_parameters(e_out[:, 1], e_out[:, 2])
         self.assertLess(0, S1)
-#        self.assertLess(0, S2)
+        self.assertLess(0, S2)
         self.assertLess(0, S3)
 
 

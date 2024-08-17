@@ -147,6 +147,7 @@ def reflected_e(incident_direction, incident_e, surface_normal, n_surface, n_env
     '''
     incident_angle = angle_of_incidence(incident_direction, surface_normal)
     r_s, r_p = reflection_coefficients(incident_angle, n_surface, n_environment)
+    
     # isolate e_s (electric field polarized perpendicular to the plane of incidence)
     s_direction = np.cross(surface_normal, incident_direction)
 #    s_direction = s_direction/np.expand_dims(coord.field_magnitude(s_direction, keepdims=True), axis=-1)
@@ -154,6 +155,7 @@ def reflected_e(incident_direction, incident_e, surface_normal, n_surface, n_env
     e_s = np.sum(incident_e * s_direction, axis=-1, keepdims=True) * s_direction
 #    e_s_reflected = np.expand_dims(r_s, axis=-1) * e_s
     e_s_reflected = r_s * e_s
+    
     # isolate e_p (electric field polarized parallel to the plane of incidence)
     e_p = incident_e - e_s
 #    e_p_reflected = np.expand_dims(r_p, axis=-1) * e_p
@@ -169,7 +171,7 @@ def stokes_parameters(E_h, E_v):
     S0 = np.real(E_h * np.conj(E_h) + E_v * np.conj(E_v))
     S1 = np.real(E_h * np.conj(E_h) - E_v * np.conj(E_v))
     S2 = np.real((E_h * np.conj(E_v)) + (E_v * np.conj(E_h)))
-    S3 = np.real(-1j * (E_h * np.conj(E_v) - E_v * np.conj(E_h)))
+    S3 = np.real(1j * (E_h * np.conj(E_v) - E_v * np.conj(E_h)))
     return S0, S1, S2, S3
 
 def normalize_stokes_parameters(S0, S1, S2, S3):

@@ -265,6 +265,8 @@ def surface_polarization_directions(normal, incident_direction):
     calculate direction vectors for p- and s- polarized light on the mirror surface
     p-polarized: light polarization in the plane of incidence on the mirror
     s-polarized: light polarization perpendicular to the plane of incidence on the mirror
+    Note: at normal incidence, where normal==incident_direction, the
+     polarization direction vectors are undefined
     
     Input
     normal: surface normals for the mirror surface, eg, as calculated by parabola_normals, a numpy array of size Nx3
@@ -274,7 +276,7 @@ def surface_polarization_directions(normal, incident_direction):
      p_direction: direction of p-polarization, Nx3 numpy array in Cartesian coordinates
      s_direction: direction of s-polarization, Nx3 numpy array in Cartesian coordinates
     '''
-    print(np.shape(normal), np.shape(incident_direction))
+    
     s_direction = np.cross(normal, incident_direction, axis=-1)
     s_direction /= ct.field_magnitude(s_direction, keepdims=True)
     
@@ -342,6 +344,14 @@ def get_mirror_reflected_field(incident_direction, incident_e, wavelength, n_env
     # negative of the ct.reflect_vector because the outgoing e_s should be in the same direction as the incoming, and this vector reflection formula doesn't quite do that properly when the two vectors are perpendicular (the s-direction vector is not in the reflection plane)
     reflected_e_s = r_s * -ct.reflect_vector(incident_e_s, surface_normal)
     reflected_e_p = r_p * ct.reflect_vector(incident_e_p, surface_normal)
+
+    normal_condition = np.all(incident_direction==surface_normal, axis=-1, keepdims=True)
+
+    normal_mask = np.broadcast_to(normal_condition, incident_e.shape)
+
+    reflected_e_s[normal_mask] = r_s[normal_condition] * incident_e[normal_mask]
+
+    reflected_e_p[normal_mask] = 0
     # negative of the reflected vector because the outgoing vector needs to 
     # propagate away from the surface and the reflect_vector function will
     # put out an output vector propagating into the surface
@@ -361,6 +371,7 @@ def calculate_mueller_matrix(e_h_h, e_h_v, e_v_h, e_v_v):
     - e_v_v, input vertical, output vertical
     Each input is an Nx3 numpy array.
     '''
+
     m00 = 0.5 * (
           e_h_h * np.conj(e_h_h) 
         + e_h_v * np.conj(e_h_v) 
