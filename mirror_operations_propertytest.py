@@ -297,7 +297,12 @@ class GetMirrorReflectedFieldTest(unittest.TestCase):
         incident_direction = np.expand_dims(incident_vector[0, :], axis=0)
         incident_e = np.cross(incident_vector[0, :], incident_vector[1, :])
         reflected_e_s, reflected_e_p, reflected_direction = miop.get_mirror_reflected_field(
-            incident_direction, incident_e[np.newaxis, ...], wavelength, n_environment, mirror)
+            direction_vector=incident_direction, 
+            incident_e=incident_e[np.newaxis, ...], 
+            wavelength=wavelength, 
+            n_environment=n_environment, 
+            mirror=mirror
+        )
         if ct.field_magnitude(reflected_e_s) != 0:
             reflected_e_s_norm = reflected_e_s/ct.field_magnitude(np.real(reflected_e_s))
         else:
@@ -324,7 +329,12 @@ class GetMirrorReflectedFieldTest(unittest.TestCase):
         incident_direction = np.expand_dims(incident_vector[0, :], axis=0)
         incident_e = np.cross(incident_vector[0, :], incident_vector[1, :]) + 1j*complex_e
         reflected_e_s, reflected_e_p, reflected_direction = miop.get_mirror_reflected_field(
-            incident_direction, incident_e, wavelength, n_environment, mirror)
+            direction_vector=incident_direction, 
+            incident_e=incident_e, 
+            wavelength=wavelength, 
+            n_environment=n_environment, 
+            mirror=mirror
+        )
         if ct.field_magnitude(reflected_e_s) != 0:
             reflected_e_s_norm = reflected_e_s/ct.field_magnitude(np.real(reflected_e_s))
         else:
@@ -351,7 +361,12 @@ class GetMirrorReflectedFieldTest(unittest.TestCase):
         incident_direction = np.expand_dims(incident_vector[0, :], axis=0)
         incident_e = np.cross(incident_vector[0, :], incident_vector[1, :]) + 1j*complex_e
         reflected_e_s, reflected_e_p, reflected_direction = miop.get_mirror_reflected_field(
-            incident_direction, incident_e, wavelength, n_environment, mirror)
+            direction_vector=incident_direction, 
+            incident_e=incident_e, 
+            wavelength=wavelength, 
+            n_environment=n_environment, 
+            mirror=mirror
+            )
         self.assertTrue(reflected_direction[:, 0] <= 0)
         reflected_direction_norm = reflected_direction/ct.field_magnitude(reflected_direction)
         np.testing.assert_allclose(reflected_direction_norm[:, 1], 0, atol=1e-6)
@@ -371,7 +386,12 @@ class GetMirrorReflectedFieldTest(unittest.TestCase):
         incident_direction = np.expand_dims(incident_vector[0, :], axis=0)
         incident_e = np.cross(incident_vector[0, :], incident_vector[1, :]) + 1j*complex_e
         reflected_e_s, reflected_e_p, reflected_direction = miop.get_mirror_reflected_field(
-            incident_direction, incident_e, wavelength, n_environment, mirror)
+            direction_vector=incident_direction, 
+            incident_e=incident_e, 
+            wavelength=wavelength, 
+            n_environment=n_environment, 
+            mirror=mirror
+        )
         incident_e_magnitude = ct.field_magnitude(incident_e)
         reflected_e_magnitude = ct.field_magnitude(reflected_e_s + reflected_e_p)
         self.assertTrue(reflected_e_magnitude <= incident_e_magnitude)
@@ -390,7 +410,12 @@ class GetMirrorReflectedFieldTest(unittest.TestCase):
         incident_direction = np.expand_dims(incident_vector[0, :], axis=0)
         incident_e = np.cross(incident_vector[0, :], incident_vector[1, :]) + 1j*complex_e
         reflected_e_s, reflected_e_p, reflected_direction = miop.get_mirror_reflected_field(
-            incident_direction, incident_e, wavelength, n_environment, mirror)
+            direction_vector=incident_direction, 
+            incident_e=incident_e, 
+            wavelength=wavelength, 
+            n_environment=n_environment, 
+            mirror=mirror
+        )
         incident_e_magnitude = ct.field_magnitude(incident_e)
         reflected_e_magnitude = ct.field_magnitude(reflected_e_s + reflected_e_p)
         self.assertTrue(np.logical_or(

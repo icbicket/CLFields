@@ -1976,7 +1976,7 @@ class MirrorRefractiveIndexTest(parameterized.TestCase):
              expected_n = 0.101999952506306 + 1j * 2.07000096384308
             ),
         dict(testcase_name='0p5 eV',
-             wavelength=2.4796838686640052e-06,
+             wavelength=2.4796839e-06,
              expected_n = 3.07 + 1j * 25.6
             ),
         )
@@ -2030,6 +2030,8 @@ class MirrorReflectedFieldTest(parameterized.TestCase):
     Testing the calculation of electric field vectors reflected off the mirror
     - output is the same shape as the input
     - output is correct given a normal input
+    - real vector inputs
+    - off-origin light source
     '''
     def testOutputShape4x3(self):
         '''
@@ -2131,13 +2133,14 @@ class MirrorReflectedFieldTest(parameterized.TestCase):
         mirror = miop.AMOLF_MIRROR
         n_environment = 1
         reflected_e_s, reflected_e_p, reflected_direction = miop.get_mirror_reflected_field(
-            incident_direction, incident_e, wavelength, n_environment, mirror)
+            direction_vector=incident_direction, incident_e=incident_e, wavelength=wavelength, n_environment=n_environment, mirror=mirror)
 #        expected_e_s = (-0.461575 - 0.0882315j) * np.array([[0, -1, 1]])
 #        expected_e_p = np.array([[5.28768253e-10+1.29162216e-10j, -7.77563951e-01-1.89935539e-01j, -7.77563951e-01-1.89935539e-01j]])
 #        expected_e_p = (-0.897854 - 0.219319j) * np.array([[1, -0.5, -0.5]])
         np.testing.assert_allclose(reflected_e_s, expected_e_s, atol=1e-5)
         np.testing.assert_allclose(reflected_e_p, expected_e_p, atol=1e-5)
         np.testing.assert_allclose(reflected_direction, expected_k_r, atol=1e-6)
+
 
     def testThetaPhi45Degrees(self):
         '''
@@ -2164,10 +2167,72 @@ class MirrorReflectedFieldTest(parameterized.TestCase):
         mirror = miop.AMOLF_MIRROR
         n_environment = 1
         reflected_e_s, reflected_e_p, reflected_direction = miop.get_mirror_reflected_field(
-            incident_direction, incident_e, wavelength, n_environment, mirror)
+            direction_vector=incident_direction, 
+            incident_e=incident_e, 
+            wavelength=wavelength, 
+            n_environment=n_environment, 
+            mirror=mirror
+        )
         np.testing.assert_allclose(reflected_e_s, expected_e_s, atol=1e-5)
         np.testing.assert_allclose(reflected_e_p, expected_e_p, atol=1e-5)
         np.testing.assert_allclose(reflected_direction, expected_k_r, atol=1e-6)
+
+    @parameterized.named_parameters(
+#        dict(testcase_name='-z_displaced_vertical_ray', 
+#            incident_direction=np.array([[0, 0, 1]]), 
+#            incident_e = np.array([[0.171, 0, -0.985]]), 
+#            source_position = np.array([[0, 0, -1]])),
+#            expected_e_p = np.array([[]]),
+#            expected_e_s = np.array([[]]),
+#            expected_direction = np.array([[1, 0, 0]]),
+#        dict(testcase_name='focal_point_vertical_ray', 
+#            incident_direction=np.array([[0, 0, 1]]), 
+#            incident_e = np.array([[0.171, 0, -0.985]]), 
+#            source_position = np.array([[0, 0, -1]])),
+#            expected_e_p = np.array([[]]),
+#            expected_e_s = np.array([[1, 0, 0]]),
+#            expected_direction = np.array([[]]),
+#        dict(testcase_name='+z_displaced_vertical_ray', 
+#            incident_direction=np.array([[0, 0, 1]]), 
+#            incident_e = np.array([[0.171, 0, -0.985]]), 
+#            source_position = np.array([[0, 0, +1]])),
+#            expected_e_p = np.array([[]]),
+#            expected_e_s = np.array([[]]),
+#            expected_direction = np.array([[1, 0, 0]]),
+        dict(testcase_name='-z_displaced_angled_ray', 
+            incident_direction=np.array([[2.4, 0, 1]]), 
+            incident_e = np.array([[0.171, 0, -0.985]]), 
+            source_position = np.array([[0, 0, -1]]),
+            expected_e_p = np.array([[0.584+0.185j, 0+0j, -0.701-0.222j]]),
+            expected_e_s = np.array([[0, 0, 0]]),
+            expected_direction = np.array([[0.993, 0, 0.063]]),
+            )
+    )
+    def test_light_source_off_origin(
+            self,
+            incident_direction,
+            incident_e,
+            source_position,
+            expected_e_p,
+            expected_e_s,
+            expected_direction,
+        ):
+        '''
+        The light source is displaced from, below the focal point. The outgoing rays
+        are no longer parallel along -x.
+        '''
+        reflected_e_s, reflected_e_p, reflected_direction = miop.get_mirror_reflected_field(
+            direction_vector=incident_direction,
+            incident_e=incident_e,
+            source_position=source_position,
+            wavelength=550e-9,
+            n_environment = 1,
+            mirror=miop.AMOLF_MIRROR,
+        )
+        np.testing.assert_allclose(reflected_e_s, expected_e_s, atol=1e-5)
+        np.testing.assert_allclose(reflected_e_p, expected_e_p, atol=1e-5)
+        np.testing.assert_allclose(reflected_direction, expected_direction, atol=1e-6)
+
 
 #    @parameterized.named_parameters(
 #        dict(testcase_name='Positive x-axis',
@@ -2407,7 +2472,7 @@ class GetMuellerMatrixTest(parameterized.TestCase):
         incident_vector=np.array([[1,1,1], [1,1,-1]])
         r, theta, phi = coord_transforms.cartesian_to_spherical_coords(incident_vector)
         E_S1_positive, E_S1_negative = self.positive_and_negative_stokes_vectors(theta[..., np.newaxis], phi[..., np.newaxis])
-        print(theta.shape, E_S1_positive.shape)
+#        print(theta.shape, E_S1_positive.shape)
         mueller_matrix = np.real(miop.get_mirror_mueller_matrix(
             incident_vector,
             E_S1_positive,
