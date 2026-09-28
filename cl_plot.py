@@ -89,27 +89,26 @@ def ar_plot(theta, phi, magnitude, ax=None, **kwargs):
     plt.colorbar(colourplot, ax=ax)
     return fig
 
-def format_AR_plot(fig):
-    ax = plt.gca()
-    ax.set_position([0.1, 0, 0.8, 1])
-    ax.set_facecolor('k')
-    ax.tick_params(
+def format_AR_plot(fig, axis):
+    axis.set_position([0.05, 0.1, 0.85, 0.8])
+    axis.set_facecolor('k')
+    axis.tick_params(
         axis='y', 
         grid_color=[0.7, 0.7, 0.7], 
-        labelsize=5, 
-        grid_linewidth=0.25
+        labelsize=15, 
+        grid_linewidth=1.5,
+        pad=0
         )
-    ax.tick_params(
+    axis.tick_params(
         axis='x', 
         #colors='w', 
         grid_color=[0.7, 0.7, 0.7], 
-        labelsize=5, 
-        grid_linewidth=0.25, 
-        pad=-4
+        labelsize=15, 
+        grid_linewidth=1.5, 
+        pad=10
         )
-    ax.spines['polar'].set_color([0.7, 0.7, 0.7])
-    ax.get_yaxis().set_ticklabels([])
-    ax.get_yaxis().set_ticks([0, 15, 30, 45, 60, 75, 90])
-    fig.axes[-1].remove()
-    fig.set_size_inches(1.2, 1.2)
-#    plt.savefig(savename + '.png', dpi=300, transparent=True, bbox_inches='tight', pad_inches=0)
+    axis.spines['polar'].set_linewidth(2)
+    axis.spines['polar'].set_color([0.7, 0.7, 0.7])
+    linesr, labelsr = plt.rgrids((30, 60, 90), [None, None, None])
+    cbar_axis = fig.axes[-1]
+    cbar_axis.remove()
