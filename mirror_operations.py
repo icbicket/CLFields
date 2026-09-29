@@ -338,15 +338,7 @@ def get_mirror_reflected_field(
 
     # refractive index
     n_surface = get_mirror_refractive_index(wavelength, mirror=mirror, **kwargs)
-    
-#    # convert direction vectors for mirror into spherical coordinates
-#    r_vector, theta_vector, phi_vector = ct.cartesian_to_spherical_coords(direction_vector)
-#    # define directions for p and s polarization
-#    p_direction, s_direction = parabola_surface_polarization_directions(
-#        theta_vector,
-#        phi_vector
-#    )
-    
+
     # calculate incident direction for rays from light source
     incident_direction = direction_vector - source_position
 
@@ -392,35 +384,13 @@ def get_mirror_reflected_field(
     
     # negative of the ct.reflect_vector because the outgoing e_s should be in the same direction as the incoming, and this vector reflection formula doesn't quite do that properly when the two vectors are perpendicular (the s-direction vector is not in the reflection plane)
     reflected_e_s = r_s * -ct.reflect_vector(incident_e_s, surface_normal)
-#    reflected_e_s = incident_e_s * r_s
     reflected_e_p = r_p * ct.reflect_vector(incident_e_p, surface_normal)
     normal_condition = np.all(incident_direction==surface_normal, axis=-1, keepdims=True)
     normal_mask = np.broadcast_to(normal_condition, incident_e.shape)
     reflected_e_s[normal_mask] = r_s[normal_condition] * incident_e[normal_mask]
     reflected_e_p[normal_mask] = 0
-
-
-#    incident_e_p_magnitude = ct.field_magnitude(incident_e_p, keepdims=True)
-#
-#    e_p_mag_0_condition = np.isclose(incident_e_p_magnitude, 0, atol=1e-15)
-#    e_p_0_condition = np.broadcast_to(e_p_mag_0_condition, np.shape(incident_e_p))
-#    
-#    incident_e_p_norm = np.zeros(np.shape(incident_e_p))
-#    incident_e_p_norm = np.ma.masked_array(incident_e_p, mask=e_p_0_condition)/np.ma.masked_array(incident_e_p_magnitude, mask=e_p_mag_0_condition)
-#    incident_e_p_norm = incident_e_p_norm.data * np.logical_not(incident_e_p_norm.mask)
-#
-#    reflected_e_p = (2 * np.sum(surface_normal * incident_e_p_norm, axis=-1, keepdims=True) * surface_normal - incident_e_p_norm) * incident_e_p_magnitude * r_p
-    
-#<<<<<<< HEAD
-#    p_direction, s_direction = surface_polarization_directions(
-#        normal=surface_normal,
-#        incident_direction=incident_direction)
-
-#    incident_e_s = np.sum(s_direction * incident_e, axis=-1, keepdims=True) * s_direction
-#    incident_e_p = np.sum(p_direction * incident_e, axis=-1, keepdims=True) * p_direction
 
     # negative of the ct.reflect_vector because the outgoing e_s should be in the same direction as the incoming, and this vector reflection formula doesn't quite do that properly when the two vectors are perpendicular (the s-direction vector is not in the reflection plane)
-#    reflected_e_s = r_s * -ct.reflect_vector(incident_e_s, surface_normal)
     reflected_e_p = r_p * ct.reflect_vector(incident_e_p, surface_normal)
 
     normal_condition = np.all(incident_direction==surface_normal, axis=-1, keepdims=True)
@@ -430,41 +400,6 @@ def get_mirror_reflected_field(
     reflected_e_s[normal_mask] = r_s[normal_condition] * incident_e[normal_mask]
 
     reflected_e_p[normal_mask] = 0
-
-#=======
-    # split incident electric field into s and p polarization components
-    
-#    # convert incident_e to spherical coordinates
-#    incident_e_r, incident_e_theta, incident_e_phi = ct.cartesian_to_spherical_vector_field(
-#        theta_vector,
-#        phi_vector,
-#        incident_e[:, 0],
-#        incident_e[:, 1],
-#        incident_e[:, 2],
-#    )
-#    incident_e_spherical = np.stack((incident_e_r, incident_e_theta, incident_e_phi)).T
-
-#
-#    incident_e_shifted = np.stack((incident_e_x, incident_e_y, incident_e_z)).T
-#
-#    incident_e_s = np.sum(s_direction * incident_e_shifted, axis=-1, keepdims=True) * s_direction
-#    incident_e_p = np.sum(p_direction * incident_e_shifted, axis=-1, keepdims=True) * p_direction
-#    
-#    reflected_e_s = incident_e_s * r_s
-#    incident_e_p_magnitude = ct.field_magnitude(incident_e_p, keepdims=True)
-#
-#    e_p_mag_0_condition = np.isclose(incident_e_p_magnitude, 0, atol=1e-15)
-#    e_p_0_condition = np.broadcast_to(e_p_mag_0_condition, np.shape(incident_e_p))
-#    
-#    incident_e_p_norm = np.zeros(np.shape(incident_e_p))
-#    incident_e_p_norm = np.ma.masked_array(incident_e_p, mask=e_p_0_condition)/np.ma.masked_array(incident_e_p_magnitude, mask=e_p_mag_0_condition)
-#    incident_e_p_norm = incident_e_p_norm.data * np.logical_not(incident_e_p_norm.mask)
-#
-#    reflected_e_p = (2 * np.sum(surface_normal * incident_e_p_norm, axis=-1, keepdims=True) * surface_normal - incident_e_p_norm) * incident_e_p_magnitude * r_p
-
-#    reflected_direction = -ct.rotate_vector_Nd(incident_direction, np.ones(np.shape(incident_direction)) * np.pi, surface_normal)
-
-#>>>>>>> 82e623a (Beginning to implement light source off-focus, not working yet)
 
     # negative of the reflected vector because the outgoing vector needs to 
     # propagate away from the surface and the reflect_vector function will
