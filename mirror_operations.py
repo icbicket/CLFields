@@ -1,6 +1,5 @@
 import numpy as np
 import coord_transforms as ct
-import constants
 import cl_calcs as clc
 import scipy.interpolate as scint
 from dataclasses import dataclass

@@ -1,7 +1,7 @@
 import numpy as np
 import coord_transforms as coord
 
-import constants
+from scipy import constants
 import scipy.interpolate as scint
 
 def degree_of_polarization(S0, S1, S2, S3):
@@ -200,13 +200,13 @@ def eV_to_wavelength(eV):
     '''
     Convert photon energy in eV to wavelength in m
     '''
-    wavelength = constants.PLANCK * constants.LIGHTSPEED / (eV * constants.COULOMB)
+    wavelength = constants.Planck * constants.speed_of_light / (eV * constants.elementary_charge)
     return wavelength
 
 def wavelength_to_eV(wavelength):
     '''
     Convert photon wavelength in m to eV
     '''
-    eV = constants.PLANCK * constants.LIGHTSPEED / (wavelength * constants.COULOMB)
+    eV = constants.Planck * constants.speed_of_light / (wavelength * constants.elementary_charge)
     return eV
 
